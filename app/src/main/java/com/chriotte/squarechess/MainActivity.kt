@@ -78,6 +78,7 @@ class MainActivity: ComponentActivity() {
                 var selectedMode by remember { mutableStateOf(GameMode.COMPUTER) }
                 var level by rememberSaveable { mutableIntStateOf(4) }
                 var white by rememberSaveable { mutableStateOf(true) }
+                LaunchedEffect(screen,s.game?.id) { if(screen=="game") flip=defaultFlipFor(s.game) }
                 LaunchedEffect(s.resultEvent) { s.resultEvent?.let { resultDialog=it } }
                 gameVisible=screen=="game"; modalVisible=dialog.isNotEmpty() || resultDialog!=null
                 Surface(Modifier.fillMaxSize(),color=Ink) {
