@@ -277,8 +277,8 @@ class MainActivity: ComponentActivity() {
                     val lightContrast=(LightSquare.luminance()+0.05f)/backgroundLuminance
                     val coordinateColor=if(darkContrast>=lightContrast) Ink else LightSquare
                     if(row==7) Text(('a'+file).toString(),
-                        modifier=(if(col==0) Modifier.align(Alignment.BottomStart).padding(start=24.dp,bottom=2.dp)
-                        else if(col==7) Modifier.align(Alignment.BottomEnd).padding(end=24.dp,bottom=2.dp)
+                        modifier=(if(col==0) Modifier.align(Alignment.BottomEnd).padding(end=8.dp,bottom=2.dp)
+                        else if(col==7) Modifier.align(Alignment.BottomStart).padding(start=8.dp,bottom=2.dp)
                         else Modifier.align(Alignment.BottomStart).padding(start=2.dp,bottom=2.dp)).clearAndSetSemantics {},
                         style=CoordinateStyle,color=coordinateColor)
                     if(col==7) Text((rank+1).toString(),
