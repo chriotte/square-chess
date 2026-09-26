@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
 import com.github.bhlangonijr.chesslib.Piece
+import com.github.bhlangonijr.chesslib.Side
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -73,10 +74,12 @@ class MainActivity: ComponentActivity() {
                 val history by vm.history.collectAsState(initial=emptyList())
                 var screen by rememberSaveable { mutableStateOf("home") }
                 var dialog by remember { mutableStateOf("") }
+                var resultDialog by remember { mutableStateOf<ResultEvent?>(null) }
                 var selectedMode by remember { mutableStateOf(GameMode.COMPUTER) }
                 var level by rememberSaveable { mutableIntStateOf(4) }
                 var white by rememberSaveable { mutableStateOf(true) }
-                gameVisible=screen=="game"; modalVisible=dialog.isNotEmpty()
+                LaunchedEffect(s.resultEvent) { s.resultEvent?.let { resultDialog=it } }
+                gameVisible=screen=="game"; modalVisible=dialog.isNotEmpty() || resultDialog!=null
                 Surface(Modifier.fillMaxSize(),color=Ink) {
                     // Home/history keep a conventional cutout inset. The game header
                     // handles the actual camera rectangle, using the space beside it.
@@ -104,7 +107,7 @@ class MainActivity: ComponentActivity() {
                                     Text("Square Chess",color=Color(0xFFF3EEDF),fontSize=24.sp,fontWeight=FontWeight.Medium)
                                 }
                                 if(s.game!=null) Button(
-                                    onClick={ screen="game"; vm.foreground() },
+                                    onClick={ flip=defaultFlipFor(s.game); screen="game"; vm.foreground() },
                                     modifier=Modifier.fillMaxWidth().heightIn(min=56.dp),
                                     shape=RoundedCornerShape(12.dp),
                                     colors=ButtonDefaults.buttonColors(containerColor=Sand,contentColor=Ink)
@@ -122,7 +125,7 @@ class MainActivity: ComponentActivity() {
                                 TextButton(onClick={screen="home"}) { Text("‹ Home") }
                                 Text("Your games",fontFamily=FontFamily.Serif,fontSize=30.sp)
                                 if(history.isEmpty()) Text("Your first game starts here.")
-                                history.forEach { g -> HomeAction(g.result,"${g.white} · ${g.black}",g.mode.lowercase().replace('_',' ')) { vm.resume(g); screen="game" } }
+                                history.forEach { g -> HomeAction(g.result,"${g.white} · ${g.black}",g.mode.lowercase().replace('_',' ')) { flip=defaultFlipFor(g); vm.resume(g); screen="game" } }
                             }
                             else -> Column(Modifier.fillMaxSize()) {
                                 GameHeader(s.message) { dialog="menu" }
@@ -143,20 +146,41 @@ class MainActivity: ComponentActivity() {
                             Row(verticalAlignment=Alignment.CenterVertically) { Text("Play as White",modifier=Modifier.weight(1f)); Switch(checked=white,onCheckedChange={white=it}) }
                         } else Text(if(selectedMode==GameMode.PHYSICAL_BOARD_RECORDING) "Enter moves from your board. No hints or engine analysis during recording. A casual companion, not tournament-approved equipment." else "Share this board with a friend. Untimed play.")
                     }
-                },confirmButton={TextButton(onClick={vm.newGame(selectedMode,level,white);screen="game";entry="";dialog=""}) {Text("Start game")}},dismissButton={TextButton(onClick={dialog=""}){Text("Cancel")}})
+                },confirmButton={TextButton(onClick={flip=selectedMode==GameMode.COMPUTER && !white;vm.newGame(selectedMode,level,white);screen="game";entry="";dialog=""}) {Text("Start game")}},dismissButton={TextButton(onClick={dialog=""}){Text("Cancel")}})
                 if(dialog=="menu") AlertDialog(onDismissRequest={dialog=""},title={Text("At the board")},text={Column(Modifier.verticalScroll(rememberScrollState())){
                     TextButton(onClick={dialog="history"}){Text("Move list")}
                     TextButton(onClick={flip=!flip;dialog=""}){Text("Flip board")}
-                    TextButton(onClick={dialog="undo"}){Text("Undo / take back")}
-                    if(s.position.canClaimDraw()) TextButton(onClick={vm.end("1/2-1/2");dialog=""}){Text("Claim draw")}
-                    TextButton(onClick={dialog="end"}){Text("End game")}
-                    if(s.game?.mode==GameMode.COMPUTER.name) TextButton(onClick={vm.maybeEngine();dialog=""}){Text("Retry engine")}
+                    if(s.game?.result=="*") {
+                        TextButton(onClick={dialog="undo"}){Text("Undo / take back")}
+                        if(s.position.canClaimDraw()) TextButton(onClick={vm.end("1/2-1/2","Draw claimed");dialog=""}){Text("Claim draw")}
+                        TextButton(onClick={dialog="end"}){Text("End game")}
+                        if(s.game?.mode==GameMode.COMPUTER.name && s.engineError!=null) TextButton(onClick={vm.maybeEngine();dialog=""}){Text("Retry engine")}
+                    }
                     TextButton(onClick={screen="home";dialog="";vm.background()}){Text("Save & home")}
                 }},confirmButton={TextButton(onClick={dialog=""}){Text("Back to board")}})
                 if(dialog=="undo") AlertDialog(onDismissRequest={dialog=""},title={Text("Take back the last turn?")},text={Text("The removed move can be played again. Against the computer, both moves are removed when possible.")},confirmButton={TextButton(onClick={vm.undo();dialog=""}){Text("Take back")}},dismissButton={TextButton(onClick={dialog=""}){Text("Keep playing")}})
-                if(dialog=="end") AlertDialog(onDismissRequest={dialog=""},title={Text("Finish this game")},text={Column{ Text("Choose the agreed result."); listOf("White wins" to "1-0","Black wins" to "0-1","Draw" to "1/2-1/2").forEach{(name,result)->TextButton(onClick={vm.end(result);dialog=""}){Text(name)}} }},confirmButton={TextButton(onClick={dialog=""}){Text("Cancel")}})
+                if(dialog=="end") AlertDialog(onDismissRequest={dialog=""},title={Text("Finish this game")},text={Column{ Text("Choose the agreed result."); listOf("White wins" to "1-0","Black wins" to "0-1","Draw" to "1/2-1/2").forEach{(name,result)->TextButton(onClick={vm.end(result,"Result recorded by the players");dialog=""}){Text(name)}} }},confirmButton={TextButton(onClick={dialog=""}){Text("Cancel")}})
                 if(dialog=="history") AlertDialog(onDismissRequest={dialog=""},title={Text("Moves")},text={Column(Modifier.verticalScroll(rememberScrollState())){if(s.position.moves.isEmpty()) Text("No moves yet.") else s.position.san.chunked(2).forEachIndexed { i,pair-> Text("${i+1}.  ${pair.joinToString("    ")}",fontFamily=FontFamily.Monospace,modifier=Modifier.padding(4.dp)) }}},confirmButton={TextButton(onClick={dialog=""}){Text("Close")}})
                 if(dialog=="help") AlertDialog(onDismissRequest={dialog=""},title={Text("Made for a smaller board")},text={Text("Tap a piece, then its destination. Or type e2e4 and press Enter. SAN such as Nf3 works too. Backspace edits; Back cancels your entry. F flips the board.\n\nGames save after each confirmed move.\n\nDevelopment build 0.1 · Stockfish 19 (GPLv3), Chesslib (Apache 2.0), Chessnut pieces by Alexis Luengas (Apache 2.0). Offline. No accounts or analytics.\n\nClocks, import/export and release hardening are still in development.")},confirmButton={TextButton(onClick={dialog=""}){Text("Close")}})
+                if(resultDialog!=null) {
+                    val event=resultDialog!!
+                    AlertDialog(
+                        onDismissRequest={resultDialog=null},
+                        title={Text(resultHeadline(event,s.game))},
+                        text={Column {
+                            Text(event.reason)
+                            Text(resultScore(event.result),modifier=Modifier.padding(top=8.dp),fontWeight=FontWeight.Medium)
+                            TextButton(onClick={resultDialog=null}) { Text("Review board") }
+                        }},
+                        confirmButton={TextButton(onClick={
+                            val g=s.game
+                            resultDialog=null
+                            if(g!=null) { selectedMode=runCatching { GameMode.valueOf(g.mode) }.getOrDefault(selectedMode); level=g.level; white=g.humanWhite }
+                            dialog="new"
+                        }) { Text("Play again") }},
+                        dismissButton={TextButton(onClick={resultDialog=null;screen="home";vm.background()}) { Text("Save & home") }}
+                    )
+                }
             }
         }
     }
@@ -245,18 +269,21 @@ class MainActivity: ComponentActivity() {
     var selected by remember(s.position.moves) { mutableStateOf<Square?>(null) }
     var promotion by remember { mutableStateOf<List<String>>(emptyList()) }
     val legal=s.position.legal
+    val game=s.game
+    val humanTurn=game==null || game.mode!=GameMode.COMPUTER.name || ((s.position.board.sideToMove==Side.WHITE)==game.humanWhite)
+    val canInteract=!s.busy && game?.result=="*" && humanTurn
     Column(modifier) {
         for(row in 0..7) Row(Modifier.weight(1f)) {
             for(col in 0..7) {
                 val file=if(flip) 7-col else col; val rank=if(flip) row else 7-row
                 val square=Square.squareAt(rank*8+file)
                 val piece=s.position.board.getPiece(square)
-                val targets=legal.filter{it.from==selected && it.to==square}
+                val targets=if(canInteract) legal.filter{it.from==selected && it.to==square} else emptyList()
                 val last=s.highlightMove.orEmpty()
                 val recent=last.startsWith(square.name.lowercase()) || last.drop(2).startsWith(square.name.lowercase())
                 val check=piece!=Piece.NONE && piece.pieceType.name=="KING" && piece.pieceSide==s.position.board.sideToMove && s.position.board.isKingAttacked
                 val color=when { selected==square->Color(0xFFC8B56E);check->Color(0xFFBF7669);recent->Color(0xFFA7AC78);(rank+file)%2==1->LightSquare;else->DarkSquare }
-                BoxWithConstraints(Modifier.weight(1f).fillMaxHeight().background(color).semantics { contentDescription="${square.name.lowercase()}, ${if(piece==Piece.NONE) "empty" else piece.name.lowercase().replace('_',' ')}${if(targets.isNotEmpty()) ", legal destination" else ""}${if(check) ", check" else ""}" }.clickable {
+                BoxWithConstraints(Modifier.weight(1f).fillMaxHeight().background(color).semantics { contentDescription="${square.name.lowercase()}, ${if(piece==Piece.NONE) "empty" else piece.name.lowercase().replace('_',' ')}${if(targets.isNotEmpty()) ", legal destination" else ""}${if(check) ", check" else ""}" }.clickable(enabled=canInteract,role=Role.Button) {
                     if(targets.size>1) promotion=targets.map{it.toString()}
                     else if(targets.size==1) {onMove(targets[0].toString());selected=null}
                     else selected=if(piece!=Piece.NONE && piece.pieceSide==s.position.board.sideToMove) square else null
@@ -290,6 +317,23 @@ class MainActivity: ComponentActivity() {
         }
     }
     if(promotion.isNotEmpty()) AlertDialog(onDismissRequest={promotion=emptyList()},title={Text("Promote pawn")},text={Column{promotion.forEach { move->TextButton(onClick={onMove(move);promotion=emptyList();selected=null}){Text(when(move.last()){'q'->"Queen";'r'->"Rook";'b'->"Bishop";else->"Knight"})}}}},confirmButton={TextButton(onClick={promotion=emptyList()}){Text("Cancel")}})
+}
+
+private fun defaultFlipFor(game: SavedGame?): Boolean =
+    game?.mode==GameMode.COMPUTER.name && !game.humanWhite
+
+private fun resultHeadline(event: ResultEvent, game: SavedGame?): String = when {
+    event.result=="1/2-1/2" -> "Draw"
+    game?.mode==GameMode.COMPUTER.name && ((event.result=="1-0")==game.humanWhite) -> "You won"
+    game?.mode==GameMode.COMPUTER.name -> "You lost"
+    event.result=="1-0" -> "White wins"
+    else -> "Black wins"
+}
+
+private fun resultScore(result: String): String = when(result) {
+    "1-0" -> "White · 1–0"
+    "0-1" -> "Black · 0–1"
+    else -> "Draw · ½–½"
 }
 
 private fun pieceDrawable(piece: Piece): Int = when (piece) {

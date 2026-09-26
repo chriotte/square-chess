@@ -38,6 +38,14 @@ class ChessPosition(val initialFen: String = START_FEN, val moves: List<String> 
         board.isRepetition(5) || board.halfMoveCounter >= 150 -> "1/2-1/2"
         else -> null
     }
+    fun automaticResultReason(): String? = when {
+        board.isMated -> "Checkmate"
+        board.isStaleMate -> "Stalemate"
+        provenDeadMaterial() -> "Draw by insufficient material"
+        board.isRepetition(5) -> "Draw by fivefold repetition"
+        board.halfMoveCounter >= 150 -> "Draw by the 75-move rule"
+        else -> null
+    }
     fun canClaimDraw() = board.isRepetition(3) || board.halfMoveCounter >= 100
     // Do not use Chesslib's heuristic: it incorrectly draws some minor-piece endings.
     // Blocked dead positions require broader analysis and remain a release gate.

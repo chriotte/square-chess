@@ -18,8 +18,11 @@ data class GameUi(
     val busy: Boolean = false,
     val message: String = "Your board. Your pace.",
     val highlightMove: String? = null,
+    val engineError: String? = null,
+    val resultEvent: ResultEvent? = null,
     val ready: Boolean = false
 )
+data class ResultEvent(val result: String, val reason: String)
 class GameViewModel(app: Application): AndroidViewModel(app) {
     private val db = Room.databaseBuilder(app,ChessDatabase::class.java,"square-chess.db").build()
     private val engine: EngineController = StockfishController(app)
@@ -68,11 +71,20 @@ class GameViewModel(app: Application): AndroidViewModel(app) {
         val s=state.value; val g=s.game ?: return
         val move=s.position.resolve(uci) ?: error("Engine returned an illegal move: $uci")
         val p=s.position.append(move)
-        val saved=g.copy(moves=p.moves.joinToString(" "),result=p.automaticResult() ?: "*",updated=System.currentTimeMillis())
+        val result=p.automaticResult() ?: "*"
+        val saved=g.copy(moves=p.moves.joinToString(" "),result=result,updated=System.currentTimeMillis())
         db.games().save(saved)
         revision++
         val highlightRevision=revision
-        state.value=s.copy(game=saved,position=p,busy=false,highlightMove=uci,message=if(saved.result!="*") "Game finished · ${saved.result}" else "${p.board.sideToMove.name.lowercase().replaceFirstChar(Char::titlecase)} to move${if(p.board.isKingAttacked) " · Check" else ""}")
+        state.value=s.copy(
+            game=saved,
+            position=p,
+            busy=false,
+            engineError=null,
+            highlightMove=uci,
+            resultEvent=if(result!="*") ResultEvent(result,p.automaticResultReason() ?: "Game finished") else null,
+            message=if(result!="*") "Game finished · $result" else "${p.board.sideToMove.name.lowercase().replaceFirstChar(Char::titlecase)} to move${if(p.board.isKingAttacked) " · Check" else ""}"
+        )
         viewModelScope.launch {
             delay(1200)
             if(revision==highlightRevision) state.value=state.value.copy(highlightMove=null)
@@ -84,13 +96,20 @@ class GameViewModel(app: Application): AndroidViewModel(app) {
         val s=state.value; val g=s.game ?: return
         if(!foreground || s.busy || g.result!="*" || g.mode!=GameMode.COMPUTER.name || humanTurn(s)) return
         val token=revision
-        state.value=s.copy(busy=true,message="Stockfish is thinking…")
+        state.value=s.copy(busy=true,engineError=null,message="Stockfish is thinking…")
         engineJob=viewModelScope.launch {
             try {
                 val best=engine.search(g.initialFen,s.position.moves,g.level)
                 commitLock.withLock { if(token==revision && foreground) commit(best) }
             } catch(e: CancellationException) { throw e }
-            catch(e: Exception) { if(token==revision) state.value=state.value.copy(busy=false,message="Engine unavailable: ${e.message}. Use Retry in the menu."); Log.e("SquareChess","Engine failed",e) }
+            catch(e: Exception) {
+                if(token==revision) state.value=state.value.copy(
+                    busy=false,
+                    engineError=e.message ?: "Unknown engine error",
+                    message="Computer unavailable. Retry from the menu."
+                )
+                Log.e("SquareChess","Engine failed",e)
+            }
         }
     }
     fun undo() = viewModelScope.launch { commitLock.withLock {
@@ -100,10 +119,10 @@ class GameViewModel(app: Application): AndroidViewModel(app) {
         val saved=g.copy(moves=s.position.moves.dropLast(n).joinToString(" "),result="*",updated=System.currentTimeMillis())
         db.games().save(saved); load(saved)
     }; maybeEngine() }
-    fun end(result: String) = viewModelScope.launch { commitLock.withLock {
+    fun end(result: String, reason: String = "Result recorded") = viewModelScope.launch { commitLock.withLock {
         val g=state.value.game ?: return@withLock; invalidate()
         val saved=g.copy(result=result,updated=System.currentTimeMillis()); db.games().save(saved)
-        state.value=state.value.copy(game=saved,busy=false,message="Game finished · $result")
+        state.value=state.value.copy(game=saved,busy=false,engineError=null,resultEvent=ResultEvent(result,reason),message="Game finished · $result")
     } }
     fun background() { foreground=false; invalidate(); state.value=state.value.copy(busy=false) }
     fun foreground() { foreground=true; maybeEngine() }
