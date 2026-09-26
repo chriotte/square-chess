@@ -19,10 +19,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.bhlangonijr.chesslib.Piece
@@ -31,8 +33,8 @@ import com.github.bhlangonijr.chesslib.Square
 
 private val Ink=Color(0xFF171D1C)
 private val Sand=Color(0xFFDCC399)
-private val LightSquare=Color(0xFFE8DFC9)
-private val DarkSquare=Color(0xFF71887C)
+private val LightSquare=Color(0xFFF2E7CF)
+private val DarkSquare=Color(0xFF526D62)
 
 class MainActivity: ComponentActivity() {
     private val vm: GameViewModel by viewModels()
@@ -73,17 +75,16 @@ class MainActivity: ComponentActivity() {
                                 history.forEach { g -> HomeAction(g.result,"${g.white} · ${g.black}",g.mode.lowercase().replace('_',' ')) { vm.resume(g); screen="game" } }
                             }
                             else -> Column(Modifier.fillMaxSize()) {
-                                Row(Modifier.fillMaxWidth().heightIn(min=48.dp).padding(horizontal=12.dp),verticalAlignment=Alignment.CenterVertically) {
-                                    Text("SQUARE CHESS",color=Sand,fontSize=12.sp,letterSpacing=2.sp,modifier=Modifier.weight(1f))
-                                    TextButton(onClick={dialog="menu"}) { Text("Menu") }
+                                // The only persistent chrome is the menu affordance. It sits below
+                                // the safe drawing inset, leaving the camera/status area untouched.
+                                Box(Modifier.fillMaxWidth().height(40.dp).padding(horizontal=8.dp),contentAlignment=Alignment.CenterEnd) {
+                                    TextButton(onClick={dialog="menu"},modifier=Modifier.semantics { contentDescription="Game menu" }) {
+                                        Text("⋮",color=Sand,fontSize=28.sp,lineHeight=28.sp)
+                                    }
                                 }
                                 BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(),contentAlignment=Alignment.Center) {
-                                    val side=minOf(maxWidth-16.dp,maxHeight)
+                                    val side=minOf(maxWidth-4.dp,maxHeight)
                                     ChessBoard(s,flip,Modifier.size(side)) { move -> vm.enter(move) }
-                                }
-                                Column(Modifier.fillMaxWidth().padding(horizontal=16.dp,vertical=8.dp)) {
-                                    Text(if(entry.isEmpty()) s.message else "› $entry",fontSize=14.sp,color=if(entry.isEmpty()) Color(0xFFF3EEDF) else Sand)
-                                    Text(if(s.game?.mode==GameMode.PHYSICAL_BOARD_RECORDING.name) "RECORDING · No engine assistance" else "Type e2e4 ↵  ·  F flip  ·  Tap to move",fontSize=11.sp,color=Color(0xFFAFBCB4))
                                 }
                             }
                         }
@@ -162,10 +163,20 @@ class MainActivity: ComponentActivity() {
                     else if(targets.size==1) {onMove(targets[0].toString());selected=null}
                     else selected=if(piece!=Piece.NONE && piece.pieceSide==s.position.board.sideToMove) square else null
                 },contentAlignment=Alignment.Center) {
-                    if(piece!=Piece.NONE) Text(glyphs[symbol.uppercase().first()] ?: "",fontSize=(maxWidth.value*.82).sp,color=if(piece.pieceSide==Side.WHITE) Color.White else Color(0xFF17221E),fontWeight=FontWeight.Bold)
+                    if(piece!=Piece.NONE) {
+                        val whitePiece=piece.pieceSide==Side.WHITE
+                        Text(
+                            glyphs[symbol.uppercase().first()] ?: "",
+                            fontSize=(maxWidth.value*.82).sp,
+                            color=if(whitePiece) Color(0xFFFFFCF3) else Color(0xFF101916),
+                            fontWeight=FontWeight.Bold,
+                            style=TextStyle(shadow=Shadow(if(whitePiece) Color(0xFF17231F) else Color(0xFFFFF4D8),blurRadius=2.5f))
+                        )
+                    }
                     if(targets.isNotEmpty()) Box(Modifier.size(9.dp).background(Color(0xFF374A3A),RoundedCornerShape(10.dp)))
-                    if(row==7) Text(('a'+file).toString(),modifier=Modifier.align(Alignment.BottomEnd).padding(end=2.dp),fontSize=8.sp,color=Ink)
-                    if(col==0) Text((rank+1).toString(),modifier=Modifier.align(Alignment.TopStart).padding(start=2.dp),fontSize=8.sp,color=Ink)
+                    val coordinateColor=if((rank+file)%2==1) Color(0xFFE5F0E6) else Color(0xFF33453D)
+                    if(row==7) Text(('a'+file).toString(),modifier=Modifier.align(Alignment.BottomEnd).padding(end=2.dp),fontSize=8.sp,color=coordinateColor)
+                    if(col==0) Text((rank+1).toString(),modifier=Modifier.align(Alignment.TopStart).padding(start=2.dp),fontSize=8.sp,color=coordinateColor)
                 }
             }
         }
