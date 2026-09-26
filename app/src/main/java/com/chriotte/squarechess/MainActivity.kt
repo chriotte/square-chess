@@ -21,12 +21,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,6 +47,10 @@ private val Ink=Color(0xFF171D1C)
 private val Sand=Color(0xFFDCC399)
 private val LightSquare=Color(0xFFF2E7CF)
 private val DarkSquare=Color(0xFF526D62)
+private val CoordinateStyle=TextStyle(
+    fontSize=9.sp,lineHeight=10.sp,fontWeight=FontWeight.SemiBold,
+    platformStyle=PlatformTextStyle(includeFontPadding=false)
+)
 
 class MainActivity: ComponentActivity() {
     private val vm: GameViewModel by viewModels()
@@ -262,9 +270,18 @@ class MainActivity: ComponentActivity() {
                         )
                     }
                     if(targets.isNotEmpty()) Box(Modifier.size(9.dp).background(Color(0xFF374A3A),RoundedCornerShape(10.dp)))
-                    val coordinateColor=if((rank+file)%2==1) Color(0xFFE5F0E6) else Color(0xFF33453D)
-                    if(row==7) Text(('a'+file).toString(),modifier=Modifier.align(Alignment.BottomEnd).padding(end=2.dp),fontSize=8.sp,color=coordinateColor)
-                    if(col==0) Text((rank+1).toString(),modifier=Modifier.align(Alignment.TopStart).padding(start=2.dp),fontSize=8.sp,color=coordinateColor)
+                    // Use the displayed colour, including move/check highlights, so
+                    // coordinates stay legible. Square semantics already name them.
+                    val backgroundLuminance=color.luminance()+0.05f
+                    val darkContrast=backgroundLuminance/(Ink.luminance()+0.05f)
+                    val lightContrast=(LightSquare.luminance()+0.05f)/backgroundLuminance
+                    val coordinateColor=if(darkContrast>=lightContrast) Ink else LightSquare
+                    if(row==7) Text(('a'+file).toString(),
+                        modifier=Modifier.align(Alignment.BottomStart).padding(2.dp).clearAndSetSemantics {},
+                        style=CoordinateStyle,color=coordinateColor)
+                    if(col==7) Text((rank+1).toString(),
+                        modifier=Modifier.align(Alignment.TopEnd).padding(2.dp).clearAndSetSemantics {},
+                        style=CoordinateStyle,color=coordinateColor)
                 }
             }
         }
