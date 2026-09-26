@@ -22,4 +22,7 @@ Square Chess original code: GNU GPL v3 or later; full licence in LICENSE.
 
 ## Visuals
 
-Original layout and colours. Chess glyphs are rendered using the device system font; no downloaded chess art, sounds or branding are bundled. Final piece artwork and accessibility review remain pending.
+The Fantasy chess-piece artwork is by Maurizio Monge and is used under the
+MIT License. Source links and the full notice are in
+`THIRD_PARTY_NOTICES.md` and `app/src/main/assets/pieces/`. The Android PNGs
+are rasterized copies of the corresponding SVGs.
