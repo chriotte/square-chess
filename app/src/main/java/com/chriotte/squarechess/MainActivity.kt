@@ -21,10 +21,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -81,16 +83,32 @@ class MainActivity: ComponentActivity() {
                             .imePadding()
                     ) {
                         when(screen) {
-                            "home" -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-                                Text("SQUARE / CHESS",color=Sand,fontSize=12.sp,letterSpacing=3.sp)
-                                Text("A little room.\nA whole world.",fontFamily=FontFamily.Serif,fontSize=34.sp,lineHeight=36.sp)
-                                Text("Offline chess, made for your keyboard.",color=Color(0xFFAFBCB4),fontSize=14.sp)
-                                Spacer(Modifier.height(8.dp))
-                                HomeAction("01", "Play computer", "Find your pace against Stockfish") { selectedMode=GameMode.COMPUTER; dialog="new" }
-                                HomeAction("02", "Two players", "One board. Two sides.") { selectedMode=GameMode.LOCAL_TWO_PLAYER; dialog="new" }
-                                HomeAction("03", "Record physical game", "Keep the moves from your real board") { selectedMode=GameMode.PHYSICAL_BOARD_RECORDING; dialog="new" }
-                                if(s.game!=null) Button(onClick={ screen="game"; vm.foreground() },modifier=Modifier.fillMaxWidth()) { Text("Continue game · ${s.position.moves.size} plies") }
-                                Row { TextButton(onClick={screen="history"}) { Text("Game history") }; TextButton(onClick={dialog="help"}) { Text("Help & about") } }
+                            "home" -> Column(Modifier.fillMaxSize().padding(horizontal=24.dp)) {
+                              Column(
+                                Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
+                                    .padding(top=24.dp,bottom=12.dp),
+                                verticalArrangement=Arrangement.spacedBy(12.dp)
+                              ) {
+                                Row(Modifier.padding(bottom=12.dp),verticalAlignment=Alignment.CenterVertically) {
+                                    Image(painterResource(R.drawable.ic_square_chess),contentDescription=null,
+                                        modifier=Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)))
+                                    Spacer(Modifier.width(12.dp))
+                                    Text("Square Chess",color=Color(0xFFF3EEDF),fontSize=24.sp,fontWeight=FontWeight.Medium)
+                                }
+                                if(s.game!=null) Button(
+                                    onClick={ screen="game"; vm.foreground() },
+                                    modifier=Modifier.fillMaxWidth().heightIn(min=56.dp),
+                                    shape=RoundedCornerShape(12.dp),
+                                    colors=ButtonDefaults.buttonColors(containerColor=Sand,contentColor=Ink)
+                                ) { Text(if(s.game?.result=="*") "Continue game" else "View last game",fontSize=17.sp) }
+                                LandingOption("Play computer") { selectedMode=GameMode.COMPUTER; dialog="new" }
+                                LandingOption("Two players") { selectedMode=GameMode.LOCAL_TWO_PLAYER; dialog="new" }
+                                LandingOption("Record physical game") { selectedMode=GameMode.PHYSICAL_BOARD_RECORDING; dialog="new" }
+                              }
+                                Row(Modifier.fillMaxWidth().padding(top=4.dp,bottom=16.dp),horizontalArrangement=Arrangement.SpaceBetween) {
+                                    TextButton(onClick={screen="history"}) { Text("Game history") }
+                                    TextButton(onClick={dialog="help"}) { Text("Help & about") }
+                                }
                             }
                             "history" -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
                                 TextButton(onClick={screen="home"}) { Text("‹ Home") }
@@ -191,6 +209,19 @@ class MainActivity: ComponentActivity() {
             Button(onClick=onMenu, modifier=Modifier.height(40.dp).semantics { contentDescription="Game menu" },
                 contentPadding=PaddingValues(horizontal=18.dp,vertical=0.dp)) { Text("Menu") }
         }
+    }
+}
+
+@Composable private fun LandingOption(title: String, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF26302C)).clickable(role=Role.Button,onClick=onClick)
+            .heightIn(min=64.dp).padding(horizontal=20.dp,vertical=14.dp),
+        verticalAlignment=Alignment.CenterVertically
+    ) {
+        Text(title,fontSize=18.sp,fontWeight=FontWeight.Medium,modifier=Modifier.weight(1f))
+        Spacer(Modifier.width(12.dp))
+        Text("›",color=Sand,fontSize=24.sp)
     }
 }
 

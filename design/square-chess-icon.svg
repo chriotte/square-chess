@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="108" height="108" viewBox="0 0 108 108">
+  <title>Square Chess — rook and board squares</title>
+  <path id="background" fill="#171D1C" d="M0 0H108V108H0Z"/>
+  <path fill="#526D62" d="M27 27H51V51H27Z M57 57H81V81H57Z"/>
+  <path id="rook" fill="#DCC399" stroke="#171D1C" stroke-width="3" stroke-linejoin="round"
+    d="M34 31H43V39H50V31H58V39H65V31H74V47L68 52V67L75 72V78H33V72L40 67V52L34 47Z"/>
+  <path fill="none" stroke="#171D1C" stroke-width="2.5" d="M40 49H68 M41 67H67"/>
+</svg>
