@@ -1,0 +1,9 @@
+.gradle/
+.kotlin/
+**/build/
+**/.cxx/
+local.properties
+*.jks
+*.keystore
+app/src/main/assets/*.nnue
+*.hprof

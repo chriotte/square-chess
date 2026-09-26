@@ -1,0 +1,2326 @@
+/*
+ * Copyright 2017 Ben-Hur Carlos Vieira Langoni Junior
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.github.bhlangonijr.chesslib;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Supplier;
+import java.util.stream.IntStream;
+
+import org.apache.commons.lang3.StringUtils;
+
+import static com.github.bhlangonijr.chesslib.Bitboard.extractLsb;
+import static com.github.bhlangonijr.chesslib.Constants.emptyMove;
+import static com.github.bhlangonijr.chesslib.Constants.POLYGLOT_RANDOM_TABLE;
+import com.github.bhlangonijr.chesslib.game.GameContext;
+import com.github.bhlangonijr.chesslib.game.VariationType;
+import com.github.bhlangonijr.chesslib.move.Move;
+import com.github.bhlangonijr.chesslib.move.MoveGenerator;
+import com.github.bhlangonijr.chesslib.move.MoveList;
+import com.github.bhlangonijr.chesslib.util.XorShiftRandom;
+
+/**
+ * The definition of a chessboard position and its status. It exposes methods to manipulate the board, evolve the
+ * position moving pieces around, revert already performed moves, and retrieve the status of the current configuration
+ * on the board. Furthermore, it offers a handy way for loading a position from a Forsyth-Edwards Notation (FEN) string
+ * and exporting it in the same format.
+ * <p>
+ * Each position in uniquely identified by hashes that could be retrieved using {@link Board#getIncrementalHashKey()}
+ * and {@link Board#getZobristKey()} methods. Also, the implementation supports comparison against other board instances
+ * using either the strict ({@link Board#strictEquals(Object)}) or the non-strict ({@link Board#equals(Object)}) mode.
+ * <p>
+ * The board can be observed registering {@link BoardEventListener}s for particular types of events. Moreover, the
+ * {@link Board} class itself is a {@link BoardEvent}, and hence it can be passed to the observers of the
+ * {@link BoardEventType#ON_LOAD} events, emitted when a new chess position is loaded from an external source (e.g. a
+ * FEN string).
+ */
+public class Board implements Cloneable, BoardEvent {
+
+    private static final List<Long> keys = new ArrayList<>();
+    private static final long RANDOM_SEED = 49109794719L;
+    private static final int ZOBRIST_TABLE_SIZE = 2000;
+
+    static {
+        final XorShiftRandom random = new XorShiftRandom(RANDOM_SEED);
+        for (int i = 0; i < ZOBRIST_TABLE_SIZE; i++) {
+            long key = random.nextLong();
+            keys.add(key);
+        }
+    }
+
+    private final LinkedList<MoveBackup> backup;
+    private final EnumMap<BoardEventType, List<BoardEventListener>> eventListener;
+    private final long[] bitboard;
+    private final long[] bbSide;
+    private final Piece[] occupation;
+    private final EnumMap<Side, CastleRight> castleRight;
+    private final LinkedList<Long> history = new LinkedList<>();
+    private Side sideToMove;
+    private Square enPassantTarget;
+    private Square enPassant;
+    private Integer moveCounter;
+    private Integer halfMoveCounter;
+    private GameContext context;
+    private boolean enableEvents;
+    private final boolean updateHistory;
+    private long incrementalHashKey;
+    private long incrementalPolyglotKey;
+
+    /**
+     * Constructs a new board using a default game context. The board will keep its history updated, that is, will store
+     * a hash value for each position encountered.
+     *
+     * @see Board#Board(GameContext, boolean)
+     */
+    public Board() {
+        this(new GameContext(), true);
+    }
+
+    /**
+     * Constructs a new board, using the game context provided in input. When history updates are enabled, the board
+     * will keep the hashes of all positions encountered.
+     *
+     * @param gameContext   the game context to use for this board
+     * @param updateHistory whether to keep the history updated or not
+     */
+    public Board(GameContext gameContext, boolean updateHistory) {
+
+        bitboard = new long[Piece.allPieces.length];
+        bbSide = new long[Side.allSides.length];
+        occupation = new Piece[Square.values().length];
+        castleRight = new EnumMap<>(Side.class);
+        backup = new LinkedList<>();
+        context = gameContext;
+        eventListener = new EnumMap<>(BoardEventType.class);
+        this.updateHistory = updateHistory;
+        setSideToMove(Side.WHITE);
+        setEnPassantTarget(Square.NONE);
+        setEnPassant(Square.NONE);
+        setMoveCounter(1);
+        setHalfMoveCounter(0);
+        for (BoardEventType evt : BoardEventType.values()) {
+            eventListener.put(evt, new CopyOnWriteArrayList<>());
+        }
+        loadFromFen(gameContext.getStartFEN());
+        setEnableEvents(true);
+    }
+
+    /*
+     * does move lead to a promotion?
+     */
+    private static boolean isPromoRank(Side side, Move move) {
+        if (side.equals(Side.WHITE) &&
+                move.getTo().getRank().equals(Rank.RANK_8)) {
+            return true;
+        } else return side.equals(Side.BLACK) &&
+                move.getTo().getRank().equals(Rank.RANK_1);
+
+    }
+
+    private static Square findEnPassantTarget(Square sq, Side side) {
+        Square ep = Square.NONE;
+        if (!Square.NONE.equals(sq)) {
+            ep = Side.WHITE.equals(side) ?
+                    Square.encode(Rank.RANK_5, sq.getFile()) :
+                    Square.encode(Rank.RANK_4, sq.getFile());
+        }
+        return ep;
+    }
+
+    private static Square findEnPassant(Square sq, Side side) {
+        Square ep = Square.NONE;
+        if (!Square.NONE.equals(sq)) {
+            ep = Side.WHITE.equals(side) ?
+                    Square.encode(Rank.RANK_3, sq.getFile()) :
+                    Square.encode(Rank.RANK_6, sq.getFile());
+        }
+        return ep;
+    }
+
+    private static IntStream zeroToSeven() {
+        return IntStream.iterate(0, i -> i + 1).limit(8);
+    }
+
+    private static IntStream sevenToZero() {
+        return IntStream.iterate(7, i -> i - 1).limit(8);
+    }
+
+    /**
+     * Executes a move on the board, specified in Short Algebraic Notation (SAN). It returns {@code true} if the
+     * operation has been successful and the position changed after the move. It performs a full validation of the board
+     * status to assess the outcome of the operation.
+     * <p>
+     * <b>N.B.</b>: the method does not check whether the move is legal or not according to the standard chess rules,
+     * but rather if the resulting configuration is valid. For instance, it is totally fine to move the king by two or
+     * more squares, or a rook beyond its friendly pieces, as long as the position obtained after the move does not
+     * violate any chess constraint.
+     *
+     * @param move the move to execute in SAN notation, such as {@code Nc3}
+     * @return {@code true} if the move was successful and the resulting position is valid
+     */
+    public boolean doMove(final String move) {
+
+        MoveList moves = new MoveList(this.getFen());
+        moves.addSanMove(move, true, true);
+        return doMove(moves.removeLast(), true);
+    }
+
+    /**
+     * Executes a move on the board without performing a full validation of the position. It returns {@code true} if the
+     * operation has been successful and the position changed after the move.
+     * <p>
+     * Same as invoking {@code doMove(move, false)}.
+     *
+     * @param move the move to execute
+     * @return {@code true} if the move was successful and the resulting position is valid
+     * @see #doMove(Move, boolean)
+     */
+    public boolean doMove(final Move move) {
+        return doMove(move, false);
+    }
+
+    /**
+     * Executes a move on the board. It returns {@code true} if the operation has been successful and the position
+     * changed after the move. When a full validation is requested, additional checks are performed to assess the
+     * outcome of the operation, such as if the side to move is the expected one, if castling or promotion moves are
+     * allowed, if the move replaces another piece of the same side, etc.
+     * <p>
+     * <b>N.B.</b>: the method does not check whether the move is legal or not according to the standard chess rules,
+     * but rather if the resulting configuration is valid. For instance, it is totally fine to move the king by two or
+     * more squares, or a rook beyond its friendly pieces, as long as the position obtained after the move does not
+     * violate any chess constraint.
+     *
+     * @param move           the move to execute
+     * @param fullValidation whether to perform a full validation of the position or not
+     * @return {@code true} if the move was successful and the resulting position is valid
+     */
+    public boolean doMove(final Move move, boolean fullValidation) {
+
+        if (!isMoveLegal(move, fullValidation)) {
+            return false;
+        }
+
+        Piece movingPiece = getPiece(move.getFrom());
+        Side side = getSideToMove();
+
+        MoveBackup backupMove = new MoveBackup(this, move);
+        final boolean isCastle;
+        if (PieceType.KING.equals(movingPiece.getPieceType())
+                && getCastleRight(side) != CastleRight.NONE
+                && context.isCastleMove(move)) {
+            if (context.getVariationType() == VariationType.CHESS960) {
+                isCastle = isChess960Castle(move, side);
+            } else {
+                isCastle = true;
+            }
+        } else {
+            isCastle = false;
+        }
+
+        incrementalHashKey ^= getSideKey(getSideToMove());
+        incrementalPolyglotKey ^= getSidePolyglotKey();
+
+        if (getEnPassantTarget() != Square.NONE) {
+            incrementalHashKey ^= getEnPassantKey(getEnPassantTarget());
+            incrementalPolyglotKey ^= getEnPassantPolyglotKey(getEnPassantTarget());
+        }
+
+        if (PieceType.KING.equals(movingPiece.getPieceType())) {
+            if (isCastle) {
+                CastleRight c = context.isKingSideCastle(move) ? CastleRight.KING_SIDE :
+                        CastleRight.QUEEN_SIDE;
+                Move rookMove = context.getRookCastleMove(side, c);
+                if (context.getVariationType() == VariationType.CHESS960) {
+                    // Chess960: manually handle piece placement to avoid capture issues
+                    // Determine the king's final destination square (always c1/g1 or c8/g8)
+                    Square kingDest;
+                    if (side == Side.WHITE) {
+                        kingDest = c == CastleRight.KING_SIDE ? Square.G1 : Square.C1;
+                    } else {
+                        kingDest = c == CastleRight.KING_SIDE ? Square.G8 : Square.C8;
+                    }
+                    Piece king = getPiece(move.getFrom());
+                    Piece rook = getPiece(rookMove.getFrom());
+                    unsetPiece(king, move.getFrom());
+                    if (!rookMove.getFrom().equals(move.getFrom())) {
+                        unsetPiece(rook, rookMove.getFrom());
+                    }
+                    setPiece(rook, rookMove.getTo());
+                    setPiece(king, kingDest);
+                } else {
+                    movePiece(rookMove, backupMove);
+                }
+            }
+            if (getCastleRight(side) != CastleRight.NONE) {
+                incrementalHashKey ^= getCastleRightKey(side);
+                incrementalPolyglotKey ^= getCastleRightsPolyglotKey(getCastleRight(side), side);
+                getCastleRight().put(side, CastleRight.NONE);
+            }
+        } else if (PieceType.ROOK == movingPiece.getPieceType()
+                && CastleRight.NONE != getCastleRight(side)) {
+            final Move oo = context.getRookoo(side);
+            final Move ooo = context.getRookooo(side);
+
+            if (move.getFrom() == oo.getFrom()) {
+                if (CastleRight.KING_AND_QUEEN_SIDE == getCastleRight(side)) {
+                    incrementalHashKey ^= getCastleRightKey(side);
+                    incrementalPolyglotKey ^= getCastleRightsPolyglotKey(getCastleRight(side), side);
+                    getCastleRight().put(side, CastleRight.QUEEN_SIDE);
+                    incrementalHashKey ^= getCastleRightKey(side);
+                    incrementalPolyglotKey ^= getCastleRightsPolyglotKey(getCastleRight(side), side);
+                } else if (CastleRight.KING_SIDE == getCastleRight(side)) {
+                    incrementalHashKey ^= getCastleRightKey(side);
+                    incrementalPolyglotKey ^= getCastleRightsPolyglotKey(getCastleRight(side), side);
+                    getCastleRight().put(side, CastleRight.NONE);
+                }
+            } else if (move.getFrom() == ooo.getFrom()) {
+                if (CastleRight.KING_AND_QUEEN_SIDE == getCastleRight(side)) {
+                    incrementalHashKey ^= getCastleRightKey(side);
+                    incrementalPolyglotKey ^= getCastleRightsPolyglotKey(getCastleRight(side), side);
+                    getCastleRight().put(side, CastleRight.KING_SIDE);
+                    incrementalHashKey ^= getCastleRightKey(side);
+                    incrementalPolyglotKey ^= getCastleRightsPolyglotKey(getCastleRight(side), side);
+                } else if (CastleRight.QUEEN_SIDE == getCastleRight(side)) {
+                    incrementalHashKey ^= getCastleRightKey(side);
+                    incrementalPolyglotKey ^= getCastleRightsPolyglotKey(getCastleRight(side), side);
+                    getCastleRight().put(side, CastleRight.NONE);
+                }
+            }
+        }
+
+        Piece capturedPiece;
+        if (isCastle && context.getVariationType() == VariationType.CHESS960) {
+            // Chess960: king and rook already placed above, no capture possible
+            capturedPiece = Piece.NONE;
+        } else {
+            capturedPiece = movePiece(move, backupMove);
+        }
+
+        if (PieceType.ROOK == capturedPiece.getPieceType()) {
+            final Move oo = context.getRookoo(side.flip());
+            final Move ooo = context.getRookooo(side.flip());
+            if (move.getTo() == oo.getFrom()) {
+                if (CastleRight.KING_AND_QUEEN_SIDE == getCastleRight(side.flip())) {
+                    incrementalHashKey ^= getCastleRightKey(side.flip());
+                    incrementalPolyglotKey ^= getCastleRightsPolyglotKey(getCastleRight(side.flip()), side.flip());
+                    getCastleRight().put(side.flip(), CastleRight.QUEEN_SIDE);
+                    incrementalHashKey ^= getCastleRightKey(side.flip());
+                    incrementalPolyglotKey ^= getCastleRightsPolyglotKey(getCastleRight(side.flip()), side.flip());
+                } else if (CastleRight.KING_SIDE == getCastleRight(side.flip())) {
+                    incrementalHashKey ^= getCastleRightKey(side.flip());
+                    incrementalPolyglotKey ^= getCastleRightsPolyglotKey(getCastleRight(side.flip()), side.flip());
+                    getCastleRight().put(side.flip(), CastleRight.NONE);
+                }
+            } else if (move.getTo() == ooo.getFrom()) {
+                if (CastleRight.KING_AND_QUEEN_SIDE == getCastleRight(side.flip())) {
+                    incrementalHashKey ^= getCastleRightKey(side.flip());
+                    incrementalPolyglotKey ^= getCastleRightsPolyglotKey(getCastleRight(side.flip()), side.flip());
+                    getCastleRight().put(side.flip(), CastleRight.KING_SIDE);
+                    incrementalHashKey ^= getCastleRightKey(side.flip());
+                    incrementalPolyglotKey ^= getCastleRightsPolyglotKey(getCastleRight(side.flip()), side.flip());
+                } else if (CastleRight.QUEEN_SIDE == getCastleRight(side.flip())) {
+                    incrementalHashKey ^= getCastleRightKey(side.flip());
+                    incrementalPolyglotKey ^= getCastleRightsPolyglotKey(getCastleRight(side.flip()), side.flip());
+                    getCastleRight().put(side.flip(), CastleRight.NONE);
+                }
+            }
+        }
+
+        if (Piece.NONE == capturedPiece) {
+            setHalfMoveCounter(getHalfMoveCounter() + 1);
+        } else {
+            setHalfMoveCounter(0);
+        }
+
+        setEnPassantTarget(Square.NONE);
+        setEnPassant(Square.NONE);
+
+        if (PieceType.PAWN == movingPiece.getPieceType()) {
+            if (Math.abs(move.getTo().getRank().ordinal() -
+                    move.getFrom().getRank().ordinal()) == 2) {
+                Piece otherPawn = Piece.make(side.flip(), PieceType.PAWN);
+                setEnPassant(findEnPassant(move.getTo(), side));
+                if (hasPiece(otherPawn, move.getTo().getSideSquares()) &&
+                        verifyNotPinnedPiece(side, getEnPassant(), move.getTo())) {
+                    setEnPassantTarget(move.getTo());
+                    incrementalHashKey ^= getEnPassantKey(getEnPassantTarget());
+                    incrementalPolyglotKey ^= getEnPassantPolyglotKey(getEnPassantTarget());
+                }
+            }
+            setHalfMoveCounter(0);
+        }
+
+        if (side == Side.BLACK) {
+            setMoveCounter(getMoveCounter() + 1);
+        }
+
+        setSideToMove(side.flip());
+        incrementalHashKey ^= getSideKey(getSideToMove());
+
+        if (updateHistory) {
+            getHistory().addLast(getIncrementalHashKey());
+        }
+
+        backup.add(backupMove);
+        // call listeners
+        if (isEnableEvents() && eventListener.get(BoardEventType.ON_MOVE).size() > 0) {
+            for (BoardEventListener evl : eventListener.get(BoardEventType.ON_MOVE)) {
+                evl.onEvent(move);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Executes a <i>null</i> move on the board. It returns {@code true} if the operation has been successful.
+     * <p>
+     * A null move it is a special move that does not change the position of any piece, but simply updates the history
+     * of the board and switches the side to move. It could be useful in some scenarios to implement a <i>"passing
+     * turn"</i> behavior.
+     *
+     * @return {@code true} if the null move was successful
+     */
+    public boolean doNullMove() {
+
+        Side side = getSideToMove();
+        MoveBackup backupMove = new MoveBackup(this, emptyMove);
+
+        setHalfMoveCounter(getHalfMoveCounter() + 1);
+
+        if (getEnPassantTarget() != Square.NONE) {
+            incrementalHashKey ^= getEnPassantKey(getEnPassantTarget());
+            incrementalPolyglotKey ^= getEnPassantPolyglotKey(getEnPassantTarget());
+        }
+        setEnPassantTarget(Square.NONE);
+        setEnPassant(Square.NONE);
+
+        incrementalHashKey ^= getSideKey(getSideToMove());
+        incrementalPolyglotKey ^= getSidePolyglotKey();
+        setSideToMove(side.flip());
+        incrementalHashKey ^= getSideKey(getSideToMove());
+        if (updateHistory) {
+            getHistory().addLast(getIncrementalHashKey());
+        }
+        backup.add(backupMove);
+        return true;
+    }
+
+    /**
+     * Reverts the latest move played on the board and returns it. If no moves were previously executed, it returns
+     * null.
+     *
+     * @return the reverted move, or null if no previous moves were played
+     */
+    public Move undoMove() {
+        Move move = null;
+        final MoveBackup b = backup.remove(backup.size() - 1);
+        if (updateHistory) {
+            getHistory().remove(getHistory().size() - 1);
+        }
+        if (b != null) {
+            move = b.getMove();
+            b.restore(this);
+        }
+        // call listeners
+        if (isEnableEvents() &&
+                eventListener.get(BoardEventType.ON_UNDO_MOVE).size() > 0) {
+            for (BoardEventListener evl :
+                    eventListener.get(BoardEventType.ON_UNDO_MOVE)) {
+                evl.onEvent(b);
+            }
+        }
+        return move;
+    }
+
+    /**
+     * Moves a piece on the board and updates the backup passed in input. It returns the captured piece, if any, or
+     * {@link Piece#NONE} otherwise.
+     * <p>
+     * Same as invoking {@code movePiece(move.getFrom(), move.getTo(), move.getPromotion(), backup)}.
+     *
+     * @param move   the move to perform
+     * @param backup the move backup to update
+     * @return the captured piece, if present, or {@link Piece#NONE} otherwise
+     * @see Board#movePiece(Square, Square, Piece, MoveBackup)
+     */
+    protected Piece movePiece(Move move, MoveBackup backup) {
+        return movePiece(move.getFrom(), move.getTo(), move.getPromotion(), backup);
+    }
+
+    /**
+     * Moves a piece on the board and updates the backup passed in input. It returns the captured piece, if any, or
+     * {@link Piece#NONE} otherwise. The piece movement is described by its starting and destination squares, and by the
+     * piece to promote the moving piece to in case of a promotion.
+     *
+     * @param from      the starting square of the piece
+     * @param to        the destination square of the piece
+     * @param promotion the piece to set on the board to replace the moving piece after its promotion, or
+     *                  {@link Piece#NONE} in case the move is not a promotion
+     * @param backup    the move backup to update
+     * @return the captured piece, if present, or {@link Piece#NONE} otherwise
+     */
+    protected Piece movePiece(Square from, Square to, Piece promotion, MoveBackup backup) {
+        Piece movingPiece = getPiece(from);
+        Piece capturedPiece = getPiece(to);
+
+        unsetPiece(movingPiece, from);
+        if (!Piece.NONE.equals(capturedPiece)) {
+            unsetPiece(capturedPiece, to);
+        }
+        if (!Piece.NONE.equals(promotion)) {
+            setPiece(promotion, to);
+        } else {
+            setPiece(movingPiece, to);
+        }
+
+        if (PieceType.PAWN.equals(movingPiece.getPieceType()) &&
+                !Square.NONE.equals(getEnPassantTarget()) &&
+                !to.getFile().equals(from.getFile()) &&
+                Piece.NONE.equals(capturedPiece)) {
+            capturedPiece = getPiece(getEnPassantTarget());
+            if (backup != null && !Piece.NONE.equals(capturedPiece)) {
+                unsetPiece(capturedPiece, getEnPassantTarget());
+                backup.setCapturedSquare(getEnPassantTarget());
+                backup.setCapturedPiece(capturedPiece);
+            }
+        }
+        return capturedPiece;
+    }
+
+    /**
+     * Reverts the effects of a piece previously moved. It restores the moved piece where it was and cancels any
+     * possible promotion to another piece.
+     *
+     * @param move the move to undo
+     */
+    protected void undoMovePiece(Move move) {
+        Square from = move.getFrom();
+        Square to = move.getTo();
+        Piece promotion = move.getPromotion();
+        Piece movingPiece = getPiece(to);
+
+        unsetPiece(movingPiece, to);
+
+        if (!Piece.NONE.equals(promotion)) {
+            setPiece(Piece.make(getSideToMove(), PieceType.PAWN), from);
+        } else {
+            setPiece(movingPiece, from);
+        }
+    }
+
+    /**
+     * Searches the piece in any of the squares provided in input and returns {@code true} if found.
+     *
+     * @param piece    the piece to search in any of the given squares
+     * @param location an array of squares where to look the piece for
+     * @return {@code true} if the piece is found
+     */
+    public boolean hasPiece(Piece piece, Square[] location) {
+        for (Square sq : location) {
+            if ((getBitboard(piece) & sq.getBitboard()) != 0L) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns the piece at the specified square, or {@link Piece#NONE} if the square is empty.
+     *
+     * @param sq the square to get the piece from
+     * @return the found piece, or {@link Piece#NONE} if no piece is present on the square
+     */
+    public Piece getPiece(Square sq) {
+
+        return occupation[sq.ordinal()];
+    }
+
+    /**
+     * Returns the bitboard that represents all the pieces on the board, for both sides.
+     *
+     * @return the bitboard of all the pieces on the board
+     */
+    public long getBitboard() {
+        return bbSide[0] | bbSide[1];
+    }
+
+    /**
+     * Returns the bitboard that represents all the pieces of a given side and type present on the board.
+     *
+     * @param piece the piece for which the bitboard must be returned
+     * @return the bitboard of the given piece definition
+     */
+    public long getBitboard(Piece piece) {
+        return bitboard[piece.ordinal()];
+    }
+
+    /**
+     * Returns the bitboard that represents all the pieces of a given side present on the board.
+     *
+     * @param side the side for which the bitboard must be returned
+     * @return the bitboard of all the pieces of the side
+     */
+    public long getBitboard(Side side) {
+        return bbSide[side.ordinal()];
+    }
+
+    /**
+     * Returns the bitboards that represents all the pieces present on the board, one for each side. The bitboard for
+     * white is stored at index 0, the bitboard for black at index 1.
+     *
+     * @return the bitboards of all the pieces for both sides
+     */
+    public long[] getBbSide() {
+        return bbSide;
+    }
+
+    /**
+     * Returns the list of squares that contain all the pieces of a given side and type.
+     *
+     * @param piece the piece for which the list of squares must be returned
+     * @return the list of squares that contain the given piece definition
+     */
+    public List<Square> getPieceLocation(Piece piece) {
+        if (getBitboard(piece) != 0L) {
+            return Bitboard.bbToSquareList(getBitboard(piece));
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * Returns the square of the first piece of a given side and type found on the board, scanning from lower
+     * ranks/files. If no piece is found, {@link Square#NONE} is returned.
+     *
+     * @param piece the piece for which the first encountered square must be returned
+     * @return the first square that contain the given piece definition, or {@link Square#NONE} if the piece is not
+     * found
+     */
+    public Square getFistPieceLocation(Piece piece) {
+        if (getBitboard(piece) != 0L) {
+            return Square.squareAt(Bitboard.bitScanForward(getBitboard(piece)));
+        }
+        return Square.NONE;
+    }
+
+    /**
+     * Returns the next side to move.
+     *
+     * @return the next side to move
+     */
+    public Side getSideToMove() {
+        return sideToMove;
+    }
+
+    /**
+     * Sets the next side to move.
+     *
+     * @param sideToMove the side to move to set
+     */
+    public void setSideToMove(Side sideToMove) {
+        this.sideToMove = sideToMove;
+    }
+
+    /**
+     * Returns the target square of an en passant capture, if any. In other words, the square which contains the pawn
+     * that can be captured en passant.
+     *
+     * @return the en passant target square, or {@link Square#NONE} if en passant is not possible
+     * @see Board#getEnPassant()
+     */
+    public Square getEnPassantTarget() {
+        return enPassantTarget;
+    }
+
+    /**
+     * Sets the en passant target square.
+     *
+     * @param enPassant the en passant target square to set
+     * @see Board#getEnPassantTarget()
+     */
+    public void setEnPassantTarget(Square enPassant) {
+        this.enPassantTarget = enPassant;
+    }
+
+    /**
+     * Returns the destination square of an en passant capture, if any. In other words, the square a pawn will move to
+     * in case an enemy pawn is captured en passant.
+     *
+     * @return the en passant destination square, or {@link Square#NONE} if en passant is not possible
+     * @see Board#getEnPassantTarget()
+     */
+    public Square getEnPassant() {
+        return enPassant;
+    }
+
+    /**
+     * Sets the en passant destination square.
+     *
+     * @param enPassant the en passant destination square to set
+     * @see Board#getEnPassant()
+     */
+    public void setEnPassant(Square enPassant) {
+        this.enPassant = enPassant;
+    }
+
+    /**
+     * Returns the counter of full moves played. The counter is incremented after each move played by black.
+     *
+     * @return the counter of full moves
+     */
+    public Integer getMoveCounter() {
+        return moveCounter;
+    }
+
+    /**
+     * Sets the counter of full moves.
+     *
+     * @param moveCounter the counter of full moves to set
+     * @see Board#getMoveCounter()
+     */
+    public void setMoveCounter(Integer moveCounter) {
+        this.moveCounter = moveCounter;
+    }
+
+    /**
+     * Returns the counter of half moves. The counter is incremented after each capture or pawn move, and it is used to
+     * apply the fifty-move rule.
+     *
+     * @return the counter of half moves
+     */
+    public Integer getHalfMoveCounter() {
+        return halfMoveCounter;
+    }
+
+    /**
+     * Sets the counter of half moves.
+     *
+     * @param halfMoveCounter the counter of half moves to set
+     * @see Board#getHalfMoveCounter()
+     */
+    public void setHalfMoveCounter(Integer halfMoveCounter) {
+        this.halfMoveCounter = halfMoveCounter;
+    }
+
+    /**
+     * Returns the castle right of a given side.
+     *
+     * @param side the side for which the castle right must be returned
+     * @return the castle right of the side
+     */
+    public CastleRight getCastleRight(Side side) {
+        return castleRight.get(side);
+    }
+
+    /**
+     * Returns the castle rights for both sides, stored in an {@link EnumMap}.
+     *
+     * @return the map containing the castle rights for both sides
+     */
+    public EnumMap<Side, CastleRight> getCastleRight() {
+        return castleRight;
+    }
+
+    /**
+     * Returns the game context used for this board.
+     *
+     * @return the game context
+     */
+    public GameContext getContext() {
+        return context;
+    }
+
+    /**
+     * Sets the game context of the board.
+     *
+     * @param context the game context to set
+     */
+    public void setContext(GameContext context) {
+        this.context = context;
+    }
+
+    /**
+     * Returns the current ordered list of move backups generated from the moves performed on the board.
+     *
+     * @return the list of move backups
+     */
+    public LinkedList<MoveBackup> getBackup() {
+        return backup;
+    }
+
+    /**
+     * Clears the entire board and resets its status and all the flags to their default value.
+     */
+    public void clear() {
+        setSideToMove(Side.WHITE);
+        setEnPassantTarget(Square.NONE);
+        setEnPassant(Square.NONE);
+        setMoveCounter(0);
+        setHalfMoveCounter(0);
+        getHistory().clear();
+
+        Arrays.fill(bitboard, 0L);
+        Arrays.fill(bbSide, 0L);
+        Arrays.fill(occupation, Piece.NONE);
+        backup.clear();
+        incrementalHashKey = 0;
+        incrementalPolyglotKey = 0L;
+    }
+
+    /**
+     * Sets a piece on a square.
+     * <p>
+     * The operation does not perform any move, but rather simply puts a piece onto a square.
+     *
+     * @param piece the piece to be placed on the square
+     * @param sq    the square the piece has to be set to
+     */
+    public void setPiece(Piece piece, Square sq) {
+        bitboard[piece.ordinal()] |= sq.getBitboard();
+        bbSide[piece.getPieceSide().ordinal()] |= sq.getBitboard();
+        occupation[sq.ordinal()] = piece;
+        if (piece != Piece.NONE && sq != Square.NONE) {
+            incrementalHashKey ^= getPieceSquareKey(piece, sq);
+            incrementalPolyglotKey ^= getPiecePolyglotKey(piece, sq);
+        }
+    }
+
+    /**
+     * Unsets a piece from a square.
+     *
+     * @param piece the piece to be removed from the square
+     * @param sq    the square the piece has to be unset from
+     */
+    public void unsetPiece(Piece piece, Square sq) {
+        bitboard[piece.ordinal()] ^= sq.getBitboard();
+        bbSide[piece.getPieceSide().ordinal()] ^= sq.getBitboard();
+        occupation[sq.ordinal()] = Piece.NONE;
+        if (piece != Piece.NONE && sq != Square.NONE) {
+            incrementalHashKey ^= getPieceSquareKey(piece, sq);
+            incrementalPolyglotKey ^= getPiecePolyglotKey(piece, sq);
+        }
+    }
+
+    /**
+     * Loads a specific chess position from a valid Forsyth-Edwards Notation (FEN) string. The status of the current
+     * board is replaced with the one of the FEN string (e.g. en passant squares, castle rights, etc.).
+     *
+     * @param fen the FEN string representing the chess position to load
+     */
+    public void loadFromFen(String fen) {
+        loadFromFen(fen, false);
+    }
+
+    /**
+     * Loads a specific chess position from a valid Forsyth-Edwards Notation (FEN) string. When {@code chess960} is
+     * {@code true}, the position is treated as Chess960 regardless of the castling notation — this is useful when
+     * the PGN tag {@code [Variant "Chess960"]} is present but the FEN uses standard {@code KQkq} notation with
+     * the king on the e-file.
+     *
+     * @param fen     the FEN string representing the chess position to load
+     * @param chess960 if {@code true}, force Chess960 mode
+     */
+    public void loadFromFen(String fen, boolean chess960) {
+        clear();
+        String squares = fen.substring(0, fen.indexOf(' '));
+        String state = fen.substring(fen.indexOf(' ') + 1);
+
+        String[] ranks = squares.split("/");
+        int file;
+        int rank = 7;
+        for (String r : ranks) {
+            file = 0;
+            for (int i = 0; i < r.length(); i++) {
+                char c = r.charAt(i);
+                if (Character.isDigit(c)) {
+                    file += Character.digit(c, 10);
+                } else {
+                    Square sq = Square.encode(Rank.allRanks[rank], File.allFiles[file]);
+                    setPiece(Piece.fromFenSymbol(String.valueOf(c)), sq);
+                    file++;
+                }
+            }
+            rank--;
+        }
+
+        sideToMove = state.toLowerCase().charAt(0) == 'w' ? Side.WHITE : Side.BLACK;
+
+        String[] flags = state.split(StringUtils.SPACE);
+        String castlingField = flags.length >= 2 ? flags[1] : "-";
+
+        // Detect Chess960: Shredder-FEN uses file letters (A-H, a-h) for castling rights
+        boolean isShredderFen = false;
+        boolean isChess960 = false;
+        Square whiteRookOO = null, whiteRookOOO = null;
+        Square blackRookOO = null, blackRookOOO = null;
+
+        if (!castlingField.equals("-")) {
+            for (int ci = 0; ci < castlingField.length(); ci++) {
+                char ch = castlingField.charAt(ci);
+                if (ch >= 'A' && ch <= 'H') {
+                    isShredderFen = true;
+                    break;
+                }
+                if (ch >= 'a' && ch <= 'h') {
+                    isShredderFen = true;
+                    break;
+                }
+            }
+        }
+
+        if (isShredderFen) {
+            // Parse Shredder-FEN castling rights
+            isChess960 = true;
+            Square wKing = getKingSquare(Side.WHITE);
+            Square bKing = getKingSquare(Side.BLACK);
+            int wKingFile = wKing != Square.NONE ? wKing.getFile().ordinal() : -1;
+            int bKingFile = bKing != Square.NONE ? bKing.getFile().ordinal() : -1;
+
+            for (int ci = 0; ci < castlingField.length(); ci++) {
+                char ch = castlingField.charAt(ci);
+                if (ch >= 'A' && ch <= 'H') {
+                    int rookFile = ch - 'A';
+                    if (wKingFile >= 0 && rookFile > wKingFile) {
+                        whiteRookOO = Square.encode(Rank.RANK_1, File.allFiles[rookFile]);
+                    } else {
+                        whiteRookOOO = Square.encode(Rank.RANK_1, File.allFiles[rookFile]);
+                    }
+                } else if (ch >= 'a' && ch <= 'h') {
+                    int rookFile = ch - 'a';
+                    if (bKingFile >= 0 && rookFile > bKingFile) {
+                        blackRookOO = Square.encode(Rank.RANK_8, File.allFiles[rookFile]);
+                    } else {
+                        blackRookOOO = Square.encode(Rank.RANK_8, File.allFiles[rookFile]);
+                    }
+                }
+            }
+
+            // Set castle rights based on what we found
+            if (whiteRookOO != null && whiteRookOOO != null) {
+                castleRight.put(Side.WHITE, CastleRight.KING_AND_QUEEN_SIDE);
+            } else if (whiteRookOO != null) {
+                castleRight.put(Side.WHITE, CastleRight.KING_SIDE);
+            } else if (whiteRookOOO != null) {
+                castleRight.put(Side.WHITE, CastleRight.QUEEN_SIDE);
+            } else {
+                castleRight.put(Side.WHITE, CastleRight.NONE);
+            }
+
+            if (blackRookOO != null && blackRookOOO != null) {
+                castleRight.put(Side.BLACK, CastleRight.KING_AND_QUEEN_SIDE);
+            } else if (blackRookOO != null) {
+                castleRight.put(Side.BLACK, CastleRight.KING_SIDE);
+            } else if (blackRookOOO != null) {
+                castleRight.put(Side.BLACK, CastleRight.QUEEN_SIDE);
+            } else {
+                castleRight.put(Side.BLACK, CastleRight.NONE);
+            }
+        } else {
+            // Standard KQkq notation
+            if (castlingField.contains("K") && castlingField.contains("Q")) {
+                castleRight.put(Side.WHITE, CastleRight.KING_AND_QUEEN_SIDE);
+            } else if (castlingField.contains("K")) {
+                castleRight.put(Side.WHITE, CastleRight.KING_SIDE);
+            } else if (castlingField.contains("Q")) {
+                castleRight.put(Side.WHITE, CastleRight.QUEEN_SIDE);
+            } else {
+                castleRight.put(Side.WHITE, CastleRight.NONE);
+            }
+
+            if (castlingField.contains("k") && castlingField.contains("q")) {
+                castleRight.put(Side.BLACK, CastleRight.KING_AND_QUEEN_SIDE);
+            } else if (castlingField.contains("k")) {
+                castleRight.put(Side.BLACK, CastleRight.KING_SIDE);
+            } else if (castlingField.contains("q")) {
+                castleRight.put(Side.BLACK, CastleRight.QUEEN_SIDE);
+            } else {
+                castleRight.put(Side.BLACK, CastleRight.NONE);
+            }
+
+            // Detect Chess960 with KQkq notation: king not on e-file but has castling rights,
+            // or explicitly requested via chess960 flag (e.g. from PGN [Variant "Chess960"] tag)
+            if (!castlingField.equals("-")) {
+                Square wKing = getKingSquare(Side.WHITE);
+                Square bKing = getKingSquare(Side.BLACK);
+                boolean whiteNonStandard = wKing != Square.NONE && wKing != Square.E1
+                        && castleRight.get(Side.WHITE) != CastleRight.NONE;
+                boolean blackNonStandard = bKing != Square.NONE && bKing != Square.E8
+                        && castleRight.get(Side.BLACK) != CastleRight.NONE;
+
+                if (chess960 || whiteNonStandard || blackNonStandard) {
+                    isChess960 = true;
+                    // Find rooks by scanning the back rank
+                    if (castleRight.get(Side.WHITE) != CastleRight.NONE && wKing != Square.NONE) {
+                        int wkf = wKing.getFile().ordinal();
+                        if (castleRight.get(Side.WHITE) == CastleRight.KING_SIDE
+                                || castleRight.get(Side.WHITE) == CastleRight.KING_AND_QUEEN_SIDE) {
+                            // Find rook to the right of king
+                            for (int f = wkf + 1; f <= 7; f++) {
+                                Square sq = Square.encode(Rank.RANK_1, File.allFiles[f]);
+                                if (getPiece(sq) == Piece.WHITE_ROOK) {
+                                    whiteRookOO = sq;
+                                    break;
+                                }
+                            }
+                        }
+                        if (castleRight.get(Side.WHITE) == CastleRight.QUEEN_SIDE
+                                || castleRight.get(Side.WHITE) == CastleRight.KING_AND_QUEEN_SIDE) {
+                            // Find rook to the left of king
+                            for (int f = wkf - 1; f >= 0; f--) {
+                                Square sq = Square.encode(Rank.RANK_1, File.allFiles[f]);
+                                if (getPiece(sq) == Piece.WHITE_ROOK) {
+                                    whiteRookOOO = sq;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (castleRight.get(Side.BLACK) != CastleRight.NONE && bKing != Square.NONE) {
+                        int bkf = bKing.getFile().ordinal();
+                        if (castleRight.get(Side.BLACK) == CastleRight.KING_SIDE
+                                || castleRight.get(Side.BLACK) == CastleRight.KING_AND_QUEEN_SIDE) {
+                            for (int f = bkf + 1; f <= 7; f++) {
+                                Square sq = Square.encode(Rank.RANK_8, File.allFiles[f]);
+                                if (getPiece(sq) == Piece.BLACK_ROOK) {
+                                    blackRookOO = sq;
+                                    break;
+                                }
+                            }
+                        }
+                        if (castleRight.get(Side.BLACK) == CastleRight.QUEEN_SIDE
+                                || castleRight.get(Side.BLACK) == CastleRight.KING_AND_QUEEN_SIDE) {
+                            for (int f = bkf - 1; f >= 0; f--) {
+                                Square sq = Square.encode(Rank.RANK_8, File.allFiles[f]);
+                                if (getPiece(sq) == Piece.BLACK_ROOK) {
+                                    blackRookOOO = sq;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Configure Chess960 context if detected
+        if (isChess960) {
+            Square wKing = getKingSquare(Side.WHITE);
+            Square bKing = getKingSquare(Side.BLACK);
+            context.loadChess960(
+                    wKing != Square.NONE ? wKing : Square.E1,
+                    whiteRookOO, whiteRookOOO,
+                    bKing != Square.NONE ? bKing : Square.E8,
+                    blackRookOO, blackRookOOO
+            );
+        } else if (context.getVariationType() == VariationType.CHESS960) {
+            // Reset to standard if previously was Chess960 (e.g., thread-local board reuse)
+            context = new GameContext();
+        }
+
+        if (flags.length >= 3) {
+            String s = flags[2].toUpperCase().trim();
+            if (!s.equals("-")) {
+                Square ep = Square.valueOf(s);
+                setEnPassant(ep);
+                setEnPassantTarget(findEnPassantTarget(ep, sideToMove));
+                if (!pawnCanBeCapturedEnPassant()) {
+                    setEnPassantTarget(Square.NONE);
+                }
+            } else {
+                setEnPassant(Square.NONE);
+                setEnPassantTarget(Square.NONE);
+            }
+            if (flags.length >= 4) {
+                halfMoveCounter = Integer.parseInt(flags[3]);
+                if (flags.length >= 5) {
+                    moveCounter = Integer.parseInt(flags[4]);
+                }
+            }
+        }
+
+        incrementalHashKey = getZobristKey();
+        incrementalPolyglotKey = computePolyglotKey();
+        if (updateHistory) {
+            getHistory().addLast(this.getZobristKey());
+        }
+        // call listeners
+        if (isEnableEvents() &&
+                eventListener.get(BoardEventType.ON_LOAD).size() > 0) {
+            for (BoardEventListener evl :
+                    eventListener.get(BoardEventType.ON_LOAD)) {
+                evl.onEvent(Board.this);
+            }
+        }
+    }
+
+    /**
+     * Generates the Forsyth-Edwards Notation (FEN) representation of the current position and its status. Full and half
+     * moves counters are included in the output.
+     * <p>
+     * Same as invoking {@code getFen(true, false)}.
+     *
+     * @return the string that represents the current position in FEN notation
+     * @see Board#getFen(boolean, boolean)
+     */
+    public String getFen() {
+        return getFen(true);
+    }
+
+    /**
+     * Generates the Forsyth-Edwards Notation (FEN) representation of the current position and its status. Full and half
+     * moves counters are included in the output if the relative flag is enabled.
+     * <p>
+     * Same as invoking {@code getFen(includeCounters, false)}.
+     *
+     * @param includeCounters if {@code true}, move counters are included in the resulting string
+     * @return the string that represents the current position in FEN notation
+     * @see Board#getFen(boolean, boolean)
+     */
+    public String getFen(boolean includeCounters) {
+        return getFen(includeCounters, false);
+    }
+
+    /**
+     * Generates the Forsyth-Edwards Notation (FEN) representation of the current position and its status. Full and half
+     * moves counters are included in the output if the relative flag is enabled. Furthermore, it is possible to control
+     * whether to include the en passant square in the result only when the pawn can be captured or every time the en
+     * passant target exists.
+     *
+     * @param includeCounters                 if {@code true}, move counters are included in the resulting string
+     * @param onlyOutputEnPassantIfCapturable if {@code true}, the en passant square is included in the output only if
+     *                                        the pawn that just moved can be captured. Otherwise, if {@code false}, the
+     *                                        en passant square is always included in the output when the en passant
+     *                                        target exists
+     * @return the string that represents the current position in FEN notation
+     */
+    public String getFen(boolean includeCounters, boolean onlyOutputEnPassantIfCapturable) {
+
+        StringBuilder fen = new StringBuilder();
+        int emptySquares = 0;
+        for (int i = 7; i >= 0; i--) {
+            Rank r = Rank.allRanks[i];
+            if (r == Rank.NONE) {
+                continue;
+            }
+            for (File f : File.allFiles) {
+                if (f == File.NONE) {
+                    continue;
+                }
+                Square sq = Square.encode(r, f);
+                Piece piece = getPiece(sq);
+                if (Piece.NONE.equals(piece)) {
+                    emptySquares++;
+                } else {
+                    if (emptySquares > 0) {
+                        fen.append(emptySquares);
+                        emptySquares = 0;
+                    }
+                    fen.append(piece.getFenSymbol());
+                }
+                if (f != File.FILE_H) {
+                    continue;
+                }
+                if (emptySquares > 0) {
+                    fen.append(emptySquares);
+                    emptySquares = 0;
+                }
+                if (r != Rank.RANK_1) {
+                    fen.append("/");
+                }
+            }
+        }
+
+        if (Side.WHITE.equals(sideToMove)) {
+            fen.append(" w");
+        } else {
+            fen.append(" b");
+        }
+
+        String rights = StringUtils.EMPTY;
+        if (context.getVariationType() == VariationType.CHESS960) {
+            // Shredder-FEN: use file letters for castling rights
+            if (CastleRight.KING_AND_QUEEN_SIDE.equals(castleRight.get(Side.WHITE))
+                    || CastleRight.KING_SIDE.equals(castleRight.get(Side.WHITE))) {
+                if (context.getWhiteRookooFile() != null) {
+                    rights += context.getWhiteRookooFile().getNotation().toUpperCase();
+                }
+            }
+            if (CastleRight.KING_AND_QUEEN_SIDE.equals(castleRight.get(Side.WHITE))
+                    || CastleRight.QUEEN_SIDE.equals(castleRight.get(Side.WHITE))) {
+                if (context.getWhiteRookoooFile() != null) {
+                    rights += context.getWhiteRookoooFile().getNotation().toUpperCase();
+                }
+            }
+            if (CastleRight.KING_AND_QUEEN_SIDE.equals(castleRight.get(Side.BLACK))
+                    || CastleRight.KING_SIDE.equals(castleRight.get(Side.BLACK))) {
+                if (context.getBlackRookooFile() != null) {
+                    rights += context.getBlackRookooFile().getNotation().toLowerCase();
+                }
+            }
+            if (CastleRight.KING_AND_QUEEN_SIDE.equals(castleRight.get(Side.BLACK))
+                    || CastleRight.QUEEN_SIDE.equals(castleRight.get(Side.BLACK))) {
+                if (context.getBlackRookoooFile() != null) {
+                    rights += context.getBlackRookoooFile().getNotation().toLowerCase();
+                }
+            }
+        } else {
+            if (CastleRight.KING_AND_QUEEN_SIDE.
+                    equals(castleRight.get(Side.WHITE))) {
+                rights += "KQ";
+            } else if (CastleRight.KING_SIDE.
+                    equals(castleRight.get(Side.WHITE))) {
+                rights += "K";
+            } else if (CastleRight.QUEEN_SIDE.
+                    equals(castleRight.get(Side.WHITE))) {
+                rights += "Q";
+            }
+
+            if (CastleRight.KING_AND_QUEEN_SIDE.
+                    equals(castleRight.get(Side.BLACK))) {
+                rights += "kq";
+            } else if (CastleRight.KING_SIDE.
+                    equals(castleRight.get(Side.BLACK))) {
+                rights += "k";
+            } else if (CastleRight.QUEEN_SIDE.
+                    equals(castleRight.get(Side.BLACK))) {
+                rights += "q";
+            }
+        }
+
+        if (StringUtils.isEmpty(rights)) {
+            fen.append(" -");
+        } else {
+            fen.append(StringUtils.SPACE + rights);
+        }
+
+        if (Square.NONE.equals(getEnPassant())
+                || (onlyOutputEnPassantIfCapturable
+                && !pawnCanBeCapturedEnPassant())) {
+            fen.append(" -");
+        } else {
+            fen.append(StringUtils.SPACE);
+            fen.append(getEnPassant().toString().toLowerCase());
+        }
+
+        if (includeCounters) {
+            fen.append(StringUtils.SPACE);
+            fen.append(getHalfMoveCounter());
+            fen.append(StringUtils.SPACE);
+            fen.append(getMoveCounter());
+        }
+
+        return fen.toString();
+    }
+
+    /**
+     * Returns an array of pieces that represents the current position on the board. For each index, the array holds
+     * the piece present on the square with the same index, or {@link Piece#NONE} if the square is empty.
+     *
+     * @return the array that contains the pieces on the board
+     */
+    public Piece[] boardToArray() {
+
+        final Piece[] pieces = new Piece[65];
+        pieces[64] = Piece.NONE;
+
+        for (Square square : Square.values()) {
+            if (!Square.NONE.equals(square)) {
+                pieces[square.ordinal()] = getPiece(square);
+            }
+        }
+
+        return pieces;
+    }
+
+    /**
+     * The type of board events this data structure represents when notified to its observers.
+     *
+     * @return the board event type {@link BoardEventType#ON_LOAD}
+     */
+    @Override
+    public BoardEventType getType() {
+        return BoardEventType.ON_LOAD;
+    }
+
+    /**
+     * Returns an {@link EnumMap} of the event listeners registered to this board. Each entry of the map contains the
+     * list of observers for a particular type of events.
+     *
+     * @return the event listeners registered to this board
+     */
+    public EnumMap<BoardEventType, List<BoardEventListener>> getEventListener() {
+        return eventListener;
+    }
+
+    /**
+     * Registers to the board a new listener for a specified event type.
+     * <p>
+     * It returns a reference to this board to fluently chain other calls for registering (or deregistering) other
+     * listeners.
+     *
+     * @param eventType the board event type observed by the listener
+     * @param listener  the listener to register
+     * @return this board
+     */
+    public Board addEventListener(BoardEventType eventType, BoardEventListener listener) {
+        getEventListener().get(eventType).add(listener);
+        return this;
+    }
+
+    /**
+     * Deregisters from the board a listener for a specified event type.
+     * <p>
+     * It returns a reference to this board to fluently chain other calls for deregistering (or registering) other
+     * listeners.
+     *
+     * @param eventType the board event type observed by the listener
+     * @param listener  the listener to deregister
+     * @return this board
+     */
+    public Board removeEventListener(BoardEventType eventType, BoardEventListener listener) {
+        if (getEventListener() != null && getEventListener().get(eventType) != null) {
+            getEventListener().get(eventType).remove(listener);
+        }
+        return this;
+    }
+
+    /**
+     * Returns the bitboard representing the pieces of a specific side that can attack the given square.
+     * <p>
+     * Same as invoking {@code squareAttackedBy(square, side, getBitboard())}.
+     *
+     * @param square the target square
+     * @param side   the attacking side
+     * @return the bitboard of all the pieces of the given side that can attack the square
+     * @see Board#squareAttackedBy(Square, Side, long)
+     */
+    public long squareAttackedBy(Square square, Side side) {
+        return squareAttackedBy(square, side, getBitboard());
+    }
+
+    /**
+     * Returns the bitboard representing the pieces of a specific side that can attack the given square. It takes a
+     * bitboard mask in input to filter the result for a specific set of occupied squares only.
+     *
+     * @param square the target square
+     * @param side   the attacking side
+     * @param occ    a mask of occupied squares
+     * @return the bitboard of all the pieces of the given side that can attack the square
+     */
+    public long squareAttackedBy(Square square, Side side, long occ) {
+        long result;
+        result = Bitboard.getPawnAttacks(side.flip(), square) &
+                getBitboard(Piece.make(side, PieceType.PAWN)) & occ;
+        result |= Bitboard.getKnightAttacks(square, occ) &
+                getBitboard(Piece.make(side, PieceType.KNIGHT));
+        result |= Bitboard.getBishopAttacks(occ, square) &
+                ((getBitboard(Piece.make(side, PieceType.BISHOP)) |
+                        getBitboard(Piece.make(side, PieceType.QUEEN))));
+        result |= Bitboard.getRookAttacks(occ, square) &
+                ((getBitboard(Piece.make(side, PieceType.ROOK)) |
+                        getBitboard(Piece.make(side, PieceType.QUEEN))));
+        result |= Bitboard.getKingAttacks(square, occ) &
+                getBitboard(Piece.make(side, PieceType.KING));
+        return result;
+    }
+
+    /**
+     * Returns the bitboard representing the pieces of a specific side and type that can attack the given square.
+     *
+     * @param square the target square
+     * @param side   the attacking side
+     * @param type   the type of the attacking pieces
+     * @return the bitboard of all the pieces of the given side and type that can attack the square
+     */
+    public long squareAttackedByPieceType(Square square, Side side, PieceType type) {
+        long result = 0L;
+        long occ = getBitboard();
+        switch (type) {
+            case PAWN:
+                result = Bitboard.getPawnAttacks(side.flip(), square) &
+                        getBitboard(Piece.make(side, PieceType.PAWN));
+                break;
+            case KNIGHT:
+                result = Bitboard.getKnightAttacks(square, occ) &
+                        getBitboard(Piece.make(side, PieceType.KNIGHT));
+                break;
+            case BISHOP:
+                result = Bitboard.getBishopAttacks(occ, square) &
+                        getBitboard(Piece.make(side, PieceType.BISHOP));
+                break;
+            case ROOK:
+                result = Bitboard.getRookAttacks(occ, square) &
+                        getBitboard(Piece.make(side, PieceType.ROOK));
+                break;
+            case QUEEN:
+                result = Bitboard.getQueenAttacks(occ, square) &
+                        getBitboard(Piece.make(side, PieceType.QUEEN));
+                break;
+            case KING:
+                result |= Bitboard.getKingAttacks(square, occ) &
+                        getBitboard(Piece.make(side, PieceType.KING));
+                break;
+            default:
+                break;
+        }
+        return result;
+    }
+
+    /**
+     * Returns the square occupied by the king of the given side.
+     *
+     * @param side the side of the king
+     * @return the square occupied by the king
+     */
+    public Square getKingSquare(Side side) {
+        Square result = Square.NONE;
+        long piece = getBitboard(Piece.make(side, PieceType.KING));
+        if (piece != 0L) {
+            int sq = Bitboard.bitScanForward(piece);
+            return Square.squareAt(sq);
+        }
+        return result;
+    }
+
+    /**
+     * Checks if the king of the side to move is attacked by any enemy piece.
+     *
+     * @return {@code true} if the king of the next side to move is attacked
+     */
+    public boolean isKingAttacked() {
+        return squareAttackedBy(getKingSquare(getSideToMove()), getSideToMove().flip()) != 0;
+    }
+
+    /**
+     * Checks if any of the squares provided in input is attacked by the given side in the current position.
+     *
+     * @param squares the target squares
+     * @param side    the attacking side
+     * @return {@code true} if any square is attacked
+     */
+    public boolean isSquareAttackedBy(List<Square> squares, Side side) {
+        for (Square sq : squares) {
+            if (squareAttackedBy(sq, side) != 0L) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Verifies if the move still to be executed will leave the resulting board in a valid (legal) position. Optionally,
+     * it can perform a full validation, a stricter check to assess if the final board configuration could be considered
+     * valid or not.
+     * <p>
+     * The full validation checks:
+     * <ul>
+     *     <li>if a piece is actually moving;</li>
+     *     <li>if the moving side is the next side to move in the position;</li>
+     *     <li>if the destination square does not contain a piece of the same side of the moving one;</li>
+     *     <li>in case of a promotion, if a promoting piece is present;</li>
+     *     <li>in case of castling, if the castle move can be performed.</li>
+     * </ul>
+     * <b>N.B.</b>: the method does not check whether the move is legal or not according to the standard chess rules,
+     * but only if the resulting configuration is valid. For instance, it is considered valid moving the king by two or
+     * more squares, or a rook beyond its friendly pieces, as long as the position obtained after the move does not
+     * violate any chess constraint.
+     *
+     * @param move           the move to validate
+     * @param fullValidation performs a full validation of the move
+     * @return {@code true} if the move is considered valid
+     */
+    public boolean isMoveLegal(Move move, boolean fullValidation) {
+
+        final Piece fromPiece = getPiece(move.getFrom());
+        final Side side = getSideToMove();
+        final PieceType fromType = fromPiece.getPieceType();
+        final Piece capturedPiece = getPiece(move.getTo());
+
+        if (fullValidation) {
+            if (Piece.NONE.equals(fromPiece)) {
+                return false;
+            }
+
+            // In Chess960 castling, the king moves to the rook's square (own piece).
+            // Special case: when from == to (king already on final square), skip capture check.
+            if (fromPiece.getPieceSide().equals(capturedPiece.getPieceSide())) {
+                boolean allowCapture = false;
+                if (fromType.equals(PieceType.KING)
+                        && context.getVariationType() == VariationType.CHESS960) {
+                    allowCapture = isChess960Castle(move, side);
+                }
+                if (!allowCapture) {
+                    return false;
+                }
+            }
+
+            if (!side.equals(fromPiece.getPieceSide())) {
+                return false;
+            }
+
+            boolean pawnPromoting = fromPiece.getPieceType().equals(PieceType.PAWN) &&
+                    isPromoRank(side, move);
+            boolean hasPromoPiece = !move.getPromotion().equals(Piece.NONE);
+
+            if (hasPromoPiece != pawnPromoting) {
+                return false;
+            }
+            if (fromType.equals(PieceType.KING)) {
+                // In Chess960, only enter castling validation if:
+                // - rook is on its initial square AND
+                // - destination does NOT have an enemy piece (captures are never castles)
+                boolean rookOnSquareOO = true;
+                boolean rookOnSquareOOO = true;
+                if (context.getVariationType() == VariationType.CHESS960) {
+                    Piece destPiece = getPiece(move.getTo());
+                    boolean destHasEnemy = destPiece != Piece.NONE && !destPiece.getPieceSide().equals(side);
+                    if (destHasEnemy) {
+                        rookOnSquareOO = false;
+                        rookOnSquareOOO = false;
+                    } else if (move.getFrom() != move.getTo()) {
+                        Move rookOO = context.getRookoo(side);
+                        Move rookOOO = context.getRookooo(side);
+                        Piece expectedRook = Piece.make(side, PieceType.ROOK);
+                        rookOnSquareOO = rookOO != null && getPiece(rookOO.getFrom()) == expectedRook;
+                        rookOnSquareOOO = rookOOO != null && getPiece(rookOOO.getFrom()) == expectedRook;
+                    }
+                }
+
+                if (getContext().isKingSideCastle(move) && rookOnSquareOO &&
+                        (getCastleRight(side).equals(CastleRight.KING_AND_QUEEN_SIDE) ||
+                         getCastleRight(side).equals(CastleRight.KING_SIDE))) {
+                    long occ = getBitboard();
+                    if (context.getVariationType() == VariationType.CHESS960) {
+                        occ &= ~move.getFrom().getBitboard();
+                        Move rookMove = context.getRookoo(side);
+                        if (rookMove != null) {
+                            occ &= ~rookMove.getFrom().getBitboard();
+                        }
+                    }
+                    if ((occ & getContext().getooAllSquaresBb(side)) == 0L) {
+                        return !isSquareAttackedBy(getContext().getooSquares(side), side.flip());
+                    }
+                    return false;
+                }
+                if (getContext().isQueenSideCastle(move) && rookOnSquareOOO &&
+                        (getCastleRight(side).equals(CastleRight.KING_AND_QUEEN_SIDE) ||
+                         getCastleRight(side).equals(CastleRight.QUEEN_SIDE))) {
+                    long occ = getBitboard();
+                    if (context.getVariationType() == VariationType.CHESS960) {
+                        occ &= ~move.getFrom().getBitboard();
+                        Move rookMove = context.getRookooo(side);
+                        if (rookMove != null) {
+                            occ &= ~rookMove.getFrom().getBitboard();
+                        }
+                    }
+                    if ((occ & getContext().getoooAllSquaresBb(side)) == 0L) {
+                        return !isSquareAttackedBy(getContext().getoooSquares(side), side.flip());
+                    }
+                    return false;
+                }
+            }
+        }
+        if (fromType.equals(PieceType.KING)) {
+            // For Chess960 castling, skip the attack check on king destination
+            if (context.getVariationType() != VariationType.CHESS960 || !isChess960Castle(move, side)) {
+                if (squareAttackedBy(move.getTo(), side.flip()) != 0L) {
+                    return false;
+                }
+            }
+        }
+        // For Chess960 castling, the pin/attack detection below doesn't apply
+        if (context.getVariationType() == VariationType.CHESS960 && isChess960Castle(move, side)) {
+            return true;
+        }
+        Square kingSq = (fromType.equals(PieceType.KING) ?
+                move.getTo() : getKingSquare(side));
+        Side other = side.flip();
+        long moveTo = move.getTo().getBitboard();
+        long moveFrom = move.getFrom().getBitboard();
+        long ep = getEnPassantTarget() != Square.NONE && move.getTo() == getEnPassant() &&
+                (fromType.equals(PieceType.PAWN)) ? getEnPassantTarget().getBitboard() : 0;
+        long allPieces = (getBitboard() ^ moveFrom ^ ep) | moveTo;
+
+        long bishopAndQueens = ((getBitboard(Piece.make(other, PieceType.BISHOP)) |
+                getBitboard(Piece.make(other, PieceType.QUEEN)))) & ~moveTo;
+
+        if (bishopAndQueens != 0L &&
+                (Bitboard.getBishopAttacks(allPieces, kingSq) & bishopAndQueens) != 0L) {
+            return false;
+        }
+
+        long rookAndQueens = ((getBitboard(Piece.make(other, PieceType.ROOK)) |
+                getBitboard(Piece.make(other, PieceType.QUEEN)))) & ~moveTo;
+
+        if (rookAndQueens != 0L &&
+                (Bitboard.getRookAttacks(allPieces, kingSq) & rookAndQueens) != 0L) {
+            return false;
+        }
+
+        long knights = (getBitboard(Piece.make(other, PieceType.KNIGHT))) & ~moveTo;
+
+        if (knights != 0L &&
+                (Bitboard.getKnightAttacks(kingSq, allPieces) & knights) != 0L) {
+            return false;
+        }
+
+        long pawns = (getBitboard(Piece.make(other, PieceType.PAWN))) & ~moveTo & ~ep;
+
+        return pawns == 0L ||
+                (Bitboard.getPawnAttacks(side, kingSq) & pawns) == 0L;
+    }
+
+    /**
+     * Checks if the squares of a move are consistent, that is, if the destination square is attacked by the piece
+     * placed on the starting square.
+     *
+     * @param move the move to check
+     * @return {@code true} if the move is coherent
+     */
+    public boolean isAttackedBy(Move move) {
+
+        PieceType pieceType = getPiece(move.getFrom()).getPieceType();
+        assert (!PieceType.NONE.equals(pieceType));
+        Side side = getSideToMove();
+        long attacks = 0L;
+        switch (pieceType) {
+            case PAWN:
+                if (!move.getFrom().getFile().equals(move.getTo().getFile())) {
+                    attacks = Bitboard.getPawnCaptures(side, move.getFrom(),
+                            getBitboard(), getEnPassantTarget());
+                } else {
+                    attacks = Bitboard.getPawnMoves(side, move.getFrom(), getBitboard());
+                }
+                break;
+            case KNIGHT:
+                attacks = Bitboard.getKnightAttacks(move.getFrom(), ~getBitboard(side));
+                break;
+            case BISHOP:
+                attacks = Bitboard.getBishopAttacks(getBitboard(), move.getFrom());
+                break;
+            case ROOK:
+                attacks = Bitboard.getRookAttacks(getBitboard(), move.getFrom());
+                break;
+            case QUEEN:
+                attacks = Bitboard.getQueenAttacks(getBitboard(), move.getFrom());
+                break;
+            case KING:
+                attacks = Bitboard.getKingAttacks(move.getFrom(), ~getBitboard(side));
+                break;
+            default:
+                break;
+        }
+        return (attacks & move.getTo().getBitboard()) != 0L;
+    }
+
+    /**
+     * Returns the history of the board, represented by the hashes of all the positions occurred on the board.
+     *
+     * @return the list of hashes of all the positions occurred on the board
+     * @see Board#getIncrementalHashKey()
+     */
+    public LinkedList<Long> getHistory() {
+        return history;
+    }
+
+    /**
+     * Verifies in the current position if the king of the side to move is mated.
+     *
+     * @return {@code true} if the king of the side to move is checkmated
+     */
+    public boolean isMated() {
+        try {
+            if (isKingAttacked()) {
+                final List<Move> l = MoveGenerator.generateLegalMoves(this);
+                if (l.size() == 0) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return false;
+    }
+
+    /**
+     * Verifies if the current position is a forced draw because any of the standard chess rules. Specifically, the
+     * method checks for:
+     * <ul>
+     *     <li>threefold repetition;</li>
+     *     <li>insufficient material;</li>
+     *     <li>fifty-move rule;</li>
+     *     <li>stalemate.</li>
+     * </ul>
+     *
+     * @return {@code true} if the position is a draw
+     */
+    public boolean isDraw() {
+        if (isRepetition()) {
+            return true;
+        }
+        if (isInsufficientMaterial()) {
+            return true;
+        }
+        if (getHalfMoveCounter() >= 100) {
+            return true;
+        }
+        return isStaleMate();
+
+    }
+
+    /**
+     * Verifies if the current position has been repeated at least <i>n</i> times, where <i>n</i> is provided in input.
+     *
+     * @param n the number of repetitions to check in the position
+     * @return {@code true} if the position has been repeated at least <i>n</i> times
+     */
+    public boolean isRepetition(int n) {
+
+        final int i = Math.min(getHistory().size() - 1, getHalfMoveCounter());
+        if (getHistory().size() >= 4) {
+            long lastKey = getHistory().get(getHistory().size() - 1);
+            int rep = 0;
+            for (int x = 4; x <= i; x += 2) {
+                final long k = getHistory().get(getHistory().size() - x - 1);
+                if (k == lastKey && ++rep >= n - 1) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Verifies if the current position has been repeated at least three times (threefold repetition).
+     * <p>
+     * Same as invoking {@code isRepetition(3)}.
+     *
+     * @return {@code true} if the position has been repeated at least three times
+     * @see Board#isRepetition(int)
+     */
+    public boolean isRepetition() {
+
+        return isRepetition(3);
+    }
+
+    /**
+     * Verifies if the current position has insufficient material to continue the game, and thus it must be considered a
+     * forced draw.
+     *
+     * @return {@code true} if the position has insufficient material
+     */
+    public boolean isInsufficientMaterial() {
+
+        if ((getBitboard(Piece.WHITE_QUEEN) +
+                getBitboard(Piece.BLACK_QUEEN) +
+                getBitboard(Piece.WHITE_ROOK) +
+                getBitboard(Piece.BLACK_ROOK)) != 0L) {
+            return false;
+        }
+
+        final long pawns = getBitboard(Piece.WHITE_PAWN) | getBitboard(Piece.BLACK_PAWN);
+        if (pawns == 0L) {
+            long count = Long.bitCount(getBitboard());
+            int whiteCount = Long.bitCount(getBitboard(Side.WHITE));
+            int blackCount = Long.bitCount(getBitboard(Side.BLACK));
+            if (count == 4) {
+                int whiteBishopCount = Long.bitCount(getBitboard(Piece.WHITE_BISHOP));
+                int blackBishopCount = Long.bitCount(getBitboard(Piece.BLACK_BISHOP));
+                if (whiteCount > 1 && blackCount > 1) {
+                    return !((whiteBishopCount == 1 && blackBishopCount == 1) &&
+                            getFistPieceLocation(Piece.WHITE_BISHOP).isLightSquare() !=
+                                    getFistPieceLocation(Piece.BLACK_BISHOP).isLightSquare());
+                }
+                if (whiteCount == 3 || blackCount == 3) {
+                    if (whiteBishopCount == 2 &&
+                            ((Bitboard.lightSquares & getBitboard(Piece.WHITE_BISHOP)) == 0L ||
+                                    (Bitboard.darkSquares & getBitboard(Piece.WHITE_BISHOP)) == 0L)) {
+                        return true;
+                    } else return blackBishopCount == 2 &&
+                            ((Bitboard.lightSquares & getBitboard(Piece.BLACK_BISHOP)) == 0L ||
+                                    (Bitboard.darkSquares & getBitboard(Piece.BLACK_BISHOP)) == 0L);
+                } else {
+                    return Long.bitCount(getBitboard(Piece.WHITE_KNIGHT)) == 2 ||
+                            Long.bitCount(getBitboard(Piece.BLACK_KNIGHT)) == 2;
+                }
+            } else {
+                if ((getBitboard(Piece.WHITE_KING) | getBitboard(Piece.WHITE_BISHOP)) == getBitboard(Side.WHITE) &&
+                        ((getBitboard(Piece.BLACK_KING) | getBitboard(Piece.BLACK_BISHOP)) == getBitboard(Side.BLACK))) {
+                    return (((Bitboard.lightSquares & getBitboard(Piece.WHITE_BISHOP)) == 0L) &&
+                            ((Bitboard.lightSquares & getBitboard(Piece.BLACK_BISHOP)) == 0L)) ||
+                            ((Bitboard.darkSquares & getBitboard(Piece.WHITE_BISHOP)) == 0L) &&
+                                    ((Bitboard.darkSquares & getBitboard(Piece.BLACK_BISHOP)) == 0L);
+                }
+                return count < 4;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Verifies in the current position if the king of the side to move is stalemated, and thus if the position must be
+     * considered a forced draw.
+     *
+     * @return {@code true} if the king of the side to move is stalemated
+     */
+    public boolean isStaleMate() {
+        try {
+            if (!isKingAttacked()) {
+                List<Move> l = MoveGenerator.generateLegalMoves(this);
+                if (l.size() == 0) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return false;
+    }
+
+    /**
+     * Returns whether the notifications of board events are enabled or not.
+     *
+     * @return {@code true} if board events are notified to observers
+     */
+    public boolean isEnableEvents() {
+        return enableEvents;
+    }
+
+    /**
+     * Sets the flag that controls the notification of board events. If {@code true}, board events are emitted,
+     * otherwise they are turned off.
+     *
+     * @param enableEvents whether the notification of board events is enabled or not
+     */
+    public void setEnableEvents(boolean enableEvents) {
+        this.enableEvents = enableEvents;
+    }
+
+    /**
+     * Returns the unique position ID for the current position and status. The identifier is nothing more than the
+     * Forsyth-Edwards Notation (FEN) representation of the board without the move counters.
+     * <p>
+     * Although this is a reliable way for identifying a unique position, it is much slower than using
+     * {@link Board#hashCode()} or {@link Board#getZobristKey()}.
+     *
+     * @return the unique position ID
+     * @see Board#hashCode()
+     * @see Board#getZobristKey()
+     */
+    public String getPositionId() {
+        String[] parts = this.getFen(false).split(StringUtils.SPACE);
+        return parts[0] + StringUtils.SPACE + parts[1] + StringUtils.SPACE + parts[2] +
+                StringUtils.SPACE + (this.getEnPassantTarget() != Square.NONE ? parts[3] : "-");
+    }
+
+    /**
+     * Returns the list of all possible legal moves for the current position according to the standard rules of chess.
+     * If such moves are played, it is guaranteed the resulting position will also be legal.
+     *
+     * @return the list of legal moves available in the current position
+     */
+    public List<Move> legalMoves() {
+
+        return MoveGenerator.generateLegalMoves(this);
+    }
+
+    /**
+     * Converts a move to its UCI string representation. In Chess960, castling is encoded as
+     * king-to-rook (e.g. "e1h1" for O-O when rook is on h1), following the official UCI Chess960 convention.
+     * In standard chess, castling is encoded as king-to-destination (e.g. "e1g1" for O-O).
+     *
+     * @param move the move to convert
+     * @return the UCI string representation of the move
+     */
+    public String toUci(Move move) {
+        if (context.getVariationType() == VariationType.CHESS960 && context.isCastleMove(move)) {
+            Side side = getSideToMove();
+            Move rookMove = context.isKingSideCastle(move)
+                    ? context.getRookoo(side)
+                    : context.getRookooo(side);
+            if (rookMove != null) {
+                return move.getFrom().toString().toLowerCase() + rookMove.getFrom().toString().toLowerCase();
+            }
+        }
+        String uci = move.getFrom().toString().toLowerCase() + move.getTo().toString().toLowerCase();
+        if (move.getPromotion() != Piece.NONE) {
+            uci += move.getPromotion().getFenSymbol().toLowerCase();
+        }
+        return uci;
+    }
+
+    /**
+     * Parses a UCI string into a Move, handling Chess960 castling notation. In Chess960, castling is
+     * encoded as king-to-rook (e.g. "e1h1"), which is converted to the internal king-to-destination format.
+     *
+     * @param uci the UCI string to parse (e.g. "e2e4", "e1h1" for Chess960 castling)
+     * @return the parsed Move
+     */
+    public Move fromUci(String uci) {
+        if (uci.length() >= 4 && context.getVariationType() == VariationType.CHESS960) {
+            Square from = Square.valueOf(uci.substring(0, 2).toUpperCase());
+            Square to = Square.valueOf(uci.substring(2, 4).toUpperCase());
+            Piece fromPiece = getPiece(from);
+            Piece toPiece = getPiece(to);
+            // King moving to own rook = castling in UCI Chess960
+            if (fromPiece.getPieceType() == PieceType.KING && toPiece.getPieceType() == PieceType.ROOK
+                    && fromPiece.getPieceSide() == toPiece.getPieceSide()) {
+                int fromFile = from.getFile().ordinal();
+                int toFile = to.getFile().ordinal();
+                return toFile > fromFile
+                        ? context.getoo(getSideToMove())
+                        : context.getooo(getSideToMove());
+            }
+        }
+        Piece promotion = Piece.NONE;
+        if (uci.length() == 5) {
+            promotion = Piece.fromFenSymbol(
+                    getSideToMove() == Side.WHITE
+                            ? String.valueOf(uci.charAt(4)).toUpperCase()
+                            : String.valueOf(uci.charAt(4)).toLowerCase());
+        }
+        Square from = Square.valueOf(uci.substring(0, 2).toUpperCase());
+        Square to = Square.valueOf(uci.substring(2, 4).toUpperCase());
+        return new Move(from, to, promotion);
+    }
+
+    /**
+     * Returns the list of all possible pseudo-legal moves for the current position.
+     * <p>
+     * A move is considered pseudo-legal when it is legal according to the standard rules of chess piece movements, but
+     * the resulting position might not be legal because of other rules (e.g. checks to the king).
+     *
+     * @return the list of pseudo-legal moves available in the current position
+     */
+    public List<Move> pseudoLegalMoves() {
+
+        return MoveGenerator.generatePseudoLegalMoves(this);
+    }
+
+    /**
+     * Returns the list of all possible pseudo-legal captures for the current position.
+     * <p>
+     * A move is considered a pseudo-legal capture when it takes an enemy piece and it is legal according to the
+     * standard rules of chess piece movements, but the resulting position might not be legal because of other rules
+     * (e.g. checks to the king).
+     *
+     * @return the list of pseudo-legal captures available in the current position
+     */
+    public List<Move> pseudoLegalCaptures() {
+
+        return MoveGenerator.generatePseudoLegalCaptures(this);
+    }
+
+    /**
+     * Checks if this board is equivalent to another.
+     * <p>
+     * Two boards are considered equivalent when:
+     * <ul>
+     *     <li>the pieces are the same, placed on the very same squares;</li>
+     *     <li>the side to move is the same;</li>
+     *     <li>the castling rights are the same;</li>
+     *     <li>the en passant target is the same.</li>
+     * </ul>
+     *
+     * @param obj the other object reference to compare to this board
+     * @return {@code true} if this board and the object reference are equivalent
+     * @see Board#strictEquals(Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj instanceof Board) {
+            Board board = (Board) obj;
+            for (Piece piece : Piece.allPieces) {
+                if (piece != Piece.NONE && getBitboard(piece) != board.getBitboard(piece)) {
+                    return false;
+                }
+            }
+            return getSideToMove() == board.getSideToMove()
+                    && getCastleRight(Side.WHITE) == board.getCastleRight(Side.WHITE)
+                    && getCastleRight(Side.BLACK) == board.getCastleRight(Side.BLACK)
+                    && getEnPassant() == board.getEnPassant()
+                    && getEnPassantTarget() == board.getEnPassantTarget();
+
+        }
+        return false;
+    }
+
+    /**
+     * Checks if this board is equivalent to another performing a strict comparison.
+     * <p>
+     * Two boards are considered strictly equivalent when:
+     * <ul>
+     *     <li>they are equivalent;</li>
+     *     <li>their history is the same.</li>
+     * </ul>
+     *
+     * @param obj the other object reference to compare to this board
+     * @return {@code true} if this board and the object reference are strictly equivalent
+     * @see Board#equals(Object)
+     */
+    public boolean strictEquals(Object obj) {
+        if (obj instanceof Board) {
+            Board board = (Board) obj;
+            return equals(board) && board.getHistory().equals(this.getHistory());
+        }
+        return false;
+    }
+
+    /**
+     * Returns a hash code value for this board.
+     *
+     * @return a hash value for this board
+     */
+    @Override
+    public int hashCode() {
+        return (int) incrementalHashKey;
+    }
+
+    /**
+     * Returns a Zobrist hash code value for this board. A Zobrist hashing assures the same position returns the same
+     * hash value. It is calculated using the position of the pieces, the side to move, the castle rights and the en
+     * passant target.
+     *
+     * @return a Zobrist hash value for this board
+     * @see <a href="https://en.wikipedia.org/wiki/Zobrist_hashing">Zobrist hashing in Wikipedia</a>
+     */
+    public long getZobristKey() {
+        long hash = 0;
+        if (getCastleRight(Side.WHITE) != CastleRight.NONE) {
+            hash ^= getCastleRightKey(Side.WHITE);
+        }
+        if (getCastleRight(Side.BLACK) != CastleRight.NONE) {
+            hash ^= getCastleRightKey(Side.BLACK);
+        }
+        for (Square sq : Square.values()) {
+            Piece piece = getPiece(sq);
+            if (!Piece.NONE.equals(piece) && !Square.NONE.equals(sq)) {
+                hash ^= getPieceSquareKey(piece, sq);
+            }
+        }
+        hash ^= getSideKey(getSideToMove());
+
+        if (Square.NONE != getEnPassantTarget() &&
+                pawnCanBeCapturedEnPassant()) {
+            hash ^= getEnPassantKey(getEnPassantTarget());
+        }
+        return hash;
+    }
+
+    private long getCastleRightKey(Side side) {
+        return keys.get(3 * getCastleRight(side).ordinal() + 300 + 3 * side.ordinal());
+    }
+
+    private long getSideKey(Side side) {
+        return keys.get(3 * side.ordinal() + 500);
+    }
+
+    private long getEnPassantKey(Square enPassantTarget) {
+        return keys.get(3 * enPassantTarget.ordinal() + 400);
+    }
+
+    private long getPieceSquareKey(Piece piece, Square square) {
+        return keys.get(57 * piece.ordinal() + 13 * square.ordinal());
+    }
+
+    /**
+     * Returns a human-readable representation of the board taking the perspective of white, with the 1st rank at the
+     * bottom and the 8th rank at the top.
+     * <p>
+     * Same as invoking {@code toStringFromViewPoint(Side.WHITE)}.
+     *
+     * @return a string representation of the board from white player's point of view
+     * @see Board#toStringFromViewPoint(Side)
+     */
+    public String toStringFromWhiteViewPoint() {
+        return toStringFromViewPoint(Side.WHITE);
+    }
+
+    /**
+     * Returns a human-readable representation of the board taking the perspective of black, with the 8th rank at the
+     * bottom and the 1st rank at the top.
+     * <p>
+     * Same as invoking {@code toStringFromViewPoint(Side.BLACK)}.
+     *
+     * @return a string representation of the board from black player's point of view
+     * @see Board#toStringFromViewPoint(Side)
+     */
+    public String toStringFromBlackViewPoint() {
+        return toStringFromViewPoint(Side.BLACK);
+    }
+
+    /**
+     * Returns a human-readable representation of the board taking the perspective of one side, with the 1st rank at the
+     * bottom in case of white, or the 8th rank at the bottom in case of black.
+     *
+     * @param side the side whose home rank should be at the bottom of the resulting representation
+     * @return a string representation of the board using one of the two player's point of view
+     */
+    public String toStringFromViewPoint(Side side) {
+        StringBuilder sb = new StringBuilder();
+
+        final Supplier<IntStream> rankIterator = side == Side.WHITE
+                ? Board::sevenToZero : Board::zeroToSeven;
+        final Supplier<IntStream> fileIterator = side == Side.WHITE
+                ? Board::zeroToSeven : Board::sevenToZero;
+
+        rankIterator.get().forEach(i -> {
+            Rank r = Rank.allRanks[i];
+            fileIterator.get().forEach(n -> {
+                File f = File.allFiles[n];
+                if (!File.NONE.equals(f) && !Rank.NONE.equals(r)) {
+                    Square sq = Square.encode(r, f);
+                    Piece piece = getPiece(sq);
+                    sb.append(piece.getFenSymbol());
+                }
+            });
+            sb.append("\n");
+        });
+
+        return sb.toString();
+    }
+
+    /**
+     * Returns a string representation of this board.
+     * <p>
+     * The result of {@link Board#toStringFromWhiteViewPoint()} is used to print the position of the board.
+     *
+     * @return a string representation of the board
+     * @see Board#toStringFromWhiteViewPoint()
+     */
+    @Override
+    public String toString() {
+        return toStringFromWhiteViewPoint() + "Side: " + getSideToMove();
+    }
+
+    /**
+     * Returns a reference to a copy of the board. The board history is copied as well.
+     *
+     * @return a copy of the board
+     */
+    @Override
+    public Board clone() {
+        Board copy = new Board(getContext(), this.updateHistory);
+        copy.loadFromFen(this.getFen());
+        copy.setEnPassantTarget(this.getEnPassantTarget());
+        copy.incrementalHashKey = this.incrementalHashKey;
+        copy.incrementalPolyglotKey = this.incrementalPolyglotKey;
+        copy.getHistory().clear();
+        for (long key : getHistory()) {
+            copy.getHistory().add(key);
+        }
+        return copy;
+    }
+
+    /**
+     * Returns the current incremental hash key. This hash value changes every time the position changes, hence it is
+     * unique for every position.
+     *
+     * @return the current incremental hash key
+     */
+    public long getIncrementalHashKey() {
+        return incrementalHashKey;
+    }
+
+    /**
+     * Sets the current incremental hash key, replacing the previous one.
+     *
+     * @param hashKey the incremental hash key to set
+     */
+    public void setIncrementalHashKey(long hashKey) {
+        incrementalHashKey = hashKey;
+    }
+
+    /**
+     * Determines whether the given move is an actual Chess960 castling move.
+     * <p>
+     * In Chess960, the king "captures" its own rook to castle, but certain king moves
+     * to squares occupied by friendly rooks could also be normal captures in some edge cases.
+     * This helper resolves the ambiguity by checking:
+     * <ul>
+     *   <li>The move is recognized as a castle by the game context</li>
+     *   <li>The side still has castling rights</li>
+     *   <li>The destination is not occupied by an enemy piece (which would make it a capture)</li>
+     *   <li>The rook is on its expected initial square (or king from==to, meaning it stays in place)</li>
+     * </ul>
+     * <p>
+     * This method should only be called when the variant is Chess960 and the moving piece is a king.
+     *
+     * @param move the king move to evaluate
+     * @param side the side of the moving king
+     * @return {@code true} if the move is a genuine Chess960 castle
+     */
+    boolean isChess960Castle(Move move, Side side) {
+        if (!context.isCastleMove(move) || getCastleRight(side) == CastleRight.NONE) {
+            return false;
+        }
+        if (move.getFrom() == move.getTo()) {
+            return true; // King already on final square — always a castle
+        }
+        Piece destPiece = getPiece(move.getTo());
+        if (destPiece != Piece.NONE && !destPiece.getPieceSide().equals(side)) {
+            return false; // Destination has enemy piece — this is a capture, not a castle
+        }
+        CastleRight c = context.isKingSideCastle(move) ? CastleRight.KING_SIDE : CastleRight.QUEEN_SIDE;
+        Move rookMove = context.getRookCastleMove(side, c);
+        Piece expectedRook = Piece.make(side, PieceType.ROOK);
+        return rookMove != null && getPiece(rookMove.getFrom()) == expectedRook;
+    }
+
+    private boolean pawnCanBeCapturedEnPassant() {
+        return
+                squareAttackedByPieceType(getEnPassant(), getSideToMove(), PieceType.PAWN) != 0
+                        && verifyNotPinnedPiece(getSideToMove().flip(), getEnPassant(), getEnPassantTarget());
+    }
+
+    private boolean verifyNotPinnedPiece(Side side, Square enPassant, Square target) {
+
+        long pawns = Bitboard.getPawnAttacks(side, enPassant) & getBitboard(Piece.make(side.flip(), PieceType.PAWN));
+        return pawns != 0 && verifyAllPins(pawns, side, enPassant, target);
+    }
+
+    private boolean verifyAllPins(long pawns, Side side, Square enPassant, Square target) {
+
+        long onePawn = extractLsb(pawns);
+        long otherPawn = pawns ^ onePawn;
+        if (onePawn != 0L && verifyKingIsNotAttackedWithoutPin(side, enPassant, target, onePawn)) {
+            return true;
+        }
+        return verifyKingIsNotAttackedWithoutPin(side, enPassant, target, otherPawn);
+    }
+
+    private boolean verifyKingIsNotAttackedWithoutPin(Side side, Square enPassant, Square target, long pawns) {
+
+        return squareAttackedBy(getKingSquare(side.flip()), side, removePieces(enPassant, target, pawns)) == 0L;
+    }
+
+    private long removePieces(Square enPassant, Square target, long pieces) {
+
+        return (getBitboard() ^ pieces ^ target.getBitboard()) | enPassant.getBitboard();
+    }
+
+    private long computePolyglotKey() {
+        long polyglot = 0L;
+
+        for (Square square : Square.values()) {
+            if (square != Square.NONE) {
+                Piece piece = getPiece(square);
+                if (piece == null || piece == Piece.NONE) {
+                    continue;
+                }
+                polyglot ^= getPiecePolyglotKey(piece, square);
+            }
+        }
+
+        polyglot ^= getCastleRightsPolyglotKey(getCastleRight(Side.WHITE), Side.WHITE);
+        polyglot ^= getCastleRightsPolyglotKey(getCastleRight(Side.BLACK), Side.BLACK);
+
+        if (getSideToMove() == Side.WHITE) {
+            polyglot ^= getSidePolyglotKey();
+        }
+
+        Square epTarget = getEnPassantTarget();
+        if (epTarget != Square.NONE && pawnCanBeCapturedEnPassant()) {
+            polyglot ^= getEnPassantPolyglotKey(epTarget);
+        }
+
+        return polyglot;
+    }
+
+    /**
+     * Returns the Polyglot Zobrist key of the current position. Unlike {@link Board#getZobristKey()}, this key is
+     * computed from the standardized Polyglot random number table, making it suitable for looking up moves in
+     * Polyglot-format opening books and for interoperability with other chess tools.
+     *
+     * @return the Polyglot Zobrist key of the position
+     */
+    public long getPolyglotKey() {
+        return incrementalPolyglotKey;
+    }
+
+    void setIncrementalPolyglotKey(long key) {
+        this.incrementalPolyglotKey = key;
+    }
+
+    private static long getEnPassantPolyglotKey(Square square) {
+        if (square == Square.NONE) {
+            throw new IllegalArgumentException("must be a valid square");
+        }
+        return POLYGLOT_RANDOM_TABLE[772 + square.getFile().ordinal()];
+    }
+
+    private static long getSidePolyglotKey() {
+        return POLYGLOT_RANDOM_TABLE[780];
+    }
+
+    private static long getCastleRightsPolyglotKey(CastleRight rights, Side side) {
+        long castleKey = 0L;
+        if (rights == CastleRight.KING_AND_QUEEN_SIDE) {
+            castleKey ^= getKingCastlePolyglotKey(side);
+            castleKey ^= getQueenCastlePolyglotKey(side);
+        } else if (rights == CastleRight.KING_SIDE) {
+            castleKey ^= getKingCastlePolyglotKey(side);
+        } else if (rights == CastleRight.QUEEN_SIDE) {
+            castleKey ^= getQueenCastlePolyglotKey(side);
+        }
+        return castleKey;
+    }
+
+    private static long getKingCastlePolyglotKey(Side side) {
+        return POLYGLOT_RANDOM_TABLE[side == Side.WHITE ? 768 : 770];
+    }
+
+    private static long getQueenCastlePolyglotKey(Side side) {
+        return POLYGLOT_RANDOM_TABLE[side == Side.WHITE ? 769 : 771];
+    }
+
+    private static long getPiecePolyglotKey(Piece piece, Square square) {
+        int pieceIdx = getPiecePolyglotIndex(piece);
+        int squareIdx = getSquarePolyglotIndex(square);
+        return POLYGLOT_RANDOM_TABLE[pieceIdx * 64 + squareIdx];
+    }
+
+    private static int getSquarePolyglotIndex(Square square) {
+        if (square == Square.NONE) {
+            throw new IllegalArgumentException("must be a valid square");
+        }
+        int file = square.getFile().ordinal();
+        int rank = square.getRank().ordinal();
+        return rank * 8 + file;
+    }
+
+    private static int getPiecePolyglotIndex(Piece piece) {
+        if (piece == Piece.NONE) {
+            throw new IllegalArgumentException("must be a valid piece");
+        }
+        switch (piece.getPieceType()) {
+            case PAWN: return piece.getPieceSide() == Side.WHITE ? 1 : 0;
+            case KNIGHT: return piece.getPieceSide() == Side.WHITE ? 3 : 2;
+            case BISHOP: return piece.getPieceSide() == Side.WHITE ? 5 : 4;
+            case ROOK: return piece.getPieceSide() == Side.WHITE ? 7 : 6;
+            case QUEEN: return piece.getPieceSide() == Side.WHITE ? 9 : 8;
+            case KING: return piece.getPieceSide() == Side.WHITE ? 11 : 10;
+            default: throw new IllegalArgumentException("unhandled piece");
+        }
+    }
+}
