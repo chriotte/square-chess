@@ -1,12 +1,12 @@
 Square Chess piece artwork
 
-The bundled Fantasy chess pieces were created by Maurizio Monge and are used
-under the MIT License. The original SVG source is available at:
-https://github.com/maurimo/chess-art
+The bundled Chessnut chess pieces were created by Alexis Luengas and are used
+under the Apache License 2.0. Copyright 2015 Alexis Luengas.
+Original SVG source: https://github.com/LexLuengas/chessnut-pieces
+Pinned commit: 2b8eaf14a31edad7e9deb53b1473e1d4857868a9
 
-The SVG files in the fantasy/ directory were downloaded from the Fantasy set
-served by the Lichess project:
-https://github.com/lichess-org/lila/tree/master/public/piece/fantasy
+The SVG files in chessnut/ are unmodified copies from that commit.
 
-The full MIT licence text is included in LICENSE.txt. The PNG files used by
-the Android renderer are rasterized copies of those SVGs.
+The full licence text is included in LICENSE.txt and the original copyright
+notice is in COPYRIGHT.txt. Android PNGs are 256px rasterized copies of the
+SVGs. Regenerate them with scripts/render-pieces.py (Python + CairoSVG).

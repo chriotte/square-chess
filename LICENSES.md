@@ -22,7 +22,7 @@ Square Chess original code: GNU GPL v3 or later; full licence in LICENSE.
 
 ## Visuals
 
-The Fantasy chess-piece artwork is by Maurizio Monge and is used under the
-MIT License. Source links and the full notice are in
+The Chessnut chess-piece artwork is by Alexis Luengas and is used under the
+Apache License 2.0. Source links and the full notice are in
 `THIRD_PARTY_NOTICES.md` and `app/src/main/assets/pieces/`. The Android PNGs
 are rasterized copies of the corresponding SVGs.
