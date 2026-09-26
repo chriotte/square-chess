@@ -252,7 +252,7 @@ class MainActivity: ComponentActivity() {
                 val square=Square.squareAt(rank*8+file)
                 val piece=s.position.board.getPiece(square)
                 val targets=legal.filter{it.from==selected && it.to==square}
-                val last=s.position.moves.lastOrNull().orEmpty()
+                val last=s.highlightMove.orEmpty()
                 val recent=last.startsWith(square.name.lowercase()) || last.drop(2).startsWith(square.name.lowercase())
                 val check=piece!=Piece.NONE && piece.pieceType.name=="KING" && piece.pieceSide==s.position.board.sideToMove && s.position.board.isKingAttacked
                 val color=when { selected==square->Color(0xFFC8B56E);check->Color(0xFFBF7669);recent->Color(0xFFA7AC78);(rank+file)%2==1->LightSquare;else->DarkSquare }

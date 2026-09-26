@@ -17,6 +17,7 @@ data class GameUi(
     val position: ChessPosition = ChessPosition(),
     val busy: Boolean = false,
     val message: String = "Your board. Your pace.",
+    val highlightMove: String? = null,
     val ready: Boolean = false
 )
 class GameViewModel(app: Application): AndroidViewModel(app) {
@@ -70,7 +71,12 @@ class GameViewModel(app: Application): AndroidViewModel(app) {
         val saved=g.copy(moves=p.moves.joinToString(" "),result=p.automaticResult() ?: "*",updated=System.currentTimeMillis())
         db.games().save(saved)
         revision++
-        state.value=s.copy(game=saved,position=p,busy=false,message=if(saved.result!="*") "Game finished · ${saved.result}" else "${p.board.sideToMove.name.lowercase().replaceFirstChar(Char::titlecase)} to move${if(p.board.isKingAttacked) " · Check" else ""}")
+        val highlightRevision=revision
+        state.value=s.copy(game=saved,position=p,busy=false,highlightMove=uci,message=if(saved.result!="*") "Game finished · ${saved.result}" else "${p.board.sideToMove.name.lowercase().replaceFirstChar(Char::titlecase)} to move${if(p.board.isKingAttacked) " · Check" else ""}")
+        viewModelScope.launch {
+            delay(1200)
+            if(revision==highlightRevision) state.value=state.value.copy(highlightMove=null)
+        }
         Log.i("SquareChess","Committed ${p.moves.size}: $uci; FEN=${p.board.fen}")
     }
     private fun humanTurn(s: GameUi) = (s.position.board.sideToMove==Side.WHITE)==s.game!!.humanWhite
