@@ -60,6 +60,11 @@ class ChessPosition(val initialFen: String = START_FEN, val moves: List<String> 
         if(pieces.size == 1) return pieces[0].second.pieceType.name in listOf("BISHOP","KNIGHT")
         return pieces.all { it.second.pieceType.name == "BISHOP" } && pieces.map { (sq,_) -> (sq.ordinal / 8 + sq.ordinal % 8) % 2 }.distinct().size == 1
     }
+    /** Conservative proof for timeout adjudication; blocked dead positions still need analysis. */
+    fun provenUnableToMate(side: Side): Boolean = provenDeadMaterial() ||
+        com.github.bhlangonijr.chesslib.Square.entries.filter { it.name!="NONE" }
+            .map { board.getPiece(it) }
+            .none { it!=Piece.NONE && it.pieceSide==side && it.pieceType.name!="KING" }
     fun perft(depth: Int): Long {
         fun count(b: Board, d: Int): Long {
             if(d == 0) return 1

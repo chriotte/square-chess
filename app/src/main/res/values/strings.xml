@@ -1,0 +1,9 @@
+<resources>
+    <string name="play_against_computer">Play against computer</string>
+    <string name="over_the_board">Over the board</string>
+    <string name="chess_clock">Chess clock</string>
+    <string name="chess_clock_subtitle">For games played on a physical board</string>
+    <string name="import_position">Import position</string>
+    <string name="replace_position">Replace position</string>
+    <string name="import_position_help">Start from a board position saved by another chess app. Choose a .fen file: it contains the pieces and whose turn it is, but not the moves of a whole game. Leave this unchanged to start a normal game.</string>
+</resources>

@@ -17,9 +17,16 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
-        ndk { abiFilters += "arm64-v8a" }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild { cmake { cppFlags += "-std=c++17" } }
+    }
+    buildTypes {
+        getByName("debug") {
+            ndk { abiFilters += setOf("arm64-v8a", "x86_64") }
+        }
+        getByName("release") {
+            ndk { abiFilters += "arm64-v8a" }
+        }
     }
     buildFeatures { compose = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }

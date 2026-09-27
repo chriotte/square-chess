@@ -29,6 +29,7 @@ class InputDeviceTest {
     private fun waitNode(text: String): AccessibilityNodeInfo {
         val deadline=SystemClock.uptimeMillis()+10_000
         while(SystemClock.uptimeMillis()<deadline) {
+            dismissImmersiveModePrompt()
             find(instrumentation.uiAutomation.rootInActiveWindow,text)?.let { return it }
             SystemClock.sleep(100)
         }

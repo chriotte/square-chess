@@ -27,9 +27,14 @@ class GameMigrationDeviceTest {
                 assertEquals(123L,old.updated)
                 assertEquals("Player",old.black)
                 assertNull(old.orientationFlipped)
+                assertNull(old.clockBaseMs)
+                assertNull(old.clockIncrementMs)
+                assertNull(old.clockPhase)
                 assertTrue(defaultFlipFor(old))
                 assertNotNull(ChessPosition(moves=old.moves.split(" ")).resolve("Nf3"))
-                db.games().save(old.copy(orientationFlipped=false,result="1-0",resultReason="Resignation"))
+                val clock=ClockState(ClockConfig(300_000,5_000,3_000)).start(100).finish(200)
+                db.games().save(old.copy(orientationFlipped=false,result="1-0",resultReason="Resignation")
+                    .withClock(clock,200))
             } finally { db.close() }
             val reopened=openChessDatabase(context,name)
             try {
@@ -38,6 +43,12 @@ class GameMigrationDeviceTest {
                 assertEquals("1-0",restored.result)
                 assertEquals("Resignation",restored.resultReason)
                 assertEquals("e2e4 e7e5",restored.moves)
+                assertEquals(300_000L,restored.clockBaseMs)
+                assertEquals(5_000L,restored.clockIncrementMs)
+                assertEquals(3_000L,restored.clockDelayMs)
+                assertEquals(2_900L,restored.clockDelayRemainingMs)
+                assertEquals("FINISHED",restored.clockPhase)
+                assertEquals(ClockSide.WHITE.name,restored.clockActive)
             } finally { reopened.close() }
         } finally { context.deleteDatabase(name) } // Only this isolated test-created file.
     }

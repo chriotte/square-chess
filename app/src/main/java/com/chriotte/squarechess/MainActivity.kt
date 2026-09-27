@@ -2,6 +2,9 @@ package com.chriotte.squarechess
 
 import android.os.Bundle
 import android.os.Build
+import android.content.Intent
+import android.net.Uri
+import android.provider.OpenableColumns
 import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -9,6 +12,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.BackHandler
 import androidx.activity.viewModels
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
@@ -38,12 +43,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import com.github.bhlangonijr.chesslib.Piece
 import com.github.bhlangonijr.chesslib.Side
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.github.bhlangonijr.chesslib.Square
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.io.IOException
 
 private val Ink=Color(0xFF171D1C)
 private val Sand=Color(0xFFDCC399)
@@ -76,14 +87,52 @@ class MainActivity: ComponentActivity() {
         setContent {
             MaterialTheme(colorScheme=darkColorScheme(primary=Sand,background=Ink,surface=Color(0xFF222B28),onBackground=Color(0xFFF3EEDF))) {
                 val s by vm.state.collectAsState()
-                val history by vm.history.collectAsState(initial=emptyList())
                 var screen by rememberSaveable { mutableStateOf("home") }
-                var dialog by remember { mutableStateOf("") }
+                var dialog by rememberSaveable { mutableStateOf("") }
                 var resultDialog by remember { mutableStateOf<ResultEvent?>(null) }
-                var selectedMode by remember { mutableStateOf(GameMode.COMPUTER) }
+                var selectedMode by rememberSaveable { mutableStateOf(GameMode.COMPUTER) }
                 var level by rememberSaveable { mutableIntStateOf(4) }
                 var white by rememberSaveable { mutableStateOf(true) }
+                var standaloneClock by rememberSaveable(stateSaver=clockStateSaver) {
+                    mutableStateOf(ClockState(ClockConfig(300_000,0)))
+                }
+                var standaloneStartSide by rememberSaveable { mutableStateOf(ClockSide.WHITE) }
+                var clockPreset by rememberSaveable { mutableStateOf("Untimed") }
+                var clockPresetMenu by remember { mutableStateOf(false) }
+                var importedFen by rememberSaveable { mutableStateOf<String?>(null) }
+                var moreSetupOptions by rememberSaveable { mutableStateOf(false) }
+                var fenImportError by remember { mutableStateOf<String?>(null) }
+                var fenImporting by remember { mutableStateOf(false) }
+                val coroutineScope=rememberCoroutineScope()
+                val fenPicker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                    if(uri!=null) {
+                        importedFen=null
+                        fenImportError=null
+                        fenImporting=true
+                        coroutineScope.launch {
+                            try {
+                                importedFen=loadFenDocument(uri)
+                            } catch(e: IOException) {
+                                fenImportError="Could not read the selected file: ${e.message ?: "I/O error"}"
+                            } catch(e: SecurityException) {
+                                fenImportError="Permission to read the selected file was denied."
+                            } catch(e: IllegalArgumentException) {
+                                fenImportError=e.message ?: "The selected file is not a valid FEN position."
+                            } finally {
+                                fenImporting=false
+                            }
+                        }
+                    }
+                }
                 var reviewPly by rememberSaveable(s.game?.id) { mutableStateOf<Int?>(null) }
+                fun openNewGame(mode: GameMode) {
+                    selectedMode=mode
+                    moreSetupOptions=false
+                    importedFen=null
+                    fenImportError=null
+                    fenImporting=false
+                    dialog="new"
+                }
                 LaunchedEffect(screen,s.game?.id) { if(screen=="game") flip=defaultFlipFor(s.game) }
                 LaunchedEffect(s.resultEvent) { s.resultEvent?.let { resultDialog=it } }
                 LaunchedEffect(screen, s.positionKey(), s.busy, dialog, resultDialog) {
@@ -127,34 +176,57 @@ class MainActivity: ComponentActivity() {
                                     shape=RoundedCornerShape(12.dp),
                                     colors=ButtonDefaults.buttonColors(containerColor=Sand,contentColor=Ink)
                                 ) { Text(if(s.game?.result=="*") "Continue game" else "View last game",fontSize=17.sp) }
-                                LandingOption("Play computer") { selectedMode=GameMode.COMPUTER; dialog="new" }
-                                LandingOption("Two players") { selectedMode=GameMode.LOCAL_TWO_PLAYER; dialog="new" }
-                                LandingOption("Record physical game") { selectedMode=GameMode.PHYSICAL_BOARD_RECORDING; dialog="new" }
+                                LandingOption(stringResource(R.string.play_against_computer)) { openNewGame(GameMode.COMPUTER) }
+                                LandingOption(stringResource(R.string.over_the_board)) { openNewGame(GameMode.LOCAL_TWO_PLAYER) }
+                                LandingOption("Record physical game") { openNewGame(GameMode.PHYSICAL_BOARD_RECORDING) }
+                                LandingOption(
+                                    stringResource(R.string.chess_clock),
+                                    stringResource(R.string.chess_clock_subtitle)
+                                ) {
+                                    screen="standaloneClock"
+                                }
                               }
                                 Row(Modifier.fillMaxWidth().padding(top=4.dp,bottom=16.dp),horizontalArrangement=Arrangement.SpaceBetween) {
                                     TextButton(onClick={screen="history"}) { Text("Game history") }
-                                    TextButton(onClick={dialog="help"}) { Text("Help & about") }
+                                    TextButton(onClick={screen="help";vm.pauseForNavigation()}) { Text(stringResource(R.string.help_title)) }
                                 }
                             }
                             "history" -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
+                                val history by vm.history.collectAsState(initial=emptyList())
                                 TextButton(onClick={screen="home"}) { Text("‹ Home") }
                                 Text("Your games",fontFamily=FontFamily.Serif,fontSize=30.sp)
                                 if(history.isEmpty()) Text("Your first game starts here.")
                                 history.forEach { g -> HomeAction(g.result,"${g.white} · ${g.black}",g.mode.lowercase().replace('_',' ')) { flip=defaultFlipFor(g); reviewPly=null; vm.resume(g); screen="game" } }
                             }
+                            "help" -> HelpAboutScreen(s.game?.mode,onExit={screen="home"})
+                            "standaloneClock" -> StandaloneClockScreen(
+                                clock=standaloneClock,
+                                startSide=standaloneStartSide,
+                                onClockChange={standaloneClock=it},
+                                onStartSideChange={standaloneStartSide=it},
+                                onConfigure={config,side->
+                                    standaloneStartSide=side
+                                    standaloneClock=ClockState(config,active=side)
+                                },
+                                onBack={screen="home"}
+                            )
                             else -> Column(Modifier.fillMaxSize()) {
                                 GameHeader {
                                     GameToolbar(s,reviewPly,
-                                        onReview={ draft=NotationDraft();reviewPly=s.position.moves.size;vm.background() },
-                                        onReturn={reviewPly=null;vm.foreground()},
-                                        onUndo={dialog="undo"},onMenu={dialog="menu"})
+                                        clock=s.clock,
+                                        onReview={ beginReview();draft=NotationDraft();reviewPly=s.position.moves.size;vm.pauseForNavigation() },
+                                        onReturn={ endReview();reviewPly=null;vm.foreground() },
+                                        onUndo={dialog="undo"},onMenu={dialog="menu"},
+                                        onPauseClock={vm.pauseClock()},onResumeClock={vm.resumeClock()},
+                                        onClockExpired={vm.clockExpired()})
                                 }
-                                BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(),contentAlignment=Alignment.Center) {
+                                BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(),contentAlignment=Alignment.TopCenter) {
                                     val side=minOf(maxWidth-4.dp,maxHeight)
                                     val display=remember(s,reviewPly) {
                                         reviewPly?.let { s.copy(position=ChessPosition(s.position.initialFen,s.position.moves.take(it)),busy=true,highlightMove=null) } ?: s
                                     }
-                                    ChessBoard(display,flip,Modifier.size(side), cancelDraft={
+                                    Box(Modifier.size(side)) {
+                                    ChessBoard(display,flip,Modifier.fillMaxSize(), cancelDraft={
                                         if(draft.text.isNotEmpty()) { draft=NotationDraft(); true } else false
                                     }) { move -> vm.enter(move) }
                                     if(reviewPly!=null) Surface(Modifier.align(Alignment.BottomCenter).padding(bottom=8.dp),shape=RoundedCornerShape(12.dp)) {
@@ -181,37 +253,92 @@ class MainActivity: ComponentActivity() {
                                         }
                                     }
                                 }
+                                }
                                 Spacer(Modifier.height(8.dp))
                             }
                         }
                     }
                 }
-                if(dialog=="new") AlertDialog(onDismissRequest={dialog=""},title={Text(when(selectedMode){GameMode.COMPUTER->"Play computer"; GameMode.LOCAL_TWO_PLAYER->"Two players"; else->"Record physical game"})},text={
-                    Column {
+                if(dialog=="new") AlertDialog(onDismissRequest={dialog=""},title={Text(when(selectedMode){GameMode.COMPUTER->stringResource(R.string.play_against_computer); GameMode.LOCAL_TWO_PLAYER->stringResource(R.string.over_the_board); else->"Record physical game"})},text={
+                    Column(Modifier.verticalScroll(rememberScrollState())) {
                         if(selectedMode==GameMode.COMPUTER) {
                             Text("Level $level · Experimental strength")
                             Slider(value=level.toFloat(),onValueChange={level=it.toInt()},valueRange=1f..10f,steps=8)
-                            Row(verticalAlignment=Alignment.CenterVertically) { Text("Play as White",modifier=Modifier.weight(1f)); Switch(checked=white,onCheckedChange={white=it}) }
-                        } else Text(if(selectedMode==GameMode.PHYSICAL_BOARD_RECORDING) "Enter moves from your board. No hints or engine analysis during recording. A casual companion, not tournament-approved equipment." else "Share this board with a friend. Untimed play.")
+                            Text("Choose your side",fontWeight=FontWeight.SemiBold)
+                            SideSelectionButtons(
+                                selectedWhite=white,
+                                whiteDescription="Play as White",
+                                blackDescription="Play as Black",
+                                onWhiteSelected={white=true},
+                                onBlackSelected={white=false}
+                            )
+                        } else Text(if(selectedMode==GameMode.PHYSICAL_BOARD_RECORDING) "Enter moves from your board. No hints or engine analysis during recording. A casual companion, not tournament-approved equipment." else "Share this board with a friend. Choose a time control or play untimed.")
+                        Spacer(Modifier.height(8.dp))
+                        if(selectedMode!=GameMode.PHYSICAL_BOARD_RECORDING) Box {
+                            TextButton(onClick={clockPresetMenu=true},modifier=Modifier.semantics { contentDescription="Time control: $clockPreset" }) {
+                                Text("Time control · $clockPreset")
+                            }
+                            DropdownMenu(expanded=clockPresetMenu,onDismissRequest={clockPresetMenu=false}) {
+                                CLOCK_PRESETS.forEach { preset ->
+                                    DropdownMenuItem(
+                                        text={Text(preset.label)},
+                                        onClick={clockPreset=preset.label;clockPresetMenu=false}
+                                    )
+                                }
+                            }
+                        }
+                        TextButton(onClick={moreSetupOptions=!moreSetupOptions}) {
+                            Text(if(moreSetupOptions) "Fewer options" else "More options")
+                        }
+                        if(moreSetupOptions) {
+                            TextButton(onClick={fenPicker.launch(arrayOf("*/*"))},enabled=!fenImporting) {
+                                Text(stringResource(if(importedFen==null) R.string.import_position else R.string.replace_position))
+                            }
+                            Text(stringResource(R.string.import_position_help),fontSize=13.sp)
+                        }
+                        if(fenImporting) Text("Importing position…")
+                        if(importedFen!=null) Text("Starting from imported position",fontSize=13.sp,fontWeight=FontWeight.Medium)
+                        fenImportError?.let { Text(it,color=MaterialTheme.colorScheme.error,fontSize=12.sp) }
+                        if(importedFen!=null || fenImportError!=null) {
+                            TextButton(onClick={importedFen=null;fenImportError=null}) { Text("Use standard position") }
+                        }
                     }
-                },confirmButton={TextButton(onClick={flip=selectedMode==GameMode.COMPUTER && !white;vm.newGame(selectedMode,level,white);screen="game";draft=NotationDraft();dialog=""}) {Text("Start game")}},dismissButton={TextButton(onClick={dialog=""}){Text("Cancel")}})
+                },confirmButton={TextButton(enabled=!fenImporting && fenImportError==null,onClick={
+                    val selectedClockPreset=CLOCK_PRESETS.firstOrNull { it.label==clockPreset }
+                        ?: error("Unknown time control: $clockPreset")
+                    val clockConfig=if(selectedMode==GameMode.PHYSICAL_BOARD_RECORDING) null else selectedClockPreset.config
+                    flip=selectedMode==GameMode.COMPUTER && !white
+                    vm.newGame(selectedMode,level,white,clockConfig,importedFen ?: START_FEN)
+                    importedFen=null;fenImportError=null
+                    screen="game";draft=NotationDraft();dialog=""
+                }) {Text("Start game")}},dismissButton={TextButton(onClick={dialog=""}){Text("Cancel")}})
                 if(dialog=="menu") AlertDialog(onDismissRequest={dialog=""},title={Text("At the board")},text={Column(Modifier.verticalScroll(rememberScrollState())){
-                    if(reviewPly==null) TextButton(enabled=!s.busy,onClick={draft=NotationDraft();reviewPly=s.position.moves.size;vm.background();dialog=""}) { Text("Review game") }
-                    else TextButton(onClick={reviewPly=null;vm.foreground();dialog=""}) { Text("Return to game") }
+                    if(reviewPly==null) TextButton(enabled=!s.busy,onClick={beginReview();draft=NotationDraft();reviewPly=s.position.moves.size;vm.pauseForNavigation();dialog=""}) { Text("Review game") }
+                    else TextButton(onClick={endReview();reviewPly=null;vm.foreground();dialog=""}) { Text("Return to game") }
                     TextButton(onClick={dialog="history"}){Text("Move list")}
                     TextButton(onClick={flip=!flip;vm.setOrientation(flip);dialog=""}){Text("Flip board")}
+                    if(s.game!=null) TextButton(onClick={
+                        val shown=reviewPly?.let { ChessPosition(s.position.initialFen,s.position.moves.take(it)) } ?: s.position
+                        startActivity(Intent.createChooser(fenShareIntent(shown),"Share position FEN"))
+                        dialog=""
+                    }) { Text("Share FEN") }
+                    s.game?.let { game ->
+                        TextButton(onClick={
+                            startActivity(Intent.createChooser(pgnShareIntent(game),"Share game PGN"))
+                            dialog=""
+                        }) { Text("Share PGN") }
+                    }
                     if(s.game?.result=="*" && reviewPly==null) {
                         if(s.position.moves.isNotEmpty()) TextButton(enabled=!s.busy,onClick={dialog="undo"}){Text("Undo / take back")}
                         if(s.position.canClaimDraw()) TextButton(onClick={vm.end("1/2-1/2","Draw claimed");dialog=""}){Text("Claim draw")}
                         TextButton(onClick={dialog="end"}){Text("End game")}
                         if(s.game?.mode==GameMode.COMPUTER.name && s.engineError!=null) TextButton(onClick={vm.maybeEngine();dialog=""}){Text("Retry engine")}
                     }
-                    TextButton(onClick={screen="home";dialog="";vm.background()}){Text("Save & home")}
+                    TextButton(onClick={screen="home";dialog="";vm.pauseForNavigation()}){Text("Save & home")}
                 }},confirmButton={TextButton(onClick={dialog=""}){Text("Back to board")}})
                 if(dialog=="undo") AlertDialog(onDismissRequest={dialog=""},title={Text("Take back the last turn?")},text={Text("The removed move can be played again. Against the computer, both moves are removed when possible.")},confirmButton={TextButton(onClick={vm.undo();dialog=""}){Text("Take back")}},dismissButton={TextButton(onClick={dialog=""}){Text("Keep playing")}})
                 if(dialog=="end") AlertDialog(onDismissRequest={dialog=""},title={Text("Finish this game")},text={Column{ Text("Choose the agreed result."); listOf("White wins" to "1-0","Black wins" to "0-1","Draw" to "1/2-1/2").forEach{(name,result)->TextButton(onClick={vm.end(result,"Result recorded by the players");dialog=""}){Text(name)}} }},confirmButton={TextButton(onClick={dialog=""}){Text("Cancel")}})
                 if(dialog=="history") AlertDialog(onDismissRequest={dialog=""},title={Text("Moves")},text={Column(Modifier.verticalScroll(rememberScrollState())){if(s.position.moves.isEmpty()) Text("No moves yet.") else s.position.san.chunked(2).forEachIndexed { i,pair-> Text("${i+1}.  ${pair.joinToString("    ")}",fontFamily=FontFamily.Monospace,modifier=Modifier.padding(4.dp)) }}},confirmButton={TextButton(onClick={dialog=""}){Text("Close")}})
-                if(dialog=="help") AlertDialog(onDismissRequest={dialog=""},title={Text("Made for a smaller board")},text={Text("Tap a piece, then its destination. Or type e2e4 and press Enter. SAN such as Nf3 works too. Backspace edits; Back cancels your entry. Use Menu to flip the board.\n\nGames save after each confirmed move.\n\nDevelopment build 0.1 · Stockfish 19 (GPLv3), Chesslib (Apache 2.0), Chessnut pieces by Alexis Luengas (Apache 2.0). Offline. No accounts or analytics.\n\nClocks, import/export and release hardening are still in development.")},confirmButton={TextButton(onClick={dialog=""}){Text("Close")}})
                 if(entryPromotions.isNotEmpty()) AlertDialog(onDismissRequest={entryPromotions=emptyList()},title={Text("Promote pawn")},text={Column {
                     entryPromotions.forEach { move -> TextButton(onClick={entryPromotions=emptyList();submitDraft(move)}) {
                         Text(when(move.last()) { 'q'->"Queen"; 'r'->"Rook"; 'b'->"Bishop"; else->"Knight" })
@@ -233,7 +360,7 @@ class MainActivity: ComponentActivity() {
                             if(g!=null) { selectedMode=runCatching { GameMode.valueOf(g.mode) }.getOrDefault(selectedMode); level=g.level; white=g.humanWhite }
                             dialog="new"
                         }) { Text("Play again") }},
-                        dismissButton={TextButton(onClick={resultDialog=null;vm.acknowledgeResult();screen="home";vm.background()}) { Text("Save & home") }}
+                        dismissButton={TextButton(onClick={resultDialog=null;vm.acknowledgeResult();screen="home";vm.pauseForNavigation()}) { Text("Save & home") }}
                     )
                 }
             }
@@ -286,6 +413,40 @@ class MainActivity: ComponentActivity() {
     private fun consumeGameKey(event: KeyEvent): Boolean {
         if(event.action==KeyEvent.ACTION_DOWN) consumedKeys.add(event.keyCode)
         return true
+    }
+    private fun beginReview() {
+        blockedNotation=false
+        reviewing=true
+    }
+    private fun endReview() {
+        blockedNotation=false
+        reviewing=false
+    }
+    private suspend fun loadFenDocument(uri: Uri): String = withContext(Dispatchers.IO) {
+        val displayName=contentResolver.query(
+            uri,arrayOf(OpenableColumns.DISPLAY_NAME),null,null,null
+        )?.use { cursor ->
+            if(cursor.moveToFirst()) cursor.getString(0) else null
+        } ?: throw IOException("The selected document has no file name.")
+        require(displayName.endsWith(".fen",ignoreCase=true)) {
+            "Choose a position file ending in .fen. Whole-game files (.pgn) are not supported here."
+        }
+        val input=contentResolver.openInputStream(uri)
+            ?: throw IOException("The selected document could not be opened.")
+        val contents=ByteArrayOutputStream()
+        input.use { stream ->
+            val buffer=ByteArray(512)
+            while(true) {
+                val count=stream.read(buffer)
+                if(count<0) break
+                if(count==0) continue
+                require(contents.size()+count<=MAX_FEN_FILE_SIZE_BYTES) {
+                    "The FEN file is larger than 4 KB."
+                }
+                contents.write(buffer,0,count)
+            }
+        }
+        normalizeFenContent(String(contents.toByteArray(),Charsets.UTF_8))
     }
     private fun submitDraft(overrideMove: String? = null) {
         val s=vm.state.value
@@ -343,14 +504,17 @@ class MainActivity: ComponentActivity() {
     }
 }
 
-@Composable private fun LandingOption(title: String, onClick: () -> Unit) {
+@Composable private fun LandingOption(title: String, subtitle: String? = null, onClick: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
             .background(Color(0xFF26302C)).clickable(role=Role.Button,onClick=onClick)
             .heightIn(min=64.dp).padding(horizontal=20.dp,vertical=14.dp),
         verticalAlignment=Alignment.CenterVertically
     ) {
-        Text(title,fontSize=18.sp,fontWeight=FontWeight.Medium,modifier=Modifier.weight(1f))
+        Column(Modifier.weight(1f)) {
+            Text(title,fontSize=18.sp,fontWeight=FontWeight.Medium)
+            subtitle?.let { Text(it,fontSize=13.sp,color=Color(0xFFAFBCB4)) }
+        }
         Spacer(Modifier.width(12.dp))
         Text("›",color=Sand,fontSize=24.sp)
     }
@@ -370,7 +534,8 @@ class MainActivity: ComponentActivity() {
     val legal=s.position.legal
     val game=s.game
     val humanTurn=game==null || game.mode!=GameMode.COMPUTER.name || ((s.position.board.sideToMove==Side.WHITE)==game.humanWhite)
-    val canInteract=!s.busy && game?.result=="*" && humanTurn
+    val canInteract=!s.busy && game?.result=="*" && humanTurn &&
+        (s.clock==null || s.clock.phase==ClockPhase.RUNNING)
     Column(modifier) {
         for(row in 0..7) Row(Modifier.weight(1f)) {
             for(col in 0..7) {

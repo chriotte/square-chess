@@ -22,6 +22,7 @@ data class NotationDraft(
 fun GameUi.positionKey() = "${game?.id}:${position.initialFen}:${position.moves.joinToString(" ")}:${game?.result}"
 fun GameUi.canEnterMove(): Boolean = game?.let {
     !busy && it.result == "*" &&
+        (clock == null || clock.phase == ClockPhase.RUNNING) &&
         (it.mode != GameMode.COMPUTER.name ||
          (position.board.sideToMove == com.github.bhlangonijr.chesslib.Side.WHITE) == it.humanWhite)
 } ?: false

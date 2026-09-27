@@ -2,6 +2,8 @@ package com.chriotte.squarechess
 
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -25,7 +27,7 @@ object NativeEngine {
 }
 class StockfishController(private val context: Context) : EngineController {
     private val mutex = Mutex()
-    private var started = false
+    @Volatile private var started = false
     override suspend fun start() = withContext(Dispatchers.IO) { mutex.withLock { ensureStarted() } }
     private fun ensureStarted() {
         if (started) return
@@ -47,6 +49,8 @@ class StockfishController(private val context: Context) : EngineController {
     override suspend fun search(fen: String, moves: List<String>, level: Int): String = withContext(Dispatchers.IO) {
         mutex.withLock {
             ensureStarted()
+            // A background/cancel event may arrive while the network is loading.
+            currentCoroutineContext().ensureActive()
             NativeEngine.search(fen, moves.joinToString(" "), level, 100 + level * 80)
         }
     }
