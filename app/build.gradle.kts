@@ -10,6 +10,8 @@ android {
     ndkVersion = "28.2.13676358"
     defaultConfig {
         applicationId = "com.chriotte.squarechess"
+        if(providers.gradleProperty("reviewPackage").orNull=="true") applicationIdSuffix=".v11review"
+        manifestPlaceholders["appLabel"] = if(providers.gradleProperty("reviewPackage").orNull=="true") "Square Chess V1.1 Review" else "Square Chess"
         minSdk = 29
         targetSdk = 36
         versionCode = 1

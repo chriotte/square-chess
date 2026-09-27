@@ -26,7 +26,11 @@ class ChessPosition(val initialFen: String = START_FEN, val moves: List<String> 
     fun resolve(text: String): Move? {
         legal.firstOrNull { it.toString().equals(text.trim(), true) }?.let { return it }
         return runCatching {
-            val list = MoveList(board.fen); list.addSanMove(text.trim()); val m=list.first()
+            // Chesslib reuses a thread-local board. Replay this list's initial
+            // FEN, otherwise a fresh SAN entry can be parsed at a stale position.
+            val list = MoveList(board.fen)
+            list.addSanMove(text.trim().replace('0', 'O'), true, true)
+            val m=list.first()
             legal.firstOrNull { it == m }
         }.getOrNull()
     }

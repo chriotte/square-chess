@@ -58,12 +58,13 @@ class GameViewModel(app: Application): AndroidViewModel(app) {
         }
         maybeEngine()
     }
-    fun enter(text: String) = viewModelScope.launch {
+    fun enter(text: String, expectedPosition: String = state.value.positionKey(), onResult: (String?) -> Unit = {}) = viewModelScope.launch {
         commitLock.withLock {
-            val s=state.value; val g=s.game ?: return@withLock
-            if(s.busy || g.result != "*" || (g.mode==GameMode.COMPUTER.name && !humanTurn(s))) return@withLock
+            val s=state.value
+            if(s.positionKey()!=expectedPosition || !s.canEnterMove()) { onResult("Position changed — enter your move again"); return@withLock }
             val move=s.position.resolve(text)
-            if(move==null) state.value=s.copy(message="Not a legal move: $text") else commit(move.toString())
+            if(move==null) { state.value=s.copy(message="Not a legal move: $text"); onResult("Illegal or incomplete move") }
+            else { commit(move.toString()); onResult(null) }
         }
         maybeEngine()
     }
