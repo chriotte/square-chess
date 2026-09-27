@@ -21,7 +21,7 @@ import kotlinx.coroutines.delay
 data class ToolbarLayout(val review: Boolean, val undo: Boolean, val difficulty: Boolean)
 fun toolbarLayout(widthDp: Float, fontScale: Float): ToolbarLayout {
     val effective=widthDp/fontScale.coerceAtLeast(1f)
-    return ToolbarLayout(review=effective>=270,undo=effective>=410,difficulty=effective>=470)
+    return ToolbarLayout(review=effective>=270,undo=effective>=410,difficulty=effective>=400)
 }
 
 fun gameStatus(s: GameUi): String = when {
@@ -40,19 +40,22 @@ fun gameStatus(s: GameUi): String = when {
 ) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val layout=toolbarLayout(maxWidth.value,LocalDensity.current.fontScale)
-        Row(verticalAlignment=Alignment.CenterVertically) {
+        Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
             Column(Modifier.weight(1f).padding(end=4.dp)) {
                 val status=if(reviewPly!=null) "Review · $reviewPly/${s.position.moves.size}" else gameStatus(s)
                 val difficulty=if(layout.difficulty && s.game?.mode==GameMode.COMPUTER.name) " · Level ${s.game.level}" else ""
                 Text(status+difficulty,fontSize=14.sp,fontWeight=FontWeight.Medium,maxLines=2,overflow=TextOverflow.Ellipsis)
                 if(clock!=null) ClockReadout(clock)
             }
-            if(reviewPly!=null) TextButton(onClick=onReturn,contentPadding=PaddingValues(horizontal=6.dp)) { Text("Return") }
-            else if(layout.review) TextButton(onClick=onReview,enabled=!s.busy,contentPadding=PaddingValues(horizontal=6.dp)) { Text("Review") }
+            if(reviewPly!=null) FilledTonalButton(onClick=onReturn,
+                modifier=Modifier.heightIn(min=48.dp).semantics { contentDescription="Return to game" },
+                contentPadding=PaddingValues(horizontal=10.dp)) { Text("Return") }
+            else if(layout.review) FilledTonalButton(onClick=onReview,enabled=!s.busy,
+                modifier=Modifier.heightIn(min=48.dp),contentPadding=PaddingValues(horizontal=10.dp)) { Text("Review") }
             if(layout.undo && reviewPly==null && s.game?.result=="*" && s.position.moves.isNotEmpty()) {
-                TextButton(onClick=onUndo,enabled=!s.busy,
-                    modifier=Modifier.sizeIn(minWidth=48.dp,minHeight=48.dp).semantics { contentDescription="Undo last turn" },
-                    contentPadding=PaddingValues(0.dp)) { Text("↶",fontSize=22.sp) }
+                FilledTonalButton(onClick=onUndo,enabled=!s.busy,
+                    modifier=Modifier.sizeIn(minWidth=64.dp,minHeight=48.dp).semantics { contentDescription="Undo last turn" },
+                    contentPadding=PaddingValues(horizontal=10.dp)) { Text("Undo") }
             }
             Button(onClick=onMenu,modifier=Modifier.heightIn(min=48.dp).semantics { contentDescription="Game menu" },
                 contentPadding=PaddingValues(horizontal=12.dp)) { Text("Menu") }

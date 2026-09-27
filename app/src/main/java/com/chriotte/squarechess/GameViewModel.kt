@@ -4,7 +4,6 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.Room
 import com.github.bhlangonijr.chesslib.Side
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +23,7 @@ data class GameUi(
 )
 data class ResultEvent(val result: String, val reason: String)
 class GameViewModel(app: Application): AndroidViewModel(app) {
-    private val db = Room.databaseBuilder(app,ChessDatabase::class.java,"square-chess.db").build()
+    private val db = openChessDatabase(app)
     private val engine: EngineController = StockfishController(app)
     val state = MutableStateFlow(GameUi())
     val history = db.games().observeGames()
@@ -43,7 +42,7 @@ class GameViewModel(app: Application): AndroidViewModel(app) {
     suspend fun load(game: SavedGame) {
         invalidate()
         val p = ChessPosition(game.initialFen,game.moves.split(" ").filter(String::isNotBlank))
-        state.value=GameUi(game,p,message="${p.board.sideToMove.name.lowercase().replaceFirstChar(Char::titlecase)} to move",ready=true)
+        state.value=GameUi(game,p,message=if(game.result!="*") "Game finished · ${game.result}" else "${p.board.sideToMove.name.lowercase().replaceFirstChar(Char::titlecase)} to move",ready=true)
     }
     fun resume(game: SavedGame) = viewModelScope.launch { foreground=true; commitLock.withLock { load(game) }; maybeEngine() }
     fun newGame(mode: GameMode, level: Int, humanWhite: Boolean) = viewModelScope.launch {
@@ -73,7 +72,8 @@ class GameViewModel(app: Application): AndroidViewModel(app) {
         val move=s.position.resolve(uci) ?: error("Engine returned an illegal move: $uci")
         val p=s.position.append(move)
         val result=p.automaticResult() ?: "*"
-        val saved=g.copy(moves=p.moves.joinToString(" "),result=result,updated=System.currentTimeMillis())
+        val saved=g.copy(moves=p.moves.joinToString(" "),result=result,
+            resultReason=if(result!="*") p.automaticResultReason() ?: "Game finished" else "",updated=System.currentTimeMillis())
         db.games().save(saved)
         revision++
         val highlightRevision=revision
@@ -117,14 +117,23 @@ class GameViewModel(app: Application): AndroidViewModel(app) {
         val s=state.value; val g=s.game ?: return@withLock
         invalidate()
         val n=if(g.mode==GameMode.COMPUTER.name && humanTurn(s) && s.position.moves.size>=2) 2 else 1
-        val saved=g.copy(moves=s.position.moves.dropLast(n).joinToString(" "),result="*",updated=System.currentTimeMillis())
+        val saved=g.copy(moves=s.position.moves.dropLast(n).joinToString(" "),result="*",resultReason="",updated=System.currentTimeMillis())
         db.games().save(saved); load(saved)
     }; maybeEngine() }
     fun end(result: String, reason: String = "Result recorded") = viewModelScope.launch { commitLock.withLock {
-        val g=state.value.game ?: return@withLock; invalidate()
-        val saved=g.copy(result=result,updated=System.currentTimeMillis()); db.games().save(saved)
+        val g=state.value.game ?: return@withLock
+        if(g.result!="*") return@withLock
+        invalidate()
+        val saved=g.copy(result=result,resultReason=reason,updated=System.currentTimeMillis()); db.games().save(saved)
         state.value=state.value.copy(game=saved,busy=false,engineError=null,resultEvent=ResultEvent(result,reason),message="Game finished · $result")
     } }
+    fun setOrientation(flipped: Boolean) = viewModelScope.launch { commitLock.withLock {
+        val g=state.value.game ?: return@withLock
+        val saved=g.copy(orientationFlipped=flipped)
+        db.games().save(saved)
+        state.value=state.value.copy(game=saved)
+    } }
+    fun acknowledgeResult() { state.value=state.value.copy(resultEvent=null) }
     fun background() { foreground=false; invalidate(); state.value=state.value.copy(busy=false) }
     fun foreground() { foreground=true; maybeEngine() }
     override fun onCleared() { engine.stop(); super.onCleared() }

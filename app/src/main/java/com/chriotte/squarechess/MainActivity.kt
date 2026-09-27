@@ -59,6 +59,8 @@ class MainActivity: ComponentActivity() {
     private var gameVisible=false
     private var modalVisible=false
     private var reviewing=false
+    private var blockedNotation=false
+    private val consumedKeys=mutableSetOf<Int>()
     private var draft by mutableStateOf(NotationDraft())
     private var entryPromotions by mutableStateOf<List<String>>(emptyList())
     private var flip by mutableStateOf(false)
@@ -197,7 +199,7 @@ class MainActivity: ComponentActivity() {
                     if(reviewPly==null) TextButton(enabled=!s.busy,onClick={draft=NotationDraft();reviewPly=s.position.moves.size;vm.background();dialog=""}) { Text("Review game") }
                     else TextButton(onClick={reviewPly=null;vm.foreground();dialog=""}) { Text("Return to game") }
                     TextButton(onClick={dialog="history"}){Text("Move list")}
-                    TextButton(onClick={flip=!flip;dialog=""}){Text("Flip board")}
+                    TextButton(onClick={flip=!flip;vm.setOrientation(flip);dialog=""}){Text("Flip board")}
                     if(s.game?.result=="*" && reviewPly==null) {
                         if(s.position.moves.isNotEmpty()) TextButton(enabled=!s.busy,onClick={dialog="undo"}){Text("Undo / take back")}
                         if(s.position.canClaimDraw()) TextButton(onClick={vm.end("1/2-1/2","Draw claimed");dialog=""}){Text("Claim draw")}
@@ -218,43 +220,72 @@ class MainActivity: ComponentActivity() {
                 if(resultDialog!=null) {
                     val event=resultDialog!!
                     AlertDialog(
-                        onDismissRequest={resultDialog=null},
+                        onDismissRequest={resultDialog=null;vm.acknowledgeResult()},
                         title={Text(resultHeadline(event,s.game))},
                         text={Column {
                             Text(event.reason)
                             Text(resultScore(event.result),modifier=Modifier.padding(top=8.dp),fontWeight=FontWeight.Medium)
-                            TextButton(onClick={resultDialog=null}) { Text("Review board") }
+                            TextButton(onClick={resultDialog=null;vm.acknowledgeResult()}) { Text("Review board") }
                         }},
                         confirmButton={TextButton(onClick={
                             val g=s.game
-                            resultDialog=null
+                            resultDialog=null;vm.acknowledgeResult()
                             if(g!=null) { selectedMode=runCatching { GameMode.valueOf(g.mode) }.getOrDefault(selectedMode); level=g.level; white=g.humanWhite }
                             dialog="new"
                         }) { Text("Play again") }},
-                        dismissButton={TextButton(onClick={resultDialog=null;screen="home";vm.background()}) { Text("Save & home") }}
+                        dismissButton={TextButton(onClick={resultDialog=null;vm.acknowledgeResult();screen="home";vm.background()}) { Text("Save & home") }}
                     )
                 }
             }
         }
     }
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // A captured key's UP must not reach a focused button and activate it.
+        if(event.action==KeyEvent.ACTION_UP && consumedKeys.remove(event.keyCode)) return true
+        if(event.action==KeyEvent.ACTION_DOWN && event.repeatCount>0 && event.keyCode in consumedKeys) return true
+        if(!gameVisible || modalVisible) blockedNotation=false
+        if(gameVisible && !modalVisible && !event.isCtrlPressed && !event.isMetaPressed) {
+            if(event.action==KeyEvent.ACTION_DOWN && event.keyCode in listOf(KeyEvent.KEYCODE_TAB,
+                    KeyEvent.KEYCODE_DPAD_UP,KeyEvent.KEYCODE_DPAD_DOWN,KeyEvent.KEYCODE_DPAD_LEFT,
+                    KeyEvent.KEYCODE_DPAD_RIGHT,KeyEvent.KEYCODE_ESCAPE,KeyEvent.KEYCODE_BACK)) blockedNotation=false
+            if(reviewing || !vm.state.value.canEnterMove()) {
+                val characters=if(event.action==KeyEvent.ACTION_MULTIPLE) event.characters.orEmpty()
+                    else if(event.action==KeyEvent.ACTION_DOWN) event.unicodeChar.toChar().toString() else ""
+                if(characters.any { it.isLetterOrDigit() || it in "-+#=" }) {
+                    blockedNotation=true
+                    return consumeGameKey(event)
+                }
+            }
+            // Ignore an attempted notation submission while entry is unavailable;
+            // ordinary Tab/arrow navigation followed by Enter still activates controls.
+            if(blockedNotation && event.action==KeyEvent.ACTION_DOWN &&
+                event.keyCode in listOf(KeyEvent.KEYCODE_ENTER,KeyEvent.KEYCODE_NUMPAD_ENTER)) {
+                blockedNotation=false
+                return consumeGameKey(event)
+            }
+        }
         if(gameVisible && !reviewing && !modalVisible && vm.state.value.canEnterMove() && !event.isCtrlPressed && !event.isMetaPressed) {
+            blockedNotation=false
             if(event.action==KeyEvent.ACTION_MULTIPLE && !event.characters.isNullOrEmpty()) {
-                draft=draft.type(event.characters,vm.state.value.positionKey()); return true
+                draft=draft.type(event.characters,vm.state.value.positionKey()); return consumeGameKey(event)
             }
             if(event.action!=KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(event)
             if(event.repeatCount>0) return super.dispatchKeyEvent(event)
             when(event.keyCode) {
-                KeyEvent.KEYCODE_ENTER,KeyEvent.KEYCODE_NUMPAD_ENTER -> { if(draft.text.isNotBlank()) {submitDraft();return true} }
-                KeyEvent.KEYCODE_DEL -> if(draft.text.isNotEmpty()) { draft=draft.backspace(); return true }
-                KeyEvent.KEYCODE_ESCAPE,KeyEvent.KEYCODE_BACK -> if(draft.text.isNotEmpty()) {draft=NotationDraft();return true}
+                KeyEvent.KEYCODE_ENTER,KeyEvent.KEYCODE_NUMPAD_ENTER -> { if(draft.text.isNotBlank()) {submitDraft();return consumeGameKey(event)} }
+                KeyEvent.KEYCODE_DEL -> if(draft.text.isNotEmpty()) { draft=draft.backspace(); return consumeGameKey(event) }
+                KeyEvent.KEYCODE_ESCAPE,KeyEvent.KEYCODE_BACK -> if(draft.text.isNotEmpty()) {draft=NotationDraft();return consumeGameKey(event)}
                 else -> { val c=event.unicodeChar.toChar(); if(c.isLetterOrDigit() || c in "-+#=") {
                     draft=draft.type(c.toString(),vm.state.value.positionKey())
-                    return true
+                    return consumeGameKey(event)
                 } }
             }
         }
         return super.dispatchKeyEvent(event)
+    }
+    private fun consumeGameKey(event: KeyEvent): Boolean {
+        if(event.action==KeyEvent.ACTION_DOWN) consumedKeys.add(event.keyCode)
+        return true
     }
     private fun submitDraft(overrideMove: String? = null) {
         val s=vm.state.value
@@ -378,8 +409,7 @@ class MainActivity: ComponentActivity() {
                         else Modifier.align(Alignment.BottomStart).padding(start=2.dp,bottom=2.dp)).clearAndSetSemantics {},
                         style=CoordinateStyle,color=coordinateColor)
                     if(col==7) Text((rank+1).toString(),
-                        modifier=(if(row==0) Modifier.align(Alignment.TopEnd).padding(top=2.dp,end=24.dp)
-                        else Modifier.align(Alignment.TopEnd).padding(2.dp)).clearAndSetSemantics {},
+                        modifier=Modifier.align(Alignment.TopEnd).padding(2.dp).clearAndSetSemantics {},
                         style=CoordinateStyle,color=coordinateColor)
                 }
             }
@@ -387,9 +417,6 @@ class MainActivity: ComponentActivity() {
     }
     if(promotion.isNotEmpty()) AlertDialog(onDismissRequest={promotion=emptyList()},title={Text("Promote pawn")},text={Column{promotion.forEach { move->TextButton(onClick={onMove(move);promotion=emptyList();selected=null}){Text(when(move.last()){'q'->"Queen";'r'->"Rook";'b'->"Bishop";else->"Knight"})}}}},confirmButton={TextButton(onClick={promotion=emptyList()}){Text("Cancel")}})
 }
-
-private fun defaultFlipFor(game: SavedGame?): Boolean =
-    game?.mode==GameMode.COMPUTER.name && !game.humanWhite
 
 private fun resultHeadline(event: ResultEvent, game: SavedGame?): String = when {
     event.result=="1/2-1/2" -> "Draw"

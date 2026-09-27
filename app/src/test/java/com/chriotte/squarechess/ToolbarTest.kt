@@ -2,6 +2,13 @@ package com.chriotte.squarechess
 import org.junit.Assert.*
 import org.junit.Test
 class ToolbarTest {
+    @Test fun orientationDefaultsToHumanButExplicitChoiceWins() {
+        val black=SavedGame("test",GameMode.COMPUTER.name,humanWhite=false)
+        assertTrue(defaultFlipFor(black))
+        assertFalse(defaultFlipFor(black.copy(orientationFlipped=false)))
+        assertFalse(defaultFlipFor(black.copy(mode=GameMode.LOCAL_TWO_PLAYER.name)))
+        assertTrue(defaultFlipFor(black.copy(mode=GameMode.LOCAL_TWO_PLAYER.name,orientationFlipped=true)))
+    }
     @Test fun secondaryActionsCollapseBeforeReview() {
         assertEquals(ToolbarLayout(true,true,true),toolbarLayout(500f,1f))
         assertEquals(ToolbarLayout(true,false,false),toolbarLayout(360f,1f))

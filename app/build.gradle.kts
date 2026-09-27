@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.kapt")
 }
+kapt { arguments { arg("room.schemaLocation", "$projectDir/schemas") } }
 android {
     namespace = "com.chriotte.squarechess"
     compileSdk = 36
