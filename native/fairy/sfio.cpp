@@ -4,6 +4,7 @@
 #include <cerrno>
 #include <cstddef>
 #include <cstring>
+#include <mutex>
 #include <streambuf>
 
 #include <fcntl.h>
@@ -19,48 +20,71 @@ namespace {
 // engine's own end of the shim's pipe, and is blocking -- exactly what fd 1 was
 // after the dup2 this replaces.
 //
-// Not internally synchronised, which is safe for the same reason std::cout was:
-// every site that writes more than a single token does so between IO_LOCK and
-// IO_UNLOCK, and sync_cout is the only way output is produced from a search
-// thread.
+// Square Chess fix (2026-09-28): internally synchronised. The input stream is
+// tied to this one, so the UCI thread flushes it before every getline() without
+// holding IO_LOCK, while a search thread may be inside sync_cout writing
+// "bestmove". The upstream version shared the put area between both threads:
+// each could write() the same bytes before either reset it, so a whole
+// "bestmove" line reached the pipe twice and the next search returned the stale
+// move. The put area is now left empty, so every insertion goes through
+// xsputn()/overflow(), and all buffer access happens under one mutex.
 class FdOutBuf final: public std::streambuf {
 
  public:
-  FdOutBuf() { setp(buf, buf + sizeof(buf)); }
+  FdOutBuf() { setp(nullptr, nullptr); }
 
-  void set_fd(int descriptor) { fd = descriptor; }
+  void set_fd(int descriptor) { std::lock_guard<std::mutex> lock(mutex); fd = descriptor; }
 
   // Throws away whatever has not been written yet.
-  void discard() { setp(buf, buf + sizeof(buf)); }
+  void discard() { std::lock_guard<std::mutex> lock(mutex); length = 0; }
 
  protected:
   int_type overflow(int_type c) override {
 
-    if (write_out() < 0)
+    std::lock_guard<std::mutex> lock(mutex);
+
+    if (traits_type::eq_int_type(c, traits_type::eof()))
+        return write_out() < 0 ? traits_type::eof() : traits_type::not_eof(c);
+
+    if (length == sizeof(buf) && write_out() < 0)
         return traits_type::eof();
 
-    if (!traits_type::eq_int_type(c, traits_type::eof()))
-    {
-        *pptr() = traits_type::to_char_type(c);
-        pbump(1);
-    }
+    buf[length++] = traits_type::to_char_type(c);
+    return c;
+  }
 
-    return traits_type::not_eof(c);
+  std::streamsize xsputn(const char* s, std::streamsize count) override {
+
+    std::lock_guard<std::mutex> lock(mutex);
+
+    std::streamsize done = 0;
+    while (done < count)
+    {
+        if (length == sizeof(buf) && write_out() < 0)
+            break;
+
+        const size_t chunk = std::min(sizeof(buf) - length, size_t(count - done));
+        std::memcpy(buf + length, s + done, chunk);
+        length += chunk;
+        done   += std::streamsize(chunk);
+    }
+    return done;
   }
 
   // std::endl, and therefore sync_endl, ends up here: this is what puts a
   // finished line into the pipe.
-  int sync() override { return write_out(); }
+  int sync() override { std::lock_guard<std::mutex> lock(mutex); return write_out(); }
 
  private:
-  // Empties the put area onto the descriptor. Returns -1 if a write cannot be
-  // completed, which raises badbit on the stream -- the same outcome a failed
-  // write to std::cout had. The put area is reset either way, so a broken pipe
-  // cannot leave the engine wedged against a permanently full buffer.
+  // Empties the buffer onto the descriptor; the caller holds the mutex. Returns
+  // -1 if a write cannot be completed, which raises badbit on the stream -- the
+  // same outcome a failed write to std::cout had. The buffer is reset either
+  // way, so a broken pipe cannot leave the engine wedged against a permanently
+  // full buffer.
   int write_out() {
 
-    const char*       p   = pbase();
-    const char* const end = pptr();
+    const char*       p   = buf;
+    const char* const end = buf + length;
     int               result = 0;
 
     while (p < end)
@@ -80,12 +104,14 @@ class FdOutBuf final: public std::streambuf {
         break;
     }
 
-    setp(buf, buf + sizeof(buf));
+    length = 0;
     return result;
   }
 
-  char buf[4096];
-  int  fd = STDOUT_FILENO;
+  std::mutex mutex;
+  char       buf[4096];
+  size_t     length = 0;
+  int        fd = STDOUT_FILENO;
 };
 
 
