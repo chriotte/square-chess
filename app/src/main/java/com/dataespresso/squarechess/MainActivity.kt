@@ -81,6 +81,7 @@ private val CoordinateStyle=TextStyle(
     platformStyle=PlatformTextStyle(includeFontPadding=false)
 )
 
+@OptIn(ExperimentalLayoutApi::class)
 class MainActivity: ComponentActivity() {
     private val vm: GameViewModel by viewModels()
     private var gameVisible=false
@@ -475,12 +476,16 @@ class MainActivity: ComponentActivity() {
                     AlertDialog(onDismissRequest={dialog=""},title={Text("Export games")},text={Column(Modifier.verticalScroll(rememberScrollState())) {
                         Text("One PGN file with every selected game. Other chess apps, such as Lichess and ChessBase, can import it.",fontSize=13.sp)
                         MenuSection("Games")
-                        ExportModeFilter.entries.forEach { option ->
-                            FilterChip(selected=exportMode==option,onClick={exportMode=option},label={Text(option.label)})
+                        FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                            ExportModeFilter.entries.forEach { option ->
+                                FilterChip(selected=exportMode==option,onClick={exportMode=option},label={Text(option.label)})
+                            }
                         }
                         MenuSection("Period")
-                        ExportPeriod.entries.forEach { option ->
-                            FilterChip(selected=exportPeriod==option,onClick={exportPeriod=option},label={Text(option.label)})
+                        FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                            ExportPeriod.entries.forEach { option ->
+                                FilterChip(selected=exportPeriod==option,onClick={exportPeriod=option},label={Text(option.label)})
+                            }
                         }
                         Text(when(count) { null -> "Counting games…"; 0 -> "No games match."; 1 -> "1 game selected."; else -> "$count games selected." },
                             fontWeight=FontWeight.Medium,modifier=Modifier.padding(top=8.dp))
