@@ -631,7 +631,9 @@ class MainActivity: ComponentActivity() {
     private suspend fun writeExport(uri: Uri, mode: ExportModeFilter, period: ExportPeriod): Int {
         val games=vm.gamesForExport(mode,period)
         withContext(Dispatchers.IO) {
-            val output=contentResolver.openOutputStream(uri,"wt") ?: throw IOException("The file could not be opened.")
+            // Some document providers reject "wt"; the picker's new file is empty either way.
+            val output=runCatching { contentResolver.openOutputStream(uri,"wt") }.getOrNull()
+                ?: contentResolver.openOutputStream(uri,"w") ?: throw IOException("The file could not be opened.")
             output.use { it.write(libraryPgn(games).toByteArray(Charsets.UTF_8)) }
         }
         return games.size
@@ -767,13 +769,13 @@ internal fun historyDate(millis: Long): String =
     val currentOnMove by rememberUpdatedState(onMove)
     val currentCancelDraft by rememberUpdatedState(cancelDraft)
     BoxWithConstraints(modifier) {
-    val boardPx=with(LocalDensity.current) { maxWidth.toPx() }
     val cellDp=maxWidth/8
     Column(Modifier.fillMaxSize().pointerInput(canInteract,s.position.moves,flip) {
         if(!canInteract) return@pointerInput
+        // Read the live size: this block is not restarted when only the board size changes.
         detectDragGestures(
             onDragStart={ offset ->
-                val square=squareAt(offset,boardPx)
+                val square=squareAt(offset,size.width.toFloat())
                 val piece=square?.let { s.position.board.getPiece(it) }
                 if(square!=null && piece!=null && piece!=Piece.NONE && piece.pieceSide==s.position.board.sideToMove && !currentCancelDraft()) {
                     dragFrom=square; selected=square; dragPosition=offset
@@ -782,7 +784,7 @@ internal fun historyDate(millis: Long): String =
             onDrag={ change,amount -> if(dragFrom!=null) { change.consume(); dragPosition+=amount } },
             onDragEnd={
                 val from=dragFrom; dragFrom=null
-                val to=squareAt(dragPosition,boardPx)
+                val to=squareAt(dragPosition,size.width.toFloat())
                 if(from!=null && to!=null && to!=from) {
                     val targets=legal.filter { it.from==from && it.to==to }
                     if(targets.size>1) promotion=targets.map { it.toString() }
