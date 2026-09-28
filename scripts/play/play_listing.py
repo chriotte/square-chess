@@ -25,9 +25,7 @@ FULL = """Square Chess is a calm, offline chess app made for compact and square-
 • Export all your games as one PGN file for Lichess, ChessBase or other chess apps.
 • Board colours, move sounds, vibration and legal-move markers.
 
-No ads. No account. No Internet permission. Your games stay on your phone.
-
-Square Chess is free software under the GNU GPL v3. It uses Fairy-Stockfish (GPL v3), Chesslib (Apache 2.0) and the Chessnut piece set (Apache 2.0)."""
+No ads. No account. No Internet permission. Your games stay on your phone."""
 
 assert len(TITLE) <= 30 and len(SHORT) <= 80 and len(FULL) <= 4000, (len(TITLE), len(SHORT), len(FULL))
 
