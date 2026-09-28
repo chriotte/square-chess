@@ -14,7 +14,7 @@
     <string name="privacy_not_published">A public privacy-policy page has not been published yet. No external policy link is configured for this development build.</string>
     <string name="open_privacy">Open published privacy policy</string>
     <string name="licences_title">Third-party licences</string>
-    <string name="licences_intro">Stockfish 19 is included under GPLv3. Chesslib and the Chessnut artwork use Apache 2.0. The licences and notices below are available without a connection. Source and build-material obligations still apply when distributing covered binaries; the development repository is private and is not a public source-download link.</string>
+    <string name="licences_intro">This experimental build includes Fairy-Stockfish and the pinned Lichess native wrapper under GPLv3. Classical evaluation is used; no NNUE network is bundled. Chesslib and the Chessnut artwork use Apache 2.0. The licences and notices below are available without a connection. Source and build-material obligations still apply when distributing covered binaries; the development repository is private and is not a public source-download link.</string>
     <string name="licence_notices">Credits and source notices</string>
     <string name="licence_gpl">Stockfish · GNU GPL v3</string>
     <string name="licence_chesslib">Chesslib · Apache 2.0</string>

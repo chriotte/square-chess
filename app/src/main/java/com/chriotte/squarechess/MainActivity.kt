@@ -91,7 +91,7 @@ class MainActivity: ComponentActivity() {
                 var dialog by rememberSaveable { mutableStateOf("") }
                 var resultDialog by remember { mutableStateOf<ResultEvent?>(null) }
                 var selectedMode by rememberSaveable { mutableStateOf(GameMode.COMPUTER) }
-                var level by rememberSaveable { mutableIntStateOf(4) }
+                var level by rememberSaveable { mutableIntStateOf(if(BuildConfig.FAIRY_ENGINE) 7 else 4) }
                 var white by rememberSaveable { mutableStateOf(true) }
                 var standaloneClock by rememberSaveable(stateSaver=clockStateSaver) {
                     mutableStateOf(ClockState(ClockConfig(300_000,0)))
@@ -262,8 +262,26 @@ class MainActivity: ComponentActivity() {
                 if(dialog=="new") AlertDialog(onDismissRequest={dialog=""},title={Text(when(selectedMode){GameMode.COMPUTER->stringResource(R.string.play_against_computer); GameMode.LOCAL_TWO_PLAYER->stringResource(R.string.over_the_board); else->"Record physical game"})},text={
                     Column(Modifier.verticalScroll(rememberScrollState())) {
                         if(selectedMode==GameMode.COMPUTER) {
-                            Text("Level $level · Experimental strength")
-                            Slider(value=level.toFloat(),onValueChange={level=it.toInt()},valueRange=1f..10f,steps=8)
+                            if(BuildConfig.FAIRY_ENGINE) {
+                                Text("Fairy-Stockfish experiment")
+                                Text("Try profiles E to H. Higher letters use higher engine skill.",fontSize=13.sp)
+                                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly) {
+                                    FAIRY_PROFILES.filter { it.id>=6 }.forEach { profile ->
+                                        FilterChip(selected=level==profile.id,onClick={level=profile.id},label={Text(profile.label)})
+                                    }
+                                }
+                                var earlierProfiles by remember { mutableStateOf(false) }
+                                TextButton(onClick={earlierProfiles=!earlierProfiles}) { Text(if(earlierProfiles) "Hide earlier profiles" else "Earlier profiles A to D") }
+                                if(earlierProfiles) Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly) {
+                                    FAIRY_PROFILES.filter {it.id<=4}.forEach {profile ->
+                                        FilterChip(selected=level==profile.id,onClick={level=profile.id},label={Text(profile.label)})
+                                    }
+                                }
+                                Text("${difficultyLabel(level)} · Skill ${FAIRY_PROFILES.first {it.id==level}.skill} · 500 ms",fontSize=13.sp)
+                            } else {
+                                Text("Level $level · Experimental strength")
+                                Slider(value=level.toFloat(),onValueChange={level=it.toInt()},valueRange=1f..10f,steps=8)
+                            }
                             Text("Choose your side",fontWeight=FontWeight.SemiBold)
                             SideSelectionButtons(
                                 selectedWhite=white,

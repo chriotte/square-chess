@@ -61,7 +61,7 @@ class InputDeviceTest {
     }
     @Test fun orientationAndDismissedResultSurviveRecreationAndReopening() = runBlocking {
         val context=instrumentation.targetContext
-        check(context.packageName.endsWith(".v11review"))
+        check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
         val db=openChessDatabase(context)
         db.games().save(SavedGame("persistence-fixture",GameMode.PHYSICAL_BOARD_RECORDING.name))
         fun assertFlipped() {
@@ -104,7 +104,7 @@ class InputDeviceTest {
     }
     @Test fun coordinateEntryIsVisibleLegalOnceAndReviewCannotSubmit() = runBlocking {
         val context=instrumentation.targetContext
-        check(context.packageName.endsWith(".v11review"))
+        check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
         val db=openChessDatabase(context)
         db.games().save(SavedGame("keyboard-fixture",GameMode.LOCAL_TWO_PLAYER.name))
         try {

@@ -12,6 +12,8 @@ using namespace Stockfish;
 static std::shared_ptr<Engine> engine;
 static std::mutex handleMutex;
 static std::once_flag initFlag;
+static std::mutex metricsMutex;
+static std::string lastMetrics;
 static std::string str(JNIEnv* env, jstring value) {
     const char* chars = env->GetStringUTFChars(value, nullptr);
     std::string result(chars); env->ReleaseStringUTFChars(value, chars); return result;
@@ -25,7 +27,10 @@ Java_com_chriotte_squarechess_NativeEngine_start(JNIEnv* env, jobject, jstring p
     std::call_once(initFlag, [] { Attacks::init(); Position::init(); });
     auto e = std::make_shared<Engine>();
     e->set_on_update_no_moves([](const Engine::InfoShort&){});
-    e->set_on_update_full([](const Engine::InfoFull&){});
+    e->set_on_update_full([](const Engine::InfoFull& info){
+        std::lock_guard<std::mutex> lock(metricsMutex);
+        lastMetrics="info depth "+std::to_string(info.depth)+" nodes "+std::to_string(info.nodes)+" time "+std::to_string(info.timeMs);
+    });
     e->set_on_iter([](const Engine::InfoIter&){});
     e->set_on_start([](){});
     e->set_on_verify_network([](std::string_view){});
@@ -62,4 +67,13 @@ extern "C" JNIEXPORT void JNICALL
 Java_com_chriotte_squarechess_NativeEngine_close(JNIEnv*, jobject) {
     std::shared_ptr<Engine> e; { std::lock_guard<std::mutex> guard(handleMutex); e.swap(engine); }
     if(e) { e->stop(); e->wait_for_search_finished(); }
+}
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_chriotte_squarechess_NativeEngine_metrics(JNIEnv* env,jobject) {
+    std::lock_guard<std::mutex> lock(metricsMutex);return env->NewStringUTF(lastMetrics.c_str());
+}
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_chriotte_squarechess_NativeEngine_capabilities(JNIEnv* env,jobject) {
+    std::lock_guard<std::mutex> lock(handleMutex);std::ostringstream out;
+    if(engine) out<<engine->get_options();return env->NewStringUTF(out.str().c_str());
 }

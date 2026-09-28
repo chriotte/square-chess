@@ -11,7 +11,7 @@ import org.junit.runner.RunWith
 class GameMigrationDeviceTest {
     @Test fun existingGamesSurviveUpgradeAndOrientationPersists() = runBlocking {
         val context=InstrumentationRegistry.getInstrumentation().targetContext
-        check(context.packageName.endsWith(".v11review"))
+        check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
         val name="migration-test-${java.util.UUID.randomUUID()}.db"
         context.openOrCreateDatabase(name,0,null).use { old ->
             old.execSQL("CREATE TABLE games (id TEXT NOT NULL PRIMARY KEY, mode TEXT NOT NULL, initialFen TEXT NOT NULL, moves TEXT NOT NULL, white TEXT NOT NULL, black TEXT NOT NULL, humanWhite INTEGER NOT NULL, level INTEGER NOT NULL, result TEXT NOT NULL, updated INTEGER NOT NULL)")

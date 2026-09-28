@@ -6,4 +6,8 @@ local.properties
 *.jks
 *.keystore
 app/src/main/assets/*.nnue
+app/src/stockfish/assets/*.nnue
 *.hprof
+
+# Generated review installers are archived outside the source checkout.
+test-artifacts/**/*.apk

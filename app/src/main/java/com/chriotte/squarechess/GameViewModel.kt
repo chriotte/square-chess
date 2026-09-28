@@ -91,8 +91,8 @@ class GameViewModel private constructor(
             val clock = clockConfig?.let { ClockState(it,active=clockSide).start(now) }
                 ?.let { if(result!="*") it.finish(now) else it }
             val game=SavedGame(UUID.randomUUID().toString(),mode.name,initialFen=initialFen,level=level,humanWhite=humanWhite,
-                white=if(mode==GameMode.COMPUTER && !humanWhite) "Stockfish" else "White",
-                black=if(mode==GameMode.COMPUTER && humanWhite) "Stockfish" else "Black",
+                white=if(mode==GameMode.COMPUTER && !humanWhite) (if(BuildConfig.FAIRY_ENGINE) "Fairy-Stockfish ${difficultyLabel(level)}" else "Stockfish") else "White",
+                black=if(mode==GameMode.COMPUTER && humanWhite) (if(BuildConfig.FAIRY_ENGINE) "Fairy-Stockfish ${difficultyLabel(level)}" else "Stockfish") else "Black",
                 result=result,resultReason=if(result!="*") initialPosition.automaticResultReason().orEmpty() else "")
                 .withClock(clock, now)
             db.games().save(game)

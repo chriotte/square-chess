@@ -5,20 +5,25 @@ plugins {
     id("org.jetbrains.kotlin.kapt")
 }
 kapt { arguments { arg("room.schemaLocation", "$projectDir/schemas") } }
+val fairyEngine = providers.gradleProperty("engine").orNull != "stockfish"
 android {
     namespace = "com.chriotte.squarechess"
     compileSdk = 36
     ndkVersion = "28.2.13676358"
     defaultConfig {
         applicationId = "com.chriotte.squarechess"
-        if(providers.gradleProperty("reviewPackage").orNull=="true") applicationIdSuffix=".v11review"
-        manifestPlaceholders["appLabel"] = if(providers.gradleProperty("reviewPackage").orNull=="true") "Square Chess V1.1 Review" else "Square Chess"
+        applicationIdSuffix = if(fairyEngine) ".fairyexperiment" else ".stockfishbaseline"
+        manifestPlaceholders["appLabel"] = if(fairyEngine) "Square Chess Fairy Lab" else "Square Chess SF Baseline"
+        buildConfigField("boolean", "FAIRY_ENGINE", fairyEngine.toString())
         minSdk = 29
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        externalNativeBuild { cmake { cppFlags += "-std=c++17" } }
+        externalNativeBuild { cmake {
+            cppFlags += "-std=c++17"
+            arguments += "-DFAIRY_ENGINE=${if(fairyEngine) "ON" else "OFF"}"
+        } }
     }
     buildTypes {
         getByName("debug") {
@@ -28,7 +33,8 @@ android {
             ndk { abiFilters += "arm64-v8a" }
         }
     }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
+    if(!fairyEngine) sourceSets.getByName("main").assets.srcDir("src/stockfish/assets")
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
     externalNativeBuild { cmake { path = file("../native/CMakeLists.txt"); version = "3.22.1" } }

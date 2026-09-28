@@ -43,3 +43,12 @@ The Apache-2.0 licence permits commercial distribution subject to its terms.
 
 
 Copyright 2015 Alexis Luengas
+
+
+EXPERIMENTAL ENGINE OVERRIDE — 2026-09-27
+This build uses Fairy-Stockfish, not Stockfish 19, with classical evaluation.
+Source: lichess-org/dart-multistockfish 896c3884921ae1d775fcd3088ddcd1559fb87308, multistockfish_variant.
+Vendored engine base: fairy-stockfish/Fairy-Stockfish 2b5d95121664fe564779d84aac171f16b725c147, with Lichess private-I/O/namespace patches.
+Square Chess adds JNI glue and a restart-only UCI option-order reset. No move-selection changes.
+GPLv3-or-later applies; all upstream copyright notices and GPL text are retained.
+No NNUE asset is included. Corresponding source must match this exact build, including the app, JNI glue, engine modifications and build scripts.

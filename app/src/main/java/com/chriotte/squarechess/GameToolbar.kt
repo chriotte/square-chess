@@ -46,7 +46,7 @@ fun gameStatus(s: GameUi): String = when {
         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
             Column(Modifier.weight(1f).padding(end=4.dp)) {
                 val status=if(reviewPly!=null) "Review · $reviewPly/${s.position.moves.size}" else gameStatus(s)
-                val difficulty=if(layout.difficulty && s.game?.mode==GameMode.COMPUTER.name) " · Level ${s.game.level}" else ""
+                val difficulty=if(layout.difficulty && s.game?.mode==GameMode.COMPUTER.name) " · ${difficultyLabel(s.game.level)}" else ""
                 Text(status+difficulty,fontSize=14.sp,fontWeight=FontWeight.Medium,maxLines=2,overflow=TextOverflow.Ellipsis)
                 if(clock!=null) ClockReadout(
                     clock,onPauseClock,onResumeClock,onClockExpired,
