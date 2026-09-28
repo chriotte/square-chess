@@ -13,8 +13,10 @@ ART = Path(r"~\Documents\Codex\2026-09-25\ge\outputs\square-chess\design\play-st
 ICON = Path(r"~\Documents\Codex\2026-09-25\ge\outputs\square-chess\design\play-store-icon.png")
 
 TITLE = "Square Chess"
-SHORT = "Offline chess for compact screens and physical keyboards. No ads, no account."
-FULL = """Square Chess is a calm, offline chess app made for compact and square-screen phones, and for phones with a physical keyboard.
+SHORT = "Chess made for square 1:1 screens and keyboard phones. Offline, no ads."
+FULL = """Square Chess is made for square and near-square screens (1:1 and 9:10 displays), small-screen compact phones and phones with a physical QWERTY keyboard. Most chess apps are designed for tall phones and leave a small board. Square Chess fills your square screen with the largest possible board, and you can type your moves on the keyboard.
+
+It is a calm, offline chess app:
 
 • Play the computer at ten levels, from a true beginner to full strength. The engine is Fairy-Stockfish and runs on your phone.
 • Play a friend on one phone, with an optional chess clock.
