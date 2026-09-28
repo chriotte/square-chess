@@ -1,5 +1,7 @@
 # Recommendation — retain Stockfish in production; calibrate Fairy E–H
 
+> Follow-up: see BEGINNER_CALIBRATION_RESULTS.md. E was judged too strong for beginners, and automated follow-up found an unresolved rejected engine response. Earlier passing tests do not close that new blocker.
+
 28 September 2026.
 
 **Do not merge or replace the production engine yet.** The smaller offline Fairy prototype works, but A–D failed the user's playtest and E–H need fresh human feedback. No final Level 1–10 mapping or Elo rating is justified.

@@ -91,9 +91,9 @@ extern "C" JNIEXPORT jstring JNICALL Java_com_chriotte_squarechess_NativeEngine_
     try {
         if(!running) throw std::runtime_error("Fairy is not started");
         const auto epoch=stopEpoch.load();
-        // Stable saved-game IDs: A-D, test-only control, then E-H.
-        const int skills[]={-18,-14,-10,-6,20,0,4,8,12};
-        if(level<1 || level>9) throw std::runtime_error("Unknown Fairy experimental profile");
+        // Stable saved-game IDs: A-D, control, E-H; 10-12 are test-only calibration candidates.
+        const int skills[]={-18,-14,-10,-6,20,0,4,8,12,-3,-2,-1};
+        if(level<1 || level>12) throw std::runtime_error("Unknown Fairy experimental profile");
         option("UCI_LimitStrength","false");option("Skill Level",std::to_string(skills[level-1]));
         option("MultiPV","8");
         const auto history=text(env,moves);

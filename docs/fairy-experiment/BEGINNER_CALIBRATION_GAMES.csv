@@ -1,0 +1,13 @@
+run,skill,candidate_side,scenario,result,reason,plies,elapsed_ms
+Titan-partial,-3,white,opponent_pawn_flanks,0-1,Checkmate,80,37210
+Titan-partial,-3,black,opponent_pawn_flanks,1-0,Checkmate,81,39351
+Titan-partial,-2,white,opponent_pawn_flanks,0-1,Checkmate,84,38936
+Titan-partial,-2,black,opponent_pawn_flanks,0-1,Checkmate,118,56003
+Emulator-first,-3,white,opponent_pawn_flanks,0-1,Checkmate,70,33041
+Emulator-first,-3,black,opponent_pawn_flanks,1-0,Checkmate,87,41820
+Emulator-first,-2,white,opponent_pawn_flanks,0-1,Checkmate,66,30039
+Emulator-first,-2,black,opponent_pawn_flanks,0-1,Checkmate,58,25840
+Emulator-retry,-1,white,opponent_pawn_flanks,0-1,Checkmate,70,32672
+Emulator-retry,-1,black,opponent_pawn_flanks,0-1,Checkmate,80,36584
+Emulator-retry,0,white,opponent_pawn_flanks,1-0,Checkmate,143,68760
+Emulator-retry,0,black,opponent_pawn_flanks,1-0,Checkmate,49,21943
