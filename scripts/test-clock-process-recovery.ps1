@@ -12,10 +12,10 @@ $sdk = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { $env:ANDROID_SDK_ROOT
 $adb = Join-Path $sdk "platform-tools\adb.exe"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $gradlew = Join-Path $repoRoot "gradlew.bat"
-$applicationId = "com.chriotte.squarechess.v11review"
+$applicationId = "com.dataespresso.squarechess.dev"
 $instrumentationComponent = "$applicationId.test/androidx.test.runner.AndroidJUnitRunner"
-$activity = "$applicationId/com.chriotte.squarechess.MainActivity"
-$testClass = "com.chriotte.squarechess.ClockProcessRecoveryDeviceTest"
+$activity = "$applicationId/com.dataespresso.squarechess.MainActivity"
+$testClass = "com.dataespresso.squarechess.ClockProcessRecoveryDeviceTest"
 $env:ANDROID_SERIAL = $Serial
 
 if (-not (Test-Path $adb)) { throw "ADB was not found at $adb" }
@@ -45,7 +45,7 @@ if ($LASTEXITCODE -ne 0) { throw "ADB device '$Serial' is not available." }
 Push-Location $repoRoot
 try {
     & $gradlew ":app:installDebug" ":app:installDebugAndroidTest" `
-        "-PreviewPackage=true" "--console=plain"
+        "-Pdev=true" "--console=plain"
     if ($LASTEXITCODE -ne 0) { throw "Could not install the isolated review app." }
 } finally {
     Pop-Location

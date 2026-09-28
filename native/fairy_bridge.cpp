@@ -68,7 +68,7 @@ void shutdown() {
     running=false;
 }
 }
-extern "C" JNIEXPORT void JNICALL Java_com_chriotte_squarechess_NativeEngine_start(JNIEnv* env,jobject,jstring) {
+extern "C" JNIEXPORT void JNICALL Java_com_dataespresso_squarechess_NativeEngine_start(JNIEnv* env,jobject,jstring) {
     std::lock_guard<std::mutex> guard(operationMutex);
     try {
         if(running) return;
@@ -86,7 +86,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_chriotte_squarechess_NativeEngine_sta
         send("isready");readUntil("readyok",10000);
     } catch(const std::exception& e) {try{shutdown();}catch(...){} throwJava(env,e);}
 }
-extern "C" JNIEXPORT jstring JNICALL Java_com_chriotte_squarechess_NativeEngine_search(JNIEnv* env,jobject,jstring fen,jstring moves,jint skill,jint multiPv,jint millis) {
+extern "C" JNIEXPORT jstring JNICALL Java_com_dataespresso_squarechess_NativeEngine_search(JNIEnv* env,jobject,jstring fen,jstring moves,jint skill,jint multiPv,jint millis) {
     std::lock_guard<std::mutex> guard(operationMutex);
     try {
         if(!running) throw std::runtime_error("Fairy is not started");
@@ -113,25 +113,25 @@ extern "C" JNIEXPORT jstring JNICALL Java_com_chriotte_squarechess_NativeEngine_
         return env->NewStringUTF(move.c_str());
     } catch(const std::exception& e) {try{send("stop");}catch(...){} throwJava(env,e);return nullptr;}
 }
-extern "C" JNIEXPORT void JNICALL Java_com_chriotte_squarechess_NativeEngine_stop(JNIEnv* env,jobject) {
+extern "C" JNIEXPORT void JNICALL Java_com_dataespresso_squarechess_NativeEngine_stop(JNIEnv* env,jobject) {
     ++stopEpoch;
     try {if(stockfish_variant_phase()==SF_PHASE_UCI_LOOP) send("stop");}catch(const std::exception& e){throwJava(env,e);}
 }
-extern "C" JNIEXPORT void JNICALL Java_com_chriotte_squarechess_NativeEngine_newGame(JNIEnv* env,jobject) {
+extern "C" JNIEXPORT void JNICALL Java_com_dataespresso_squarechess_NativeEngine_newGame(JNIEnv* env,jobject) {
     std::lock_guard<std::mutex> guard(operationMutex);
     try {if(running){send("ucinewgame");send("isready");readUntil("readyok",10000);}}catch(const std::exception& e){throwJava(env,e);}
 }
-extern "C" JNIEXPORT void JNICALL Java_com_chriotte_squarechess_NativeEngine_close(JNIEnv* env,jobject) {
+extern "C" JNIEXPORT void JNICALL Java_com_dataespresso_squarechess_NativeEngine_close(JNIEnv* env,jobject) {
     std::lock_guard<std::mutex> guard(operationMutex);
     try {shutdown();}catch(const std::exception& e){throwJava(env,e);}
 }
-extern "C" JNIEXPORT jstring JNICALL Java_com_chriotte_squarechess_NativeEngine_capabilities(JNIEnv* env,jobject) {
+extern "C" JNIEXPORT jstring JNICALL Java_com_dataespresso_squarechess_NativeEngine_capabilities(JNIEnv* env,jobject) {
     std::lock_guard<std::mutex> guard(operationMutex);return env->NewStringUTF(capabilities.c_str());
 }
-extern "C" JNIEXPORT jstring JNICALL Java_com_chriotte_squarechess_NativeEngine_metrics(JNIEnv* env,jobject) {
+extern "C" JNIEXPORT jstring JNICALL Java_com_dataespresso_squarechess_NativeEngine_metrics(JNIEnv* env,jobject) {
     std::lock_guard<std::mutex> guard(operationMutex);return env->NewStringUTF(metrics.c_str());
 }
-extern "C" JNIEXPORT jstring JNICALL Java_com_chriotte_squarechess_NativeEngine_configuration(JNIEnv* env,jobject) {
+extern "C" JNIEXPORT jstring JNICALL Java_com_dataespresso_squarechess_NativeEngine_configuration(JNIEnv* env,jobject) {
     std::lock_guard<std::mutex> guard(operationMutex);
     using FairyStockfish::Options;
     std::string config="skill="+std::to_string(int(Options["Skill Level"]))+

@@ -13,8 +13,9 @@ An offline native Android chess app for compact displays and physical keyboards.
 
 Build options:
 
-- `-Pdev=true` builds the separate test app `com.chriotte.squarechess.dev` ("Square Chess Dev"). Run the emulator test suite only against this app: fixture tests clear saved games, and they refuse to run in the real app.
-- `-Pengine=stockfish` builds the preserved Stockfish 19 baseline (`com.chriotte.squarechess.stockfishbaseline`). It needs `./scripts/fetch-network.ps1` and the verified NNUE asset in `app/src/stockfish/assets`.
+- `-Pdev=true` builds the separate test app `com.dataespresso.squarechess.dev` ("Square Chess Dev"). Run the emulator test suite only against this app: fixture tests clear saved games, and they refuse to run in the real app.
+- `bundleRelease` signs with the Play upload key when `~/SquareChessSigning/keystore.properties` exists (override with `-PsigningProperties=<path>` or `SQUARECHESS_SIGNING`). The key and its password are never stored in this repository; keep a second copy in a password manager.
+- `-Pengine=stockfish` builds the preserved Stockfish 19 baseline (`com.dataespresso.squarechess.stockfishbaseline`). It needs `./scripts/fetch-network.ps1` and the verified NNUE asset in `app/src/stockfish/assets`.
 
 Release builds target ARM64/API 29+. Debug builds also include x86_64 for Android emulators. Runtime has no INTERNET permission. The build needs Internet access for tool/dependency/network downloads.
 

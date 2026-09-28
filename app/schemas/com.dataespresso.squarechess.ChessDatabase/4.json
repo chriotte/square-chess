@@ -1,0 +1,152 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 4,
+    "identityHash": "e3af1d409bf787db7624fbc47cf3e2f8",
+    "entities": [
+      {
+        "tableName": "games",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `mode` TEXT NOT NULL, `initialFen` TEXT NOT NULL, `moves` TEXT NOT NULL, `white` TEXT NOT NULL, `black` TEXT NOT NULL, `humanWhite` INTEGER NOT NULL, `level` INTEGER NOT NULL, `result` TEXT NOT NULL, `updated` INTEGER NOT NULL, `orientationFlipped` INTEGER DEFAULT NULL, `resultReason` TEXT NOT NULL DEFAULT '', `clockBaseMs` INTEGER DEFAULT NULL, `clockIncrementMs` INTEGER DEFAULT NULL, `clockWhiteMs` INTEGER DEFAULT NULL, `clockBlackMs` INTEGER DEFAULT NULL, `clockActive` TEXT DEFAULT NULL, `clockPhase` TEXT DEFAULT NULL, `clockInterrupted` INTEGER DEFAULT NULL, `clockDelayMs` INTEGER DEFAULT NULL, `clockDelayRemainingMs` INTEGER DEFAULT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mode",
+            "columnName": "mode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "initialFen",
+            "columnName": "initialFen",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "moves",
+            "columnName": "moves",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "white",
+            "columnName": "white",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "black",
+            "columnName": "black",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "humanWhite",
+            "columnName": "humanWhite",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "level",
+            "columnName": "level",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "result",
+            "columnName": "result",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updated",
+            "columnName": "updated",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "orientationFlipped",
+            "columnName": "orientationFlipped",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "resultReason",
+            "columnName": "resultReason",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "clockBaseMs",
+            "columnName": "clockBaseMs",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "clockIncrementMs",
+            "columnName": "clockIncrementMs",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "clockWhiteMs",
+            "columnName": "clockWhiteMs",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "clockBlackMs",
+            "columnName": "clockBlackMs",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "clockActive",
+            "columnName": "clockActive",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "clockPhase",
+            "columnName": "clockPhase",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "clockInterrupted",
+            "columnName": "clockInterrupted",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "clockDelayMs",
+            "columnName": "clockDelayMs",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "clockDelayRemainingMs",
+            "columnName": "clockDelayRemainingMs",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e3af1d409bf787db7624fbc47cf3e2f8')"
+    ]
+  }
+}

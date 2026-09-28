@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -14,19 +16,33 @@ val devBuild = providers.gradleProperty("dev").orNull == "true"
 file("src/main/assets").listFiles { f -> f.name.endsWith(".nnue") }?.firstOrNull()?.let {
     throw GradleException("Move ${it.name} from app/src/main/assets to app/src/stockfish/assets")
 }
+// Play upload key: kept outside the repository. Override the location with
+// -PsigningProperties=<path> or the SQUARECHESS_SIGNING environment variable.
+val signingFile = file(providers.gradleProperty("signingProperties").orNull
+    ?: System.getenv("SQUARECHESS_SIGNING")
+    ?: "${System.getProperty("user.home")}/SquareChessSigning/keystore.properties")
+val signing = Properties().apply { if (signingFile.exists()) signingFile.inputStream().use { load(it) } }
 android {
-    namespace = "com.chriotte.squarechess"
+    namespace = "com.dataespresso.squarechess"
+    signingConfigs {
+        if (signingFile.exists()) create("upload") {
+            storeFile = file(signing.getProperty("storeFile"))
+            storePassword = signing.getProperty("storePassword")
+            keyAlias = signing.getProperty("keyAlias")
+            keyPassword = signing.getProperty("keyPassword")
+        }
+    }
     compileSdk = 36
     ndkVersion = "28.2.13676358"
     defaultConfig {
-        applicationId = "com.chriotte.squarechess"
+        applicationId = "com.dataespresso.squarechess"
         applicationIdSuffix = when { !fairyEngine -> ".stockfishbaseline"; devBuild -> ".dev"; else -> null }
         manifestPlaceholders["appLabel"] = when { !fairyEngine -> "Square Chess SF Baseline"; devBuild -> "Square Chess Dev"; else -> "Square Chess" }
         buildConfigField("boolean", "FAIRY_ENGINE", fairyEngine.toString())
         minSdk = 29
         targetSdk = 36
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild { cmake {
             cppFlags += "-std=c++17"
@@ -38,7 +54,9 @@ android {
             ndk { abiFilters += setOf("arm64-v8a", "x86_64") }
         }
         getByName("release") {
-            ndk { abiFilters += "arm64-v8a" }
+            // Symbol tables let Play Console show readable native crash reports.
+            ndk { abiFilters += "arm64-v8a"; debugSymbolLevel = "SYMBOL_TABLE" }
+            signingConfig = signingConfigs.findByName("upload")
         }
     }
     buildFeatures { compose = true; buildConfig = true }

@@ -23,7 +23,7 @@ static void option(Engine& e, const std::string& name, const std::string& value)
     e.get_options().setoption(command);
 }
 extern "C" JNIEXPORT void JNICALL
-Java_com_chriotte_squarechess_NativeEngine_start(JNIEnv* env, jobject, jstring path) {
+Java_com_dataespresso_squarechess_NativeEngine_start(JNIEnv* env, jobject, jstring path) {
     std::call_once(initFlag, [] { Attacks::init(); Position::init(); });
     auto e = std::make_shared<Engine>();
     e->set_on_update_no_moves([](const Engine::InfoShort&){});
@@ -39,7 +39,7 @@ Java_com_chriotte_squarechess_NativeEngine_start(JNIEnv* env, jobject, jstring p
     std::lock_guard<std::mutex> guard(handleMutex); engine = e;
 }
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_chriotte_squarechess_NativeEngine_search(JNIEnv* env, jobject, jstring fen, jstring moves, jint level, jint, jint millis) {
+Java_com_dataespresso_squarechess_NativeEngine_search(JNIEnv* env, jobject, jstring fen, jstring moves, jint level, jint, jint millis) {
     // Stockfish 19 build: 'level' is the app's 1-10 level; the MultiPV argument is unused.
     std::shared_ptr<Engine> e;
     { std::lock_guard<std::mutex> guard(handleMutex); e = engine; }
@@ -56,25 +56,25 @@ Java_com_chriotte_squarechess_NativeEngine_search(JNIEnv* env, jobject, jstring 
     return env->NewStringUTF(best.c_str());
 }
 extern "C" JNIEXPORT void JNICALL
-Java_com_chriotte_squarechess_NativeEngine_stop(JNIEnv*, jobject) {
+Java_com_dataespresso_squarechess_NativeEngine_stop(JNIEnv*, jobject) {
     std::lock_guard<std::mutex> guard(handleMutex); if(engine) engine->stop();
 }
 extern "C" JNIEXPORT void JNICALL
-Java_com_chriotte_squarechess_NativeEngine_newGame(JNIEnv*, jobject) {
+Java_com_dataespresso_squarechess_NativeEngine_newGame(JNIEnv*, jobject) {
     std::shared_ptr<Engine> e; { std::lock_guard<std::mutex> guard(handleMutex); e=engine; }
     if(e) e->search_clear();
 }
 extern "C" JNIEXPORT void JNICALL
-Java_com_chriotte_squarechess_NativeEngine_close(JNIEnv*, jobject) {
+Java_com_dataespresso_squarechess_NativeEngine_close(JNIEnv*, jobject) {
     std::shared_ptr<Engine> e; { std::lock_guard<std::mutex> guard(handleMutex); e.swap(engine); }
     if(e) { e->stop(); e->wait_for_search_finished(); }
 }
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_chriotte_squarechess_NativeEngine_metrics(JNIEnv* env,jobject) {
+Java_com_dataespresso_squarechess_NativeEngine_metrics(JNIEnv* env,jobject) {
     std::lock_guard<std::mutex> lock(metricsMutex);return env->NewStringUTF(lastMetrics.c_str());
 }
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_chriotte_squarechess_NativeEngine_capabilities(JNIEnv* env,jobject) {
+Java_com_dataespresso_squarechess_NativeEngine_capabilities(JNIEnv* env,jobject) {
     std::lock_guard<std::mutex> lock(handleMutex);std::ostringstream out;
     if(engine) out<<engine->get_options();return env->NewStringUTF(out.str().c_str());
 }
