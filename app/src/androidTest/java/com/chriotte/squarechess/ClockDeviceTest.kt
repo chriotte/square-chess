@@ -85,7 +85,7 @@ class ClockDeviceTest {
     @Test fun startingWithUntimedPresetDoesNotCrash() {
         runBlocking {
             val context=instrumentation.targetContext
-            check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+            check(isIsolatedTestPackage(context.packageName))
             val db=openChessDatabase(context)
             try {
                 db.clearAllTables()
@@ -109,7 +109,7 @@ class ClockDeviceTest {
     @Test fun physicalBoardRecordingCanEnterAndSharePgn() {
         runBlocking {
             val context=instrumentation.targetContext
-            check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+            check(isIsolatedTestPackage(context.packageName))
             val db=openChessDatabase(context)
             try {
                 db.clearAllTables()
@@ -149,7 +149,7 @@ class ClockDeviceTest {
     @Test fun importedFenPersistsAndStartsTheClockForSideToMove() {
         runBlocking {
             val context=instrumentation.targetContext
-            check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+            check(isIsolatedTestPackage(context.packageName))
             val db=openChessDatabase(context)
             val engine=BlockingEngine()
             val app=context.applicationContext as android.app.Application
@@ -187,7 +187,7 @@ class ClockDeviceTest {
     @Test fun localClockPausesOnRequestAndInterruptionAndSwitchesOnMove() {
         runBlocking {
             val context=instrumentation.targetContext
-            check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+            check(isIsolatedTestPackage(context.packageName))
             val db=openChessDatabase(context)
             try {
                 db.clearAllTables()
@@ -247,7 +247,7 @@ class ClockDeviceTest {
     @Test fun pauseDuringEngineSearchCancelsAndResumeStartsFreshSearch() {
         runBlocking {
             val context=instrumentation.targetContext
-            check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+            check(isIsolatedTestPackage(context.packageName))
             val db=openChessDatabase(context)
             val engine=BlockingEngine()
             val app=context.applicationContext as android.app.Application
@@ -291,7 +291,7 @@ class ClockDeviceTest {
     @Test fun runningClockIsCheckpointedAndRecoveryRequiresResume() {
             runBlocking {
                 val context=instrumentation.targetContext
-                check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+                check(isIsolatedTestPackage(context.packageName))
                 val db=openChessDatabase(context)
                 try {
                     db.clearAllTables()
@@ -342,7 +342,7 @@ class ClockDeviceTest {
     @Test fun flagFallAwardsDrawWhenNoMatingMaterialIsPossible() {
         runBlocking {
             val context=instrumentation.targetContext
-            check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+            check(isIsolatedTestPackage(context.packageName))
             val db=openChessDatabase(context)
             try {
                 db.clearAllTables()
@@ -372,7 +372,7 @@ class ClockDeviceTest {
     @Test fun flagFallAwardsWinWhenOpponentHasMatingMaterial() {
         runBlocking {
             val context=instrumentation.targetContext
-            check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+            check(isIsolatedTestPackage(context.packageName))
             val db=openChessDatabase(context)
             try {
                 db.clearAllTables()
@@ -407,7 +407,7 @@ class ClockDeviceTest {
     @Test fun undoingTimedMovesPausesClockAndRestoresMover() {
         runBlocking {
             val context=instrumentation.targetContext
-            check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+            check(isIsolatedTestPackage(context.packageName))
             val db=openChessDatabase(context)
             try {
                 db.clearAllTables()
@@ -454,7 +454,7 @@ class ClockDeviceTest {
     @Test fun manuallyEndingTimedGameFinishesAndPersistsClock() {
         runBlocking {
             val context=instrumentation.targetContext
-            check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+            check(isIsolatedTestPackage(context.packageName))
             val db=openChessDatabase(context)
             try {
                 db.clearAllTables()
@@ -486,7 +486,7 @@ class ClockDeviceTest {
     @Test fun claimingFiftyMoveDrawEndsGameAndFinishesClock() {
         runBlocking {
             val context=instrumentation.targetContext
-            check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+            check(isIsolatedTestPackage(context.packageName))
             val db=openChessDatabase(context)
             try {
                 db.clearAllTables()

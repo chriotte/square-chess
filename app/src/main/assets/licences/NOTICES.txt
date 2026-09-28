@@ -2,15 +2,14 @@
 
 Square Chess original code: GNU GPL v3 or later; full licence in LICENSE.
 
-## Stockfish
+## Fairy-Stockfish (chess engine)
 
-- Official repository: https://github.com/official-stockfish/Stockfish
-- Release: sf_19, commit `edb0d9db6731067ec50ce619ff372b463bc4dd5d`.
-- Source submodule: native/stockfish. No source modifications; native/bridge.cpp is our GPL wrapper.
-- Licence and authors: native/stockfish/Copying.txt and AUTHORS.
-- Network: `nn-1a298aa575a0.nnue`, official distribution at https://tests.stockfishchess.org/api/nn/nn-1a298aa575a0.nnue
-- SHA-256: `1a298aa575a085434d29027978dc36867fe9c5bcea9376654b7a8eba1e52dfc2`; 98,511,183 bytes.
-- Fetch script verifies the network. Public releases must provide network provenance, matching source and reproducible build instructions, including wrapper and exact toolchain, to recipients. Complete distribution audit remains pending.
+- This app uses Fairy-Stockfish with classical evaluation. No NNUE network is included.
+- Source: lichess-org/dart-multistockfish commit 896c3884921ae1d775fcd3088ddcd1559fb87308, package multistockfish_variant 0.4.0.
+- Engine base: fairy-stockfish/Fairy-Stockfish 2b5d95121664fe564779d84aac171f16b725c147, with the Lichess private-I/O and namespace patches.
+- Square Chess changes: JNI glue (native/fairy_bridge.cpp), a UCI option-order reset for engine restarts (src/ucioption.cpp), and a thread-safe output buffer that stops a duplicated bestmove (sfio.cpp). No move-selection or evaluation changes. Difficulty levels set only the engine's own Skill Level and MultiPV options.
+- Licence: GNU GPL v3 or later. Upstream copyright notices, AUTHORS and the GPL text are retained.
+- Corresponding source must match this exact build, including the app, JNI glue, engine modifications and build scripts.
 
 ## Chesslib
 
@@ -43,12 +42,3 @@ The Apache-2.0 licence permits commercial distribution subject to its terms.
 
 
 Copyright 2015 Alexis Luengas
-
-
-EXPERIMENTAL ENGINE OVERRIDE — 2026-09-27
-This build uses Fairy-Stockfish, not Stockfish 19, with classical evaluation.
-Source: lichess-org/dart-multistockfish 896c3884921ae1d775fcd3088ddcd1559fb87308, multistockfish_variant.
-Vendored engine base: fairy-stockfish/Fairy-Stockfish 2b5d95121664fe564779d84aac171f16b725c147, with Lichess private-I/O/namespace patches.
-Square Chess adds JNI glue and a restart-only UCI option-order reset. No move-selection changes.
-GPLv3-or-later applies; all upstream copyright notices and GPL text are retained.
-No NNUE asset is included. Corresponding source must match this exact build, including the app, JNI glue, engine modifications and build scripts.

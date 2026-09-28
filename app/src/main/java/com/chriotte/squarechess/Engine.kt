@@ -20,7 +20,8 @@ interface EngineController {
 object NativeEngine {
     init { System.loadLibrary("squarefish") }
     external fun start(path: String)
-    external fun search(fen: String, moves: String, level: Int, millis: Int): String
+    /** Fairy: [skill] is the UCI Skill Level (-20..20). Stockfish 19: the app's 1-10 level; multiPv unused. */
+    external fun search(fen: String, moves: String, skill: Int, multiPv: Int, millis: Int): String
     external fun stop()
     external fun newGame()
     external fun close()
@@ -59,7 +60,10 @@ class StockfishController(private val context: Context) : EngineController {
             ensureStarted()
             // A background/cancel event may arrive while the network is loading.
             currentCoroutineContext().ensureActive()
-            NativeEngine.search(fen, moves.joinToString(" "), level, if(BuildConfig.FAIRY_ENGINE) 500 else 100 + level * 80)
+            if(BuildConfig.FAIRY_ENGINE) {
+                val options=engineLevel(level)
+                NativeEngine.search(fen, moves.joinToString(" "), options.skill, options.multiPv, ENGINE_MOVE_TIME_MS)
+            } else NativeEngine.search(fen, moves.joinToString(" "), level, 1, 100 + level * 80)
         }
     }
     override fun stop() { if(started) NativeEngine.stop() }

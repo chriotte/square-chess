@@ -42,7 +42,7 @@ class StandaloneClockDeviceTest {
 
     @Test fun standaloneClockSwitchesSidesAndDoesNotCreateGameRecords() = runBlocking {
         val context=instrumentation.targetContext
-        check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+        check(isIsolatedTestPackage(context.packageName))
         val db=openChessDatabase(context)
         try {
             db.clearAllTables()
@@ -76,7 +76,7 @@ class StandaloneClockDeviceTest {
 
     @Test fun computerSideUsesExplicitWhiteAndBlackChoices() = runBlocking {
         val context=instrumentation.targetContext
-        check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+        check(isIsolatedTestPackage(context.packageName))
         val db=openChessDatabase(context)
         try {
             db.clearAllTables()

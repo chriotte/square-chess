@@ -39,7 +39,8 @@ Java_com_chriotte_squarechess_NativeEngine_start(JNIEnv* env, jobject, jstring p
     std::lock_guard<std::mutex> guard(handleMutex); engine = e;
 }
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_chriotte_squarechess_NativeEngine_search(JNIEnv* env, jobject, jstring fen, jstring moves, jint level, jint millis) {
+Java_com_chriotte_squarechess_NativeEngine_search(JNIEnv* env, jobject, jstring fen, jstring moves, jint level, jint, jint millis) {
+    // Stockfish 19 build: 'level' is the app's 1-10 level; the MultiPV argument is unused.
     std::shared_ptr<Engine> e;
     { std::lock_guard<std::mutex> guard(handleMutex); e = engine; }
     if (!e) return env->NewStringUTF("error:not started");

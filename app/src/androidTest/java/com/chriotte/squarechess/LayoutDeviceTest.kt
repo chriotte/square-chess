@@ -42,7 +42,7 @@ class LayoutDeviceTest {
         File(instrumentation.targetContext.filesDir,"layout-$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
     }
     @Test fun captureCoreScreensAndCheckBoardAndControls() {
-        check(instrumentation.targetContext.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+        check(isIsolatedTestPackage(instrumentation.targetContext.packageName))
         ActivityScenario.launch(MainActivity::class.java).use {
             node("Play against computer");capture("home")
             tap("Help & About");node("Report a bug");capture("help")

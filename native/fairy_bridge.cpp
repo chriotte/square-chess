@@ -86,20 +86,26 @@ extern "C" JNIEXPORT void JNICALL Java_com_chriotte_squarechess_NativeEngine_sta
         send("isready");readUntil("readyok",10000);
     } catch(const std::exception& e) {try{shutdown();}catch(...){} throwJava(env,e);}
 }
-extern "C" JNIEXPORT jstring JNICALL Java_com_chriotte_squarechess_NativeEngine_search(JNIEnv* env,jobject,jstring fen,jstring moves,jint level,jint millis) {
+extern "C" JNIEXPORT jstring JNICALL Java_com_chriotte_squarechess_NativeEngine_search(JNIEnv* env,jobject,jstring fen,jstring moves,jint skill,jint multiPv,jint millis) {
     std::lock_guard<std::mutex> guard(operationMutex);
     try {
         if(!running) throw std::runtime_error("Fairy is not started");
         const auto epoch=stopEpoch.load();
-        // Stable saved-game IDs: A-D, control, E-H; 10-12 are test-only calibration candidates.
-        const int skills[]={-18,-14,-10,-6,20,0,4,8,12,-3,-2,-1};
-        if(level<1 || level>12) throw std::runtime_error("Unknown Fairy experimental profile");
-        option("UCI_LimitStrength","false");option("Skill Level",std::to_string(skills[level-1]));
-        option("MultiPV","8");
+        // The app maps difficulty levels to engine options; no move selection happens here.
+        if(skill<-20 || skill>20 || multiPv<1 || multiPv>8) throw std::runtime_error("Invalid Fairy search options");
+        option("UCI_LimitStrength","false");option("Skill Level",std::to_string(skill));
+        option("MultiPV",std::to_string(multiPv));
         const auto history=text(env,moves);
         send("position fen "+text(env,fen)+(history.empty()?"":" moves "+history));
         if(epoch!=stopEpoch.load()) return env->NewStringUTF("error:cancelled");
+        // Synchronise before searching so any output left over from an earlier
+        // command cannot be taken as this search's bestmove. Leftovers are kept in
+        // the metrics as "stale:" lines; with the sfio fix none are expected.
+        std::string pending;
+        send("isready");readUntil("readyok",10000,&pending);
         metrics.clear();
+        std::istringstream leftovers(pending);std::string line;
+        while(std::getline(leftovers,line)) if(line!="readyok") metrics+="stale:"+line+"\n";
         send("go movetime "+std::to_string(millis));
         if(epoch!=stopEpoch.load()) send("stop");
         auto best=readUntil("bestmove ",millis+10000,&metrics);

@@ -33,7 +33,9 @@ data class SavedGame(
 @Dao interface GameDao {
     @Query("SELECT * FROM games ORDER BY updated DESC") fun observeGames(): Flow<List<SavedGame>>
     @Query("SELECT * FROM games ORDER BY updated DESC LIMIT 1") suspend fun latest(): SavedGame?
+    @Query("SELECT * FROM games ORDER BY updated ASC") suspend fun allOldestFirst(): List<SavedGame>
     @Insert(onConflict=OnConflictStrategy.REPLACE) suspend fun save(game: SavedGame)
+    @Query("DELETE FROM games WHERE id = :id") suspend fun delete(id: String)
 }
 @Database(entities=[SavedGame::class], version=4, exportSchema=true)
 abstract class ChessDatabase : RoomDatabase() { abstract fun games(): GameDao }

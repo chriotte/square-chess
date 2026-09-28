@@ -12,7 +12,7 @@ import java.io.File
 
 class FairyEngineDeviceTest {
     private val context get()=InstrumentationRegistry.getInstrumentation().targetContext
-    private fun checkIsolation()=check(context.packageName in listOf("com.chriotte.squarechess.fairyexperiment","com.chriotte.squarechess.stockfishbaseline"))
+    private fun checkIsolation()=check(isIsolatedTestPackage(context.packageName))
     @Test fun actualOptionsNegativeSkillsLegalMovesAndRestart() = runBlocking {
         assumeTrue(BuildConfig.FAIRY_ENGINE);checkIsolation()
         val engine=StockfishController(context)
@@ -20,11 +20,11 @@ class FairyEngineDeviceTest {
             repeat(2) {
                 engine.start()
                 assertTrue(NativeEngine.capabilities().contains("Skill Level type spin default 20 min -20 max 20"))
-                for(profile in FAIRY_PROFILES) {
+                for(level in ENGINE_LEVELS) {
                     engine.newGame()
-                    val move=engine.search(START_FEN,listOf("e2e4"),profile.id)
+                    val move=engine.search(START_FEN,listOf("e2e4"),level.level)
                     assertNotNull(ChessPosition(moves=listOf("e2e4")).resolve(move))
-                    assertEquals("skill=${profile.skill};multipv=8;threads=1;hash=16;nnue=0;limitStrength=0",NativeEngine.configuration())
+                    assertEquals("skill=${level.skill};multipv=${level.multiPv};threads=1;hash=16;nnue=0;limitStrength=0",NativeEngine.configuration())
                     assertTrue(NativeEngine.metrics().contains("info depth"))
                 }
                 engine.close()
@@ -37,7 +37,7 @@ class FairyEngineDeviceTest {
         try {
             engine.start()
             val began=SystemClock.elapsedRealtime()
-            val search=async(Dispatchers.IO) {NativeEngine.search(START_FEN,"",4,5000)}
+            val search=async(Dispatchers.IO) {NativeEngine.search(START_FEN,"",0,8,5000)}
             delay(100);engine.stop()
             val move=withTimeout(2500) {search.await()}
             assertTrue("Cancellation should stop a five-second search",SystemClock.elapsedRealtime()-began<3000)
@@ -105,12 +105,13 @@ class FairyEngineDeviceTest {
         try {
             File(folder,"results.csv").bufferedWriter().use {out ->
                 out.appendLine("engine,profile,skill,multipv,budget_ms,position,fen,repeat,move,depth,nodes,elapsed_ms,pss_kb,error")
-                val profiles=if(BuildConfig.FAIRY_ENGINE) listOf(4,6,7,8,9,5) else listOf(2)
+                val profiles=if(BuildConfig.FAIRY_ENGINE) ENGINE_LEVELS.map { it.level } else listOf(2)
                 for(profile in profiles) for((name,fen) in positions) repeat(6) {repeat ->
                     engine.newGame()
                     val began=SystemClock.elapsedRealtime()
-                    val budget=if(BuildConfig.FAIRY_ENGINE) 500 else 100+profile*80
-                    val move=withContext(Dispatchers.IO) {NativeEngine.search(fen,"",profile,budget)}
+                    val budget=if(BuildConfig.FAIRY_ENGINE) ENGINE_MOVE_TIME_MS else 100+profile*80
+                    val options=engineLevel(profile)
+                    val move=withContext(Dispatchers.IO) {if(BuildConfig.FAIRY_ENGINE) NativeEngine.search(fen,"",options.skill,options.multiPv,budget) else NativeEngine.search(fen,"",profile,1,budget)}
                     val elapsed=SystemClock.elapsedRealtime()-began
                     val position=ChessPosition(fen)
                     assertNotNull("Illegal engine move $move in $name",position.resolve(move));legal++
@@ -118,9 +119,9 @@ class FairyEngineDeviceTest {
                     val depth=Regex("\\bdepth (\\d+)").findAll(info).map {it.groupValues[1].toInt()}.maxOrNull() ?: 0
                     val nodes=Regex("\\bnodes (\\d+)").findAll(info).map {it.groupValues[1].toLong()}.maxOrNull() ?: 0
                     val pss=Debug.getPss();peakPss=maxOf(peakPss,pss)
-                    val skill=if(BuildConfig.FAIRY_ENGINE) (FAIRY_PROFILES.firstOrNull {it.id==profile}?.skill ?: 20) else 2
-                    val label=if(BuildConfig.FAIRY_ENGINE) (FAIRY_PROFILES.firstOrNull {it.id==profile}?.label ?: "control20") else "Level2"
-                    out.appendLine("${if(BuildConfig.FAIRY_ENGINE) "Fairy" else "Stockfish19"},$label,$skill,${if(BuildConfig.FAIRY_ENGINE) 8 else 1},$budget,$name,\"$fen\",$repeat,$move,$depth,$nodes,$elapsed,$pss,")
+                    val skill=if(BuildConfig.FAIRY_ENGINE) options.skill else 2
+                    val label="Level$profile"
+                    out.appendLine("${if(BuildConfig.FAIRY_ENGINE) "Fairy" else "Stockfish19"},$label,$skill,${if(BuildConfig.FAIRY_ENGINE) options.multiPv else 1},$budget,$name,\"$fen\",$repeat,$move,$depth,$nodes,$elapsed,$pss,")
                     out.flush()
                     File(folder,"trace-$label-$name-$repeat.txt").writeText(info)
                 }

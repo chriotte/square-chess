@@ -16,8 +16,24 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.unit.IntOffset
+import androidx.core.content.FileProvider
+import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -75,8 +91,12 @@ class MainActivity: ComponentActivity() {
     private var draft by mutableStateOf(NotationDraft())
     private var entryPromotions by mutableStateOf<List<String>>(emptyList())
     private var flip by mutableStateOf(false)
+    private val settingsStore by lazy { SettingsStore(this) }
+    private var settings by mutableStateOf(AppSettings())
+    private val sounds by lazy { MoveSounds() }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        settings=settingsStore.load()
         enableEdgeToEdge()
         window.attributes = window.attributes.apply {
             layoutInDisplayCutoutMode = if (Build.VERSION.SDK_INT >= 30)
@@ -85,13 +105,41 @@ class MainActivity: ComponentActivity() {
         }
         hideSystemBars()
         setContent {
-            MaterialTheme(colorScheme=darkColorScheme(primary=Sand,background=Ink,surface=Color(0xFF222B28),onBackground=Color(0xFFF3EEDF))) {
+            MaterialTheme(colorScheme=darkColorScheme(
+                primary=Sand,onPrimary=Ink,
+                // Tonal buttons, dialogs and menus otherwise fall back to Material's purple.
+                secondary=Color(0xFFB9CBBF),onSecondary=Ink,
+                secondaryContainer=Color(0xFF3B4A43),onSecondaryContainer=Color(0xFFF3EEDF),
+                tertiary=Sand,onTertiary=Ink,
+                primaryContainer=Color(0xFF4A5A52),onPrimaryContainer=Color(0xFFF3EEDF),
+                background=Ink,onBackground=Color(0xFFF3EEDF),
+                surface=Color(0xFF222B28),onSurface=Color(0xFFF3EEDF),
+                surfaceVariant=Color(0xFF2E3833),onSurfaceVariant=Color(0xFFAFBCB4),
+                surfaceTint=Color(0xFF3B4A43),
+                surfaceContainerLowest=Color(0xFF151A19),surfaceContainerLow=Color(0xFF1D2422),
+                surfaceContainer=Color(0xFF222B28),surfaceContainerHigh=Color(0xFF28322E),
+                surfaceContainerHighest=Color(0xFF2E3833),
+                outline=Color(0xFF6F7F77),outlineVariant=Color(0xFF3B4A43)
+            )) {
                 val s by vm.state.collectAsState()
+                val prefs=settings
+                val haptics=LocalHapticFeedback.current
+                // Sound and vibration only for a move just added to the same game, never on load or undo.
+                var soundKey by remember { mutableStateOf<Pair<String?,Int>?>(null) }
+                LaunchedEffect(s.game?.id,s.position.moves.size) {
+                    val key=s.game?.id to s.position.moves.size
+                    val previous=soundKey; soundKey=key
+                    if(previous!=null && previous.first==key.first && key.second==previous.second+1) {
+                        val kind=lastMoveSound(s.position)
+                        if(kind!=null && prefs.sound) sounds.play(kind)
+                        if(prefs.haptics) haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    }
+                }
                 var screen by rememberSaveable { mutableStateOf("home") }
                 var dialog by rememberSaveable { mutableStateOf("") }
                 var resultDialog by remember { mutableStateOf<ResultEvent?>(null) }
                 var selectedMode by rememberSaveable { mutableStateOf(GameMode.COMPUTER) }
-                var level by rememberSaveable { mutableIntStateOf(if(BuildConfig.FAIRY_ENGINE) 7 else 4) }
+                var level by rememberSaveable { mutableIntStateOf(DEFAULT_LEVEL) }
                 var white by rememberSaveable { mutableStateOf(true) }
                 var standaloneClock by rememberSaveable(stateSaver=clockStateSaver) {
                     mutableStateOf(ClockState(ClockConfig(300_000,0)))
@@ -125,6 +173,19 @@ class MainActivity: ComponentActivity() {
                     }
                 }
                 var reviewPly by rememberSaveable(s.game?.id) { mutableStateOf<Int?>(null) }
+                var pendingDelete by remember { mutableStateOf<SavedGame?>(null) }
+                var reviewBarBelow by remember { mutableStateOf(false) }
+                var exportMode by rememberSaveable { mutableStateOf(ExportModeFilter.ALL) }
+                var exportPeriod by rememberSaveable { mutableStateOf(ExportPeriod.ALL_TIME) }
+                var exportMessage by remember { mutableStateOf<String?>(null) }
+                val exportSaver=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/x-chess-pgn")) { uri ->
+                    if(uri!=null) coroutineScope.launch {
+                        exportMessage=try {
+                            val count=writeExport(uri,exportMode,exportPeriod)
+                            "Saved $count game${if(count==1) "" else "s"}."
+                        } catch(e: Exception) { "Export failed: ${e.message ?: "I/O error"}" }
+                    }
+                }
                 fun openNewGame(mode: GameMode) {
                     selectedMode=mode
                     moreSetupOptions=false
@@ -188,16 +249,27 @@ class MainActivity: ComponentActivity() {
                               }
                                 Row(Modifier.fillMaxWidth().padding(top=4.dp,bottom=16.dp),horizontalArrangement=Arrangement.SpaceBetween) {
                                     TextButton(onClick={screen="history"}) { Text("Game history") }
+                                    TextButton(onClick={screen="settings"}) { Text("Settings") }
                                     TextButton(onClick={screen="help";vm.pauseForNavigation()}) { Text(stringResource(R.string.help_title)) }
                                 }
                             }
                             "history" -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
                                 val history by vm.history.collectAsState(initial=emptyList())
-                                TextButton(onClick={screen="home"}) { Text("‹ Home") }
+                                Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                                    TextButton(onClick={screen="home"}) { Text("‹ Home") }
+                                    Spacer(Modifier.weight(1f))
+                                    if(history.isNotEmpty()) TextButton(onClick={dialog="export"}) { Text("Export games") }
+                                }
                                 Text("Your games",fontFamily=FontFamily.Serif,fontSize=30.sp)
                                 if(history.isEmpty()) Text("Your first game starts here.")
-                                history.forEach { g -> HomeAction(g.result,"${g.white} · ${g.black}",g.mode.lowercase().replace('_',' ')) { flip=defaultFlipFor(g); reviewPly=null; vm.resume(g); screen="game" } }
+                                else Text("Long-press a game to delete it.",fontSize=12.sp,color=Color(0xFFAFBCB4),modifier=Modifier.padding(bottom=8.dp))
+                                Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                                    history.forEach { g -> HistoryRow(g,
+                                        onOpen={ flip=defaultFlipFor(g); reviewPly=null; vm.resume(g); screen="game" },
+                                        onDelete={ pendingDelete=g }) }
+                                }
                             }
+                            "settings" -> SettingsScreen(settings,onChange={ settings=it; settingsStore.save(it) },onExit={screen="home"})
                             "help" -> HelpAboutScreen(s.game?.mode,onExit={screen="home"})
                             "standaloneClock" -> StandaloneClockScreen(
                                 clock=standaloneClock,
@@ -211,6 +283,12 @@ class MainActivity: ComponentActivity() {
                                 onBack={screen="home"}
                             )
                             else -> Column(Modifier.fillMaxSize()) {
+                                val san=remember(s.position) { s.position.san }
+                                val fenFields=s.position.initialFen.split(" ")
+                                val whiteFirst=fenFields.getOrNull(1)!="b"
+                                val firstMoveNumber=fenFields.getOrNull(5)?.toIntOrNull() ?: 1
+                                var moveStripShown by remember { mutableStateOf(false) }
+                                val stepReview={ ply: Int -> reviewPly=ply.coerceIn(0,s.position.moves.size) }
                                 GameHeader {
                                     GameToolbar(s,reviewPly,
                                         clock=s.clock,
@@ -218,26 +296,51 @@ class MainActivity: ComponentActivity() {
                                         onReturn={ endReview();reviewPly=null;vm.foreground() },
                                         onUndo={dialog="undo"},onMenu={dialog="menu"},
                                         onPauseClock={vm.pauseClock()},onResumeClock={vm.resumeClock()},
-                                        onClockExpired={vm.clockExpired()})
+                                        onClockExpired={vm.clockExpired()},
+                                        reviewNav=if(reviewBarBelow) null else HeaderReviewNav(
+                                            onFirst={stepReview(0)},onPrevious={stepReview((reviewPly ?: 0)-1)},
+                                            onNext={stepReview((reviewPly ?: 0)+1)},onLast={stepReview(s.position.moves.size)}),
+                                        lastMove=if(moveStripShown) null else lastMoveText(san,firstMoveNumber,whiteFirst))
                                 }
                                 BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(),contentAlignment=Alignment.TopCenter) {
+                                    // The board size is decided first and never depends on the optional
+                                    // rows: they only use height or width the square board cannot use.
                                     val side=minOf(maxWidth-4.dp,maxHeight)
+                                    val spareBelow=maxHeight-side
+                                    val gutter=(maxWidth-side)/2
+                                    val barBelow=spareBelow>=REVIEW_BAR_HEIGHT
+                                    val stripBelow=spareBelow-(if(reviewPly!=null && barBelow) REVIEW_BAR_HEIGHT else 0.dp)>=MOVE_STRIP_HEIGHT
+                                    val capturesInGutters=gutter>=CAPTURED_GUTTER_MIN
+                                    val capturesBelow=!capturesInGutters && spareBelow-(if(reviewPly!=null && barBelow) REVIEW_BAR_HEIGHT else 0.dp)-
+                                        (if(stripBelow) MOVE_STRIP_HEIGHT else 0.dp)>=CAPTURED_ROW_HEIGHT*2
+                                    SideEffect { reviewBarBelow=barBelow; moveStripShown=stripBelow }
                                     val display=remember(s,reviewPly) {
                                         reviewPly?.let { s.copy(position=ChessPosition(s.position.initialFen,s.position.moves.take(it)),busy=true,highlightMove=null) } ?: s
                                     }
-                                    Box(Modifier.size(side)) {
-                                    ChessBoard(display,flip,Modifier.fillMaxSize(), cancelDraft={
+                                    val taken=remember(display.position) { captures(display.position) }
+                                    val topWhite=flip
+                                    fun takenBy(white: Boolean)=if(white) taken.byWhite else taken.byBlack
+                                    fun leadOf(white: Boolean)=if(white) taken.whiteLead else -taken.whiteLead
+                                    if(capturesInGutters) {
+                                        CapturedColumn(takenBy(topWhite),leadOf(topWhite),if(topWhite) "White" else "Black",gutter,fromBottom=false,
+                                            modifier=Modifier.align(Alignment.TopStart).height(side))
+                                        CapturedColumn(takenBy(!topWhite),leadOf(!topWhite),if(topWhite) "Black" else "White",gutter,fromBottom=true,
+                                            modifier=Modifier.align(Alignment.TopEnd).height(side))
+                                    }
+                                    Column(horizontalAlignment=Alignment.CenterHorizontally) {
+                                    if(capturesBelow) CapturedRow(takenBy(topWhite),leadOf(topWhite),if(topWhite) "White" else "Black",Modifier.width(side))
+                                    Box(Modifier.size(side).then(if(reviewPly!=null) Modifier.pointerInput(s.position.moves.size) {
+                                        // Swipe the board to step through the game while reviewing.
+                                        var travelled=0f
+                                        detectHorizontalDragGestures(onDragStart={travelled=0f},onDragEnd={
+                                            val threshold=size.width/8f
+                                            if(travelled<=-threshold) stepReview((reviewPly ?: 0)+1)
+                                            else if(travelled>=threshold) stepReview((reviewPly ?: 0)-1)
+                                        }) { change,amount -> change.consume(); travelled+=amount }
+                                    } else Modifier)) {
+                                    ChessBoard(display,flip,Modifier.fillMaxSize(),prefs, cancelDraft={
                                         if(draft.text.isNotEmpty()) { draft=NotationDraft(); true } else false
                                     }) { move -> vm.enter(move) }
-                                    if(reviewPly!=null) Surface(Modifier.align(Alignment.BottomCenter).padding(bottom=8.dp),shape=RoundedCornerShape(12.dp)) {
-                                        Row(verticalAlignment=Alignment.CenterVertically) {
-                                            TextButton(enabled=reviewPly!!>0,onClick={reviewPly=0},modifier=Modifier.semantics { contentDescription="First position" }) { Text("|‹") }
-                                            TextButton(enabled=reviewPly!!>0,onClick={reviewPly=reviewPly!!-1},modifier=Modifier.semantics { contentDescription="Previous move" }) { Text("‹") }
-                                            TextButton(onClick={dialog="history"}) { Text("Moves") }
-                                            TextButton(enabled=reviewPly!!<s.position.moves.size,onClick={reviewPly=reviewPly!!+1},modifier=Modifier.semantics { contentDescription="Next move" }) { Text("›") }
-                                            TextButton(enabled=reviewPly!!<s.position.moves.size,onClick={reviewPly=s.position.moves.size},modifier=Modifier.semantics { contentDescription="Last position" }) { Text("›|") }
-                                        }
-                                    }
                                     if(draft.text.isNotEmpty()) Surface(
                                         modifier=Modifier.align(Alignment.TopCenter).padding(8.dp),
                                         shape=RoundedCornerShape(12.dp), tonalElevation=8.dp
@@ -252,7 +355,13 @@ class MainActivity: ComponentActivity() {
                                             TextButton(enabled=!draft.submitting,onClick={submitDraft()}) { Text("Play") }
                                         }
                                     }
-                                }
+                                    }
+                                    if(capturesBelow) CapturedRow(takenBy(!topWhite),leadOf(!topWhite),if(topWhite) "Black" else "White",Modifier.width(side))
+                                    if(reviewPly!=null && barBelow) ReviewBar(reviewPly!!,s.position.moves.size,
+                                        onFirst={stepReview(0)},onPrevious={stepReview(reviewPly!!-1)},onMoves={dialog="history"},
+                                        onNext={stepReview(reviewPly!!+1)},onLast={stepReview(s.position.moves.size)},modifier=Modifier.width(side))
+                                    if(stripBelow) MoveStrip(san,firstMoveNumber,whiteFirst,reviewPly,onOpen={dialog="history"},modifier=Modifier.width(side))
+                                    }
                                 }
                                 Spacer(Modifier.height(8.dp))
                             }
@@ -262,25 +371,13 @@ class MainActivity: ComponentActivity() {
                 if(dialog=="new") AlertDialog(onDismissRequest={dialog=""},title={Text(when(selectedMode){GameMode.COMPUTER->stringResource(R.string.play_against_computer); GameMode.LOCAL_TWO_PLAYER->stringResource(R.string.over_the_board); else->"Record physical game"})},text={
                     Column(Modifier.verticalScroll(rememberScrollState())) {
                         if(selectedMode==GameMode.COMPUTER) {
-                            if(BuildConfig.FAIRY_ENGINE) {
-                                Text("Fairy-Stockfish experiment")
-                                Text("Try profiles E to H. Higher letters use higher engine skill.",fontSize=13.sp)
-                                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly) {
-                                    FAIRY_PROFILES.filter { it.id>=6 }.forEach { profile ->
-                                        FilterChip(selected=level==profile.id,onClick={level=profile.id},label={Text(profile.label)})
-                                    }
-                                }
-                                var earlierProfiles by remember { mutableStateOf(false) }
-                                TextButton(onClick={earlierProfiles=!earlierProfiles}) { Text(if(earlierProfiles) "Hide earlier profiles" else "Earlier profiles A to D") }
-                                if(earlierProfiles) Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly) {
-                                    FAIRY_PROFILES.filter {it.id<=4}.forEach {profile ->
-                                        FilterChip(selected=level==profile.id,onClick={level=profile.id},label={Text(profile.label)})
-                                    }
-                                }
-                                Text("${difficultyLabel(level)} · Skill ${FAIRY_PROFILES.first {it.id==level}.skill} · 500 ms",fontSize=13.sp)
-                            } else {
-                                Text("Level $level · Experimental strength")
-                                Slider(value=level.toFloat(),onValueChange={level=it.toInt()},valueRange=1f..10f,steps=8)
+                            val shownLevel=level.coerceIn(1,ENGINE_LEVELS.size)
+                            Text("${difficultyLabel(shownLevel)} · ${if(BuildConfig.FAIRY_ENGINE) engineLevel(shownLevel).description else "Experimental strength"}")
+                            Slider(value=shownLevel.toFloat(),onValueChange={level=it.roundToInt()},valueRange=1f..10f,steps=8,
+                                modifier=Modifier.semantics { contentDescription="Difficulty" })
+                            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
+                                Text("Easier",fontSize=12.sp,color=Color(0xFFAFBCB4))
+                                Text("Stronger",fontSize=12.sp,color=Color(0xFFAFBCB4))
                             }
                             Text("Choose your side",fontWeight=FontWeight.SemiBold)
                             SideSelectionButtons(
@@ -326,42 +423,88 @@ class MainActivity: ComponentActivity() {
                         ?: error("Unknown time control: $clockPreset")
                     val clockConfig=if(selectedMode==GameMode.PHYSICAL_BOARD_RECORDING) null else selectedClockPreset.config
                     flip=selectedMode==GameMode.COMPUTER && !white
-                    vm.newGame(selectedMode,level,white,clockConfig,importedFen ?: START_FEN)
+                    vm.newGame(selectedMode,level.coerceIn(1,ENGINE_LEVELS.size),white,clockConfig,importedFen ?: START_FEN)
                     importedFen=null;fenImportError=null
                     screen="game";draft=NotationDraft();dialog=""
                 }) {Text("Start game")}},dismissButton={TextButton(onClick={dialog=""}){Text("Cancel")}})
                 if(dialog=="menu") AlertDialog(onDismissRequest={dialog=""},title={Text("At the board")},text={Column(Modifier.verticalScroll(rememberScrollState())){
+                    val computerGame=s.game?.mode==GameMode.COMPUTER.name
+                    if(s.game?.result=="*" && reviewPly==null) {
+                        MenuSection("Game")
+                        if(s.position.moves.isNotEmpty()) TextButton(enabled=!s.busy,onClick={dialog="undo"}){Text("Undo / take back")}
+                        if(s.position.canClaimDraw()) TextButton(onClick={vm.end("1/2-1/2","Draw claimed");dialog=""}){Text("Claim draw")}
+                        if(computerGame) TextButton(onClick={dialog="resign"}){Text("Resign")}
+                        else TextButton(onClick={dialog="end"}){Text("End game")}
+                        if(computerGame && s.engineError!=null) TextButton(onClick={vm.maybeEngine();dialog=""}){Text("Retry engine")}
+                    }
+                    MenuSection("View")
                     if(reviewPly==null) TextButton(enabled=!s.busy,onClick={beginReview();draft=NotationDraft();reviewPly=s.position.moves.size;vm.pauseForNavigation();dialog=""}) { Text("Review game") }
                     else TextButton(onClick={endReview();reviewPly=null;vm.foreground();dialog=""}) { Text("Return to game") }
                     TextButton(onClick={dialog="history"}){Text("Move list")}
                     TextButton(onClick={flip=!flip;vm.setOrientation(flip);dialog=""}){Text("Flip board")}
-                    if(s.game!=null) TextButton(onClick={
-                        val shown=reviewPly?.let { ChessPosition(s.position.initialFen,s.position.moves.take(it)) } ?: s.position
-                        startActivity(Intent.createChooser(fenShareIntent(shown),"Share position FEN"))
-                        dialog=""
-                    }) { Text("Share FEN") }
                     s.game?.let { game ->
+                        MenuSection("Share")
+                        TextButton(onClick={
+                            val shown=reviewPly?.let { ChessPosition(s.position.initialFen,s.position.moves.take(it)) } ?: s.position
+                            startActivity(Intent.createChooser(fenShareIntent(shown),"Share position FEN"))
+                            dialog=""
+                        }) { Text("Share FEN") }
                         TextButton(onClick={
                             startActivity(Intent.createChooser(pgnShareIntent(game),"Share game PGN"))
                             dialog=""
                         }) { Text("Share PGN") }
                     }
-                    if(s.game?.result=="*" && reviewPly==null) {
-                        if(s.position.moves.isNotEmpty()) TextButton(enabled=!s.busy,onClick={dialog="undo"}){Text("Undo / take back")}
-                        if(s.position.canClaimDraw()) TextButton(onClick={vm.end("1/2-1/2","Draw claimed");dialog=""}){Text("Claim draw")}
-                        TextButton(onClick={dialog="end"}){Text("End game")}
-                        if(s.game?.mode==GameMode.COMPUTER.name && s.engineError!=null) TextButton(onClick={vm.maybeEngine();dialog=""}){Text("Retry engine")}
-                    }
+                    HorizontalDivider(Modifier.padding(vertical=4.dp))
                     TextButton(onClick={screen="home";dialog="";vm.pauseForNavigation()}){Text("Save & home")}
                 }},confirmButton={TextButton(onClick={dialog=""}){Text("Back to board")}})
+                if(dialog=="resign") AlertDialog(onDismissRequest={dialog=""},title={Text("Resign this game?")},
+                    text={Text("The computer wins. The game stays in your history.")},
+                    confirmButton={TextButton(onClick={
+                        vm.end(if(s.game?.humanWhite==true) "0-1" else "1-0","You resigned");dialog=""
+                    }){Text("Resign")}},
+                    dismissButton={TextButton(onClick={dialog=""}){Text("Keep playing")}})
+                pendingDelete?.let { game ->
+                    AlertDialog(onDismissRequest={pendingDelete=null},title={Text("Delete this game?")},
+                        text={Text("${game.white} · ${game.black}, ${historyDate(game.updated)}. This cannot be undone. Export your games first if you want a copy.")},
+                        confirmButton={TextButton(onClick={vm.delete(game);pendingDelete=null}){Text("Delete")}},
+                        dismissButton={TextButton(onClick={pendingDelete=null}){Text("Cancel")}})
+                }
+                if(dialog=="export") {
+                    var count by remember { mutableStateOf<Int?>(null) }
+                    LaunchedEffect(exportMode,exportPeriod) { count=vm.gamesForExport(exportMode,exportPeriod).size }
+                    AlertDialog(onDismissRequest={dialog=""},title={Text("Export games")},text={Column(Modifier.verticalScroll(rememberScrollState())) {
+                        Text("One PGN file with every selected game. Other chess apps, such as Lichess and ChessBase, can import it.",fontSize=13.sp)
+                        MenuSection("Games")
+                        ExportModeFilter.entries.forEach { option ->
+                            FilterChip(selected=exportMode==option,onClick={exportMode=option},label={Text(option.label)})
+                        }
+                        MenuSection("Period")
+                        ExportPeriod.entries.forEach { option ->
+                            FilterChip(selected=exportPeriod==option,onClick={exportPeriod=option},label={Text(option.label)})
+                        }
+                        Text(when(count) { null -> "Counting games…"; 0 -> "No games match."; 1 -> "1 game selected."; else -> "$count games selected." },
+                            fontWeight=FontWeight.Medium,modifier=Modifier.padding(top=8.dp))
+                    }},confirmButton={TextButton(enabled=(count ?: 0)>0,onClick={dialog="";exportSaver.launch(exportFileName())}){Text("Save file")}},
+                    dismissButton={Row {
+                        TextButton(enabled=(count ?: 0)>0,onClick={
+                            dialog=""
+                            coroutineScope.launch {
+                                try { shareExport(exportMode,exportPeriod) }
+                                catch(e: Exception) { exportMessage="Export failed: ${e.message ?: "I/O error"}" }
+                            }
+                        }){Text("Share")}
+                        TextButton(onClick={dialog=""}){Text("Cancel")}
+                    }})
+                }
+                exportMessage?.let { message ->
+                    AlertDialog(onDismissRequest={exportMessage=null},title={Text("Export")},text={Text(message)},
+                        confirmButton={TextButton(onClick={exportMessage=null}){Text("OK")}})
+                }
                 if(dialog=="undo") AlertDialog(onDismissRequest={dialog=""},title={Text("Take back the last turn?")},text={Text("The removed move can be played again. Against the computer, both moves are removed when possible.")},confirmButton={TextButton(onClick={vm.undo();dialog=""}){Text("Take back")}},dismissButton={TextButton(onClick={dialog=""}){Text("Keep playing")}})
                 if(dialog=="end") AlertDialog(onDismissRequest={dialog=""},title={Text("Finish this game")},text={Column{ Text("Choose the agreed result."); listOf("White wins" to "1-0","Black wins" to "0-1","Draw" to "1/2-1/2").forEach{(name,result)->TextButton(onClick={vm.end(result,"Result recorded by the players");dialog=""}){Text(name)}} }},confirmButton={TextButton(onClick={dialog=""}){Text("Cancel")}})
                 if(dialog=="history") AlertDialog(onDismissRequest={dialog=""},title={Text("Moves")},text={Column(Modifier.verticalScroll(rememberScrollState())){if(s.position.moves.isEmpty()) Text("No moves yet.") else s.position.san.chunked(2).forEachIndexed { i,pair-> Text("${i+1}.  ${pair.joinToString("    ")}",fontFamily=FontFamily.Monospace,modifier=Modifier.padding(4.dp)) }}},confirmButton={TextButton(onClick={dialog=""}){Text("Close")}})
-                if(entryPromotions.isNotEmpty()) AlertDialog(onDismissRequest={entryPromotions=emptyList()},title={Text("Promote pawn")},text={Column {
-                    entryPromotions.forEach { move -> TextButton(onClick={entryPromotions=emptyList();submitDraft(move)}) {
-                        Text(when(move.last()) { 'q'->"Queen"; 'r'->"Rook"; 'b'->"Bishop"; else->"Knight" })
-                    } }
-                }},confirmButton={TextButton(onClick={entryPromotions=emptyList()}) { Text("Cancel") }})
+                if(entryPromotions.isNotEmpty()) PromotionDialog(entryPromotions,white=s.position.board.sideToMove==Side.WHITE,
+                    onPick={ move -> entryPromotions=emptyList();submitDraft(move) },onCancel={entryPromotions=emptyList()})
                 if(resultDialog!=null) {
                     val event=resultDialog!!
                     AlertDialog(
@@ -479,6 +622,33 @@ class MainActivity: ComponentActivity() {
             if(draft.positionKey==pending.positionKey) draft=if(error==null) NotationDraft() else pending.rejected(error)
         }
     }
+    /** Writes the selected games as one PGN file to a document the user chose. */
+    private suspend fun writeExport(uri: Uri, mode: ExportModeFilter, period: ExportPeriod): Int {
+        val games=vm.gamesForExport(mode,period)
+        withContext(Dispatchers.IO) {
+            val output=contentResolver.openOutputStream(uri,"wt") ?: throw IOException("The file could not be opened.")
+            output.use { it.write(libraryPgn(games).toByteArray(Charsets.UTF_8)) }
+        }
+        return games.size
+    }
+    /** Shares the same PGN file through the Android share menu (email, Drive, other apps). */
+    private suspend fun shareExport(mode: ExportModeFilter, period: ExportPeriod) {
+        val games=vm.gamesForExport(mode,period)
+        val file=withContext(Dispatchers.IO) {
+            val folder=java.io.File(cacheDir,"exports").apply { mkdirs() }
+            folder.listFiles()?.forEach { it.delete() }
+            java.io.File(folder,exportFileName()).apply { writeText(libraryPgn(games),Charsets.UTF_8) }
+        }
+        val uri=FileProvider.getUriForFile(this,"$packageName.files",file)
+        val send=Intent(Intent.ACTION_SEND).apply {
+            type="application/x-chess-pgn"
+            putExtra(Intent.EXTRA_STREAM,uri)
+            putExtra(Intent.EXTRA_SUBJECT,"Square Chess games (${games.size})")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        startActivity(Intent.createChooser(send,"Share games"))
+    }
+    override fun onDestroy() { sounds.release(); super.onDestroy() }
     override fun onStart() { super.onStart(); if(gameVisible && !reviewing) vm.foreground() }
     override fun onStop() { vm.background(); super.onStop() }
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -538,23 +708,84 @@ class MainActivity: ComponentActivity() {
     }
 }
 
-@Composable private fun HomeAction(number:String,title:String,subtitle:String,onClick:()->Unit) {
-    Row(Modifier.fillMaxWidth().background(Color(0xFF26302C),RoundedCornerShape(12.dp)).clickable(onClick=onClick).padding(14.dp),verticalAlignment=Alignment.CenterVertically) {
-        Text(number,color=Sand,fontSize=12.sp,modifier=Modifier.width(36.dp))
-        Column(Modifier.weight(1f)) { Text(title,fontSize=18.sp,fontWeight=FontWeight.Medium); Text(subtitle,fontSize=12.sp,color=Color(0xFFAFBCB4)) }
+@Composable private fun MenuSection(title: String) {
+    Text(title.uppercase(),fontSize=11.sp,letterSpacing=1.sp,color=Color(0xFFAFBCB4),
+        modifier=Modifier.padding(start=12.dp,top=10.dp,bottom=2.dp).semantics { heading() })
+}
+
+internal fun historyDate(millis: Long): String =
+    java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date(millis))
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable private fun HistoryRow(game: SavedGame, onOpen: ()->Unit, onDelete: ()->Unit) {
+    val moveCount=game.moves.split(" ").count { it.isNotBlank() }
+    val fullMoves=(moveCount+1)/2
+    val result=if(game.result=="*") "In progress" else game.result.replace("1/2","½")
+    val mode=when(game.mode) {
+        GameMode.COMPUTER.name -> "Against computer"
+        GameMode.LOCAL_TWO_PLAYER.name -> "Over the board"
+        GameMode.PHYSICAL_BOARD_RECORDING.name -> "Recorded game"
+        else -> game.mode.lowercase().replace('_',' ')
+    }
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFF26302C))
+        .combinedClickable(onClick=onOpen,onLongClick=onDelete,onLongClickLabel="Delete game")
+        .padding(14.dp),verticalAlignment=Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text("${game.white} · ${game.black}",fontSize=17.sp,fontWeight=FontWeight.Medium)
+            Text("$mode · ${historyDate(game.updated)} · $fullMoves move${if(fullMoves==1) "" else "s"}",fontSize=12.sp,color=Color(0xFFAFBCB4))
+        }
+        Text(result,color=Sand,fontSize=13.sp,modifier=Modifier.padding(horizontal=8.dp))
         Text("›",color=Sand,fontSize=24.sp)
     }
 }
 
-@Composable private fun ChessBoard(s:GameUi,flip:Boolean,modifier:Modifier,cancelDraft:()->Boolean={false},onMove:(String)->Unit) {
+
+@Composable private fun ChessBoard(s:GameUi,flip:Boolean,modifier:Modifier,prefs:AppSettings=AppSettings(),cancelDraft:()->Boolean={false},onMove:(String)->Unit) {
     var selected by remember(s.position.moves) { mutableStateOf<Square?>(null) }
     var promotion by remember { mutableStateOf<List<String>>(emptyList()) }
+    // Drag-and-drop: the dragged piece follows the finger; tap-tap still works.
+    var dragFrom by remember(s.position.moves) { mutableStateOf<Square?>(null) }
+    var dragPosition by remember { mutableStateOf(Offset.Zero) }
     val legal=s.position.legal
     val game=s.game
     val humanTurn=game==null || game.mode!=GameMode.COMPUTER.name || ((s.position.board.sideToMove==Side.WHITE)==game.humanWhite)
     val canInteract=!s.busy && game?.result=="*" && humanTurn &&
         (s.clock==null || s.clock.phase==ClockPhase.RUNNING)
-    Column(modifier) {
+    val lightSquare=prefs.boardTheme.light; val darkSquare=prefs.boardTheme.dark
+    fun squareAt(offset: Offset, boardPx: Float): Square? {
+        val cell=boardPx/8f
+        val col=(offset.x/cell).toInt(); val row=(offset.y/cell).toInt()
+        if(col !in 0..7 || row !in 0..7) return null
+        val file=if(flip) 7-col else col; val rank=if(flip) row else 7-row
+        return Square.squareAt(rank*8+file)
+    }
+    val currentOnMove by rememberUpdatedState(onMove)
+    val currentCancelDraft by rememberUpdatedState(cancelDraft)
+    BoxWithConstraints(modifier) {
+    val boardPx=with(LocalDensity.current) { maxWidth.toPx() }
+    val cellDp=maxWidth/8
+    Column(Modifier.fillMaxSize().pointerInput(canInteract,s.position.moves,flip) {
+        if(!canInteract) return@pointerInput
+        detectDragGestures(
+            onDragStart={ offset ->
+                val square=squareAt(offset,boardPx)
+                val piece=square?.let { s.position.board.getPiece(it) }
+                if(square!=null && piece!=null && piece!=Piece.NONE && piece.pieceSide==s.position.board.sideToMove && !currentCancelDraft()) {
+                    dragFrom=square; selected=square; dragPosition=offset
+                }
+            },
+            onDrag={ change,amount -> if(dragFrom!=null) { change.consume(); dragPosition+=amount } },
+            onDragEnd={
+                val from=dragFrom; dragFrom=null
+                val to=squareAt(dragPosition,boardPx)
+                if(from!=null && to!=null && to!=from) {
+                    val targets=legal.filter { it.from==from && it.to==to }
+                    if(targets.size>1) promotion=targets.map { it.toString() }
+                    else if(targets.size==1) { currentOnMove(targets[0].toString()); selected=null }
+                }
+            },
+            onDragCancel={ dragFrom=null })
+    }) {
         for(row in 0..7) Row(Modifier.weight(1f)) {
             for(col in 0..7) {
                 val file=if(flip) 7-col else col; val rank=if(flip) row else 7-row
@@ -564,41 +795,60 @@ class MainActivity: ComponentActivity() {
                 val last=s.highlightMove.orEmpty()
                 val recent=last.startsWith(square.name.lowercase()) || last.drop(2).startsWith(square.name.lowercase())
                 val check=piece!=Piece.NONE && piece.pieceType.name=="KING" && piece.pieceSide==s.position.board.sideToMove && s.position.board.isKingAttacked
-                val color=when { selected==square->Color(0xFFC8B56E);check->Color(0xFFBF7669);recent->Color(0xFFA7AC78);(rank+file)%2==1->LightSquare;else->DarkSquare }
+                val color=when { selected==square->Color(0xFFC8B56E);check->Color(0xFFBF7669);recent->Color(0xFFA7AC78);(rank+file)%2==1->lightSquare;else->darkSquare }
                 BoxWithConstraints(Modifier.weight(1f).fillMaxHeight().background(color).semantics { contentDescription="${square.name.lowercase()}, ${if(piece==Piece.NONE) "empty" else piece.name.lowercase().replace('_',' ')}${if(targets.isNotEmpty()) ", legal destination" else ""}${if(check) ", check" else ""}" }.clickable(enabled=canInteract,role=Role.Button) {
                     if(cancelDraft()) selected=null
                     else if(targets.size>1) promotion=targets.map{it.toString()}
                     else if(targets.size==1) {onMove(targets[0].toString());selected=null}
-                    else selected=if(piece!=Piece.NONE && piece.pieceSide==s.position.board.sideToMove) square else null
+                    else selected=if(piece!=Piece.NONE && piece.pieceSide==s.position.board.sideToMove && selected!=square) square else null
                 },contentAlignment=Alignment.Center) {
                     if(piece!=Piece.NONE) {
                         // Chessnut uses simple silhouettes and contrasting internal lines.
                         Image(
                             painter = painterResource(pieceDrawable(piece)),
                             contentDescription = null,
-                            modifier = Modifier.fillMaxSize().padding(3.dp)
+                            modifier = Modifier.fillMaxSize().padding(3.dp).alpha(if(dragFrom==square) 0.3f else 1f)
                         )
                     }
-                    if(targets.isNotEmpty()) Box(Modifier.size(9.dp).background(Color(0xFF374A3A),RoundedCornerShape(10.dp)))
+                    // Drawn over the piece: a dot for a quiet move, a ring for a capture.
+                    if(targets.isNotEmpty() && prefs.legalMoves) Canvas(Modifier.fillMaxSize()) {
+                        val marker=Color(0x8C171D1C)
+                        if(piece==Piece.NONE) drawCircle(marker,radius=size.minDimension*0.17f)
+                        else drawCircle(marker,radius=size.minDimension*0.44f,style=Stroke(width=size.minDimension*0.09f))
+                    }
                     // Use the displayed colour, including move/check highlights, so
                     // coordinates stay legible. Square semantics already name them.
                     val backgroundLuminance=color.luminance()+0.05f
                     val darkContrast=backgroundLuminance/(Ink.luminance()+0.05f)
-                    val lightContrast=(LightSquare.luminance()+0.05f)/backgroundLuminance
-                    val coordinateColor=if(darkContrast>=lightContrast) Ink else LightSquare
-                    if(row==7) Text(('a'+file).toString(),
+                    val lightContrast=(lightSquare.luminance()+0.05f)/backgroundLuminance
+                    val coordinateColor=if(darkContrast>=lightContrast) Ink else lightSquare
+                    if(prefs.coordinates && row==7) Text(('a'+file).toString(),
                         modifier=(if(col==0) Modifier.align(Alignment.BottomEnd).padding(end=8.dp,bottom=2.dp)
                         else if(col==7) Modifier.align(Alignment.BottomStart).padding(start=8.dp,bottom=2.dp)
                         else Modifier.align(Alignment.BottomStart).padding(start=2.dp,bottom=2.dp)).clearAndSetSemantics {},
                         style=CoordinateStyle,color=coordinateColor)
-                    if(col==7) Text((rank+1).toString(),
+                    if(prefs.coordinates && col==7) Text((rank+1).toString(),
                         modifier=Modifier.align(Alignment.TopEnd).padding(2.dp).clearAndSetSemantics {},
                         style=CoordinateStyle,color=coordinateColor)
                 }
             }
         }
     }
-    if(promotion.isNotEmpty()) AlertDialog(onDismissRequest={promotion=emptyList()},title={Text("Promote pawn")},text={Column{promotion.forEach { move->TextButton(onClick={onMove(move);promotion=emptyList();selected=null}){Text(when(move.last()){'q'->"Queen";'r'->"Rook";'b'->"Bishop";else->"Knight"})}}}},confirmButton={TextButton(onClick={promotion=emptyList()}){Text("Cancel")}})
+    // The dragged piece, slightly enlarged and centred under the finger.
+    dragFrom?.let { from ->
+        val piece=s.position.board.getPiece(from)
+        if(piece!=Piece.NONE) {
+            val size=cellDp*1.2f
+            val density=LocalDensity.current
+            Image(painterResource(pieceDrawable(piece)),null,Modifier.size(size).offset {
+                val half=with(density) { size.toPx() }/2f
+                IntOffset((dragPosition.x-half).roundToInt(),(dragPosition.y-half).roundToInt())
+            })
+        }
+    }
+    }
+    if(promotion.isNotEmpty()) PromotionDialog(promotion,white=s.position.board.sideToMove==Side.WHITE,
+        onPick={ move -> onMove(move);promotion=emptyList();selected=null },onCancel={promotion=emptyList()})
 }
 
 private fun resultHeadline(event: ResultEvent, game: SavedGame?): String = when {
@@ -615,7 +865,7 @@ private fun resultScore(result: String): String = when(result) {
     else -> "Draw · ½–½"
 }
 
-private fun pieceDrawable(piece: Piece): Int = when (piece) {
+internal fun pieceDrawable(piece: Piece): Int = when (piece) {
     Piece.WHITE_KING -> R.drawable.piece_wk
     Piece.WHITE_QUEEN -> R.drawable.piece_wq
     Piece.WHITE_ROOK -> R.drawable.piece_wr

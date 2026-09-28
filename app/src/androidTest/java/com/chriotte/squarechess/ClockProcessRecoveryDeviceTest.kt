@@ -58,7 +58,7 @@ class ClockProcessRecoveryDeviceTest {
             arguments.getString("processRecoveryStage")=="prepare")
         runBlocking {
             val context=instrumentation.targetContext
-            check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+            check(isIsolatedTestPackage(context.packageName))
             val db=openChessDatabase(context)
             val viewModel=GameViewModel(context.applicationContext as Application,IdleEngine)
             val store=ViewModelStore().apply { put("process-recovery-fixture",viewModel) }
@@ -95,7 +95,7 @@ class ClockProcessRecoveryDeviceTest {
             arguments.getString("processRecoveryStage")=="verify")
         runBlocking {
             val context=instrumentation.targetContext
-            check(context.packageName.matches(Regex("com[.]chriotte[.]squarechess[.](fairyexperiment|stockfishbaseline)")))
+            check(isIsolatedTestPackage(context.packageName))
             val db=openChessDatabase(context)
             try {
                 ActivityScenario.launch(MainActivity::class.java).use {

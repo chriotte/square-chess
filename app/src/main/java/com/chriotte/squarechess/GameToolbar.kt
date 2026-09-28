@@ -35,11 +35,15 @@ fun gameStatus(s: GameUi): String = when {
     else -> if(s.position.board.sideToMove==com.github.bhlangonijr.chesslib.Side.WHITE) "White to move" else "Black to move"
 }
 
+/** Review arrows shown in the header when no review bar fits below the board. */
+class HeaderReviewNav(val onFirst: ()->Unit, val onPrevious: ()->Unit, val onNext: ()->Unit, val onLast: ()->Unit)
+
 /** Cutout-safe bounds are supplied by the existing GameHeader container. */
 @Composable fun GameToolbar(
     s: GameUi, reviewPly: Int?, clock: ClockState? = null,
     onReview: ()->Unit, onReturn: ()->Unit, onUndo: ()->Unit, onMenu: ()->Unit,
-    onPauseClock: ()->Unit = {}, onResumeClock: ()->Unit = {}, onClockExpired: ()->Unit = {}
+    onPauseClock: ()->Unit = {}, onResumeClock: ()->Unit = {}, onClockExpired: ()->Unit = {},
+    reviewNav: HeaderReviewNav? = null, lastMove: String? = null
 ) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val layout=toolbarLayout(maxWidth.value,LocalDensity.current.fontScale)
@@ -47,11 +51,28 @@ fun gameStatus(s: GameUi): String = when {
             Column(Modifier.weight(1f).padding(end=4.dp)) {
                 val status=if(reviewPly!=null) "Review · $reviewPly/${s.position.moves.size}" else gameStatus(s)
                 val difficulty=if(layout.difficulty && s.game?.mode==GameMode.COMPUTER.name) " · ${difficultyLabel(s.game.level)}" else ""
-                Text(status+difficulty,fontSize=14.sp,fontWeight=FontWeight.Medium,maxLines=2,overflow=TextOverflow.Ellipsis)
+                // Two 14 sp lines fit the 56 dp minimum header up to font scale 1.3, so the
+                // extra text cannot make the header (and so the board) change size.
+                val move=if(reviewPly==null && lastMove!=null && LocalDensity.current.fontScale<=1.3f) "$lastMove · " else ""
+                // With a clock the header already holds two rows; one status line keeps its height unchanged.
+                Text(move+status+difficulty,fontSize=14.sp,fontWeight=FontWeight.Medium,
+                    maxLines=if(clock!=null) 1 else 2,overflow=TextOverflow.Ellipsis)
                 if(clock!=null) ClockReadout(
                     clock,onPauseClock,onResumeClock,onClockExpired,
                     canToggle=reviewPly==null && s.game?.result=="*"
                 )
+            }
+            if(reviewPly!=null && reviewNav!=null) {
+                val total=s.position.moves.size
+                val edges=layout.undo
+                @Composable fun Arrow(label: String, description: String, enabled: Boolean, onClick: ()->Unit) =
+                    TextButton(onClick=onClick,enabled=enabled,
+                        modifier=Modifier.sizeIn(minWidth=40.dp,minHeight=48.dp).semantics { contentDescription=description },
+                        contentPadding=PaddingValues(horizontal=4.dp)) { Text(label,fontSize=18.sp) }
+                if(edges) Arrow("|‹","First position",reviewPly>0,reviewNav.onFirst)
+                Arrow("‹","Previous move",reviewPly>0,reviewNav.onPrevious)
+                Arrow("›","Next move",reviewPly<total,reviewNav.onNext)
+                if(edges) Arrow("›|","Last position",reviewPly<total,reviewNav.onLast)
             }
             if(reviewPly!=null) FilledTonalButton(onClick=onReturn,
                 modifier=Modifier.heightIn(min=48.dp).semantics { contentDescription="Return to game" },

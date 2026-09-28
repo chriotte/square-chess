@@ -2,7 +2,13 @@
 
 Square Chess original code: GNU GPL v3 or later; full licence in LICENSE.
 
-## Stockfish
+## Fairy-Stockfish (production engine)
+
+- Vendored under native/fairy from lichess-org/dart-multistockfish `896c3884921ae1d775fcd3088ddcd1559fb87308` (multistockfish_variant 0.4.0); engine base Fairy-Stockfish `2b5d95121664fe564779d84aac171f16b725c147`.
+- Local changes and evidence: native/fairy/PROVENANCE.md. native/fairy_bridge.cpp is our GPL JNI wrapper.
+- GPL-3.0-or-later; native/fairy/Copying.txt and AUTHORS. No NNUE network is bundled.
+
+## Stockfish 19 (baseline build only)
 
 - Official repository: https://github.com/official-stockfish/Stockfish
 - Release: sf_19, commit `edb0d9db6731067ec50ce619ff372b463bc4dd5d`.

@@ -1,5 +1,7 @@
 # Beginner calibration: automated game results
 
+> **Update, 28 September 2026.** The rejected-response blocker below is resolved; see the final decision in FAIRY_STOCKFISH_RECOMMENDATION.md. The Titan batch was retrieved: skill −3 lost 2/2; −2 and −1 each won 1/2; the two skill-0 controls both ended 1-0. Raw data: square-chess-fairy-reports/titan-backup-2026-09-28 and race-investigation/.
+
 28 September 2026. User feedback: E is fun but still too strong when deliberately playing like a beginner. The objective here is to find a plausible weaker candidate, not assign Elo or finalize the slider.
 
 ## Recommendation

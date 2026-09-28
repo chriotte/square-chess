@@ -91,8 +91,8 @@ class GameViewModel private constructor(
             val clock = clockConfig?.let { ClockState(it,active=clockSide).start(now) }
                 ?.let { if(result!="*") it.finish(now) else it }
             val game=SavedGame(UUID.randomUUID().toString(),mode.name,initialFen=initialFen,level=level,humanWhite=humanWhite,
-                white=if(mode==GameMode.COMPUTER && !humanWhite) (if(BuildConfig.FAIRY_ENGINE) "Fairy-Stockfish ${difficultyLabel(level)}" else "Stockfish") else "White",
-                black=if(mode==GameMode.COMPUTER && humanWhite) (if(BuildConfig.FAIRY_ENGINE) "Fairy-Stockfish ${difficultyLabel(level)}" else "Stockfish") else "Black",
+                white=if(mode==GameMode.COMPUTER && !humanWhite) "Computer (${difficultyLabel(level)})" else "White",
+                black=if(mode==GameMode.COMPUTER && humanWhite) "Computer (${difficultyLabel(level)})" else "Black",
                 result=result,resultReason=if(result!="*") initialPosition.automaticResultReason().orEmpty() else "")
                 .withClock(clock, now)
             db.games().save(game)
@@ -164,7 +164,7 @@ class GameViewModel private constructor(
         if(!foreground || s.busy || g.result!="*" || g.mode!=GameMode.COMPUTER.name || humanTurn(s) ||
             s.clock?.phase?.let { it != ClockPhase.RUNNING } == true) return
         val token=revision
-        state.value=s.copy(busy=true,engineError=null,message="Stockfish is thinking…")
+        state.value=s.copy(busy=true,engineError=null,message="Computer is thinking…")
         engineJob=viewModelScope.launch {
             try {
                 val best=engine.search(g.initialFen,s.position.moves,g.level)
@@ -226,6 +226,18 @@ class GameViewModel private constructor(
         state.value=state.value.copy(game=saved)
     } }
     fun acknowledgeResult() { state.value=state.value.copy(resultEvent=null) }
+    suspend fun gamesForExport(mode: ExportModeFilter, period: ExportPeriod) =
+        selectForExport(db.games().allOldestFirst(), mode, period)
+    fun delete(game: SavedGame) = viewModelScope.launch { commitLock.withLock {
+        val open=state.value.game?.id==game.id
+        if(open) invalidate()
+        db.games().delete(game.id)
+        if(open) {
+            // Show the next most recent game, as a fresh start would.
+            val next=db.games().latest()
+            if(next!=null) load(next) else state.value=GameUi(ready=true)
+        }
+    } }
     fun pauseClock() = viewModelScope.launch { commitLock.withLock { pauseClockLocked(interrupted=false) } }
     fun resumeClock() = viewModelScope.launch {
         commitLock.withLock {

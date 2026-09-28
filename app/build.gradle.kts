@@ -5,15 +5,23 @@ plugins {
     id("org.jetbrains.kotlin.kapt")
 }
 kapt { arguments { arg("room.schemaLocation", "$projectDir/schemas") } }
+// Fairy-Stockfish is the production engine. -Pengine=stockfish builds the preserved
+// Stockfish 19 baseline; -Pdev=true builds the separate test app that fixture tests require.
 val fairyEngine = providers.gradleProperty("engine").orNull != "stockfish"
+val devBuild = providers.gradleProperty("dev").orNull == "true"
+// Older checkouts kept the 98 MB Stockfish network in main assets, where it would be
+// packaged into every Fairy APK. It belongs in src/stockfish/assets.
+file("src/main/assets").listFiles { f -> f.name.endsWith(".nnue") }?.firstOrNull()?.let {
+    throw GradleException("Move ${it.name} from app/src/main/assets to app/src/stockfish/assets")
+}
 android {
     namespace = "com.chriotte.squarechess"
     compileSdk = 36
     ndkVersion = "28.2.13676358"
     defaultConfig {
         applicationId = "com.chriotte.squarechess"
-        applicationIdSuffix = if(fairyEngine) ".fairyexperiment" else ".stockfishbaseline"
-        manifestPlaceholders["appLabel"] = if(fairyEngine) "Square Chess Fairy Lab" else "Square Chess SF Baseline"
+        applicationIdSuffix = when { !fairyEngine -> ".stockfishbaseline"; devBuild -> ".dev"; else -> null }
+        manifestPlaceholders["appLabel"] = when { !fairyEngine -> "Square Chess SF Baseline"; devBuild -> "Square Chess Dev"; else -> "Square Chess" }
         buildConfigField("boolean", "FAIRY_ENGINE", fairyEngine.toString())
         minSdk = 29
         targetSdk = 36
