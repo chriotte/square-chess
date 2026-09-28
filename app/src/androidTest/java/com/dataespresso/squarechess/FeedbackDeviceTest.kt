@@ -62,7 +62,7 @@ class FeedbackDeviceTest {
             node("Chess designed for square-screen phones.")
             tap("About Square Chess");node("How to play");tap("Back")
             tap("App information");node("Copy support address");tap("Back")
-            tap("Privacy");node("A public privacy-policy page has not been published yet. No external policy link is configured for this development build.");tap("Back")
+            tap("Privacy");node("Open privacy policy");tap("Back")
             tap("Third-party licences");tap("Fairy-Stockfish · GNU GPL v3")
             val deadline=SystemClock.uptimeMillis()+5_000
             while(find(instrumentation.uiAutomation.rootInActiveWindow) { it.text?.contains("GNU GENERAL PUBLIC LICENSE")==true }==null && SystemClock.uptimeMillis()<deadline) SystemClock.sleep(100)

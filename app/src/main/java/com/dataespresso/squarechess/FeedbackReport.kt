@@ -2,10 +2,8 @@ package com.dataespresso.squarechess
 
 object SupportConfig {
     const val email = "support@dataespresso.com"
-    // Supply actual published URLs before enabling these links.
-    val privacyPolicyUrl: String? = null
-    val playListingUrl: String? = null
-}
+    val privacyPolicyUrl: String? = "https://dataespresso.com/en/square-chess-privacy/"
+    val playListingUrl: String? = "https://play.google.com/store/apps/details?id=com.dataespresso.squarechess"}
 
 data class FeedbackDiagnostics(val version: String, val device: String, val android: String, val gameMode: String?)
 data class FeedbackReport(val subject: String, val body: String) {

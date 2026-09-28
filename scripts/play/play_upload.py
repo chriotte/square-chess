@@ -1,6 +1,9 @@
 """Uploads a signed AAB to a Play track.
 
-Usage: play_upload.py <bundle.aab> <track> "<release notes>"
+Usage: play_upload.py <bundle.aab> <track[:status][,track[:status]...]> "<release notes>"
+Status defaults to completed. Until the app's first public release, Play only
+accepts production releases as draft (e.g. internal,production:draft); the owner
+then starts that rollout in Play Console.
 The service-account key is read from ~/SquareChessSigning/play-service-account.json
 (or SQUARECHESS_PLAY_KEY) and is never stored in this repository.
 """
@@ -24,11 +27,13 @@ try:
         media_body=MediaFileUpload(bundle, mimetype="application/octet-stream", resumable=True)).execute()
     code = str(uploaded["versionCode"])
     print("uploaded version code", code)
-    edits.tracks().update(packageName=PACKAGE, editId=eid, track=track, body={
-        "track": track,
-        "releases": [{"versionCodes": [code], "status": "completed",
-                      "releaseNotes": [{"language": "en-GB", "text": notes}]}],
-    }).execute()
+    for spec in track.split(","):
+        name, _, status = spec.partition(":")
+        edits.tracks().update(packageName=PACKAGE, editId=eid, track=name, body={
+            "track": name,
+            "releases": [{"versionCodes": [code], "status": status or "completed",
+                          "releaseNotes": [{"language": "en-GB", "text": notes}]}],
+        }).execute()
     edits.validate(packageName=PACKAGE, editId=eid).execute()
     print("committed", edits.commit(packageName=PACKAGE, editId=eid).execute()["id"], "to", track)
 except Exception:
