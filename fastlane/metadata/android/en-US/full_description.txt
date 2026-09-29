@@ -1,20 +1,17 @@
-Square Chess is built for square and near-square screens, compact phones, and devices with physical QWERTY keyboards.
+Square Chess is designed for compact Android devices, especially square and near-square screens.
 
-Most chess apps are designed around tall smartphone displays, leaving a relatively small board on compact devices. Square Chess takes the opposite approach: it gives the board as much of the screen as possible, with an interface designed specifically for 1:1, 9:10 and other compact display shapes.
+The chessboard takes centre stage, using as much of the display as possible. If your phone has a physical QWERTY keyboard, you can also play by typing moves such as e4, Nf3 or e2e4.
 
-If your phone has a physical keyboard, you can also enter moves directly using chess notation.
+Play against the computer at ten difficulty levels, from beginner-friendly play to full-strength Fairy-Stockfish. The engine runs entirely on your phone.
 
-Square Chess is a focused, distraction-free chess app:
+You can also play with a friend on the same device, use an optional chess clock, record games played on a real board, and review them afterwards move by move.
 
-• Play against the computer at ten difficulty levels, from beginner-friendly play to full-strength Fairy-Stockfish. The engine runs entirely on your phone.
-• Play with a friend on the same device, with an optional chess clock.
-• Record games played on a real board, then review them move by move.
-• Use the standalone chess clock for over-the-board games without needing to start a game in the app.
-• Enter moves with the keyboard using notation such as e4, Nf3 or e2e4, or play normally by tapping or dragging pieces.
-• Review and manage games with move history, undo, resign and draw handling.
-• Export your complete game collection as PGN for use with Lichess, ChessBase and other chess software.
-• Make the board your own with board colours, legal-move indicators, move sounds and vibration.
+Square Chess supports both touch and keyboard input. Tap or drag pieces, or enter moves using standard chess notation such as e4, Nf3, O-O or e2e4.
 
-No ads. No account. No Internet permission.
+Your games can be reviewed, undone, resigned or exported as PGN for use with Lichess, ChessBase and other chess software.
 
-Your games and settings stay on your device. Square Chess is designed to feel fast, simple and at home on compact Android phones where conventional chess apps often do not fit well.
+The app also includes a standalone chess clock, board colour options, legal-move indicators, move sounds and vibration.
+
+No ads. No account. No Internet permission. Your games and settings stay on your device.
+
+Square Chess is particularly suited to 1:1 and 9:10 displays, while still working on conventional Android screens.

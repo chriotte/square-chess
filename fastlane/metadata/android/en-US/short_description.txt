@@ -1,1 +1,1 @@
-Offline chess with ten computer levels, keyboard moves and chess clock. No ads.
+Chess designed for square screens, compact phones and physical keyboards.

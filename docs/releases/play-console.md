@@ -4,7 +4,7 @@ Package `com.dataespresso.squarechess`, developer DataEspresso. Free, all countr
 
 ## Store listing
 
-The title, descriptions, icon, feature graphic and screenshots are in `fastlane/metadata/android/en-US/` — the same files F-Droid uses. `scripts/play/play_listing.py` uploads them to Play (listing language en-GB). Edit the files, not Play Console, so both stores stay the same.
+The title, descriptions, icon, feature graphic and screenshots are in `fastlane/metadata/android/en-US/` — the same files F-Droid uses. `scripts/play/play_listing.py` uploads them to Play (listing language en-GB). Edit the files, not Play Console, so both stores stay the same. After an edit in Play Console, `scripts/play/play_pull_listing.py` copies the listing text back into these files.
 
 - Category: Game › Board. Contact: support@dataespresso.com, https://dataespresso.com/
 - Privacy policy: https://dataespresso.com/en/square-chess-privacy/ (text: `PRIVACY_POLICY.md`)
