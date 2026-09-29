@@ -1,7 +1,8 @@
 # Copies the four GitHub Actions secrets for the release workflow to the clipboard,
 # one at a time, so they can be pasted into GitHub without being shown on screen.
 #
-# GitHub: Settings > Environments > production-release > Add environment secret.
+# GitHub: Settings > Secrets and variables > Actions > New repository secret.
+# (After the repository is public: an environment "production-release" instead.)
 # Run in PowerShell:  .\scripts\release\copy-signing-secrets.ps1
 param([string]$Properties = "$HOME\SquareChessSigning\standalone.properties")
 
