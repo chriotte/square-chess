@@ -18,7 +18,7 @@ Binaries: https://github.com/chriotte/square-chess/releases/download/v%v/Square-
 Builds:
   - versionName: 1.0.6
     versionCode: 7
-    commit: v1.0.6
+    commit: b682c6db1ebddef66b6aa8400c2a3bd0e8a8d128
     subdir: app
     gradle:
       - yes
