@@ -187,6 +187,17 @@ class MainActivity: ComponentActivity() {
                         } catch(e: Exception) { "Export failed: ${e.message ?: "I/O error"}" }
                     }
                 }
+                var importMessage by remember { mutableStateOf<String?>(null) }
+                var importing by remember { mutableStateOf(false) }
+                val importPicker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                    if(uri!=null) coroutineScope.launch {
+                        importing=true
+                        importMessage=try {
+                            vm.importGames(readTextDocument(uri,MAX_PGN_IMPORT_BYTES)).let { importSummaryText(it.imported,it.duplicates,it.failures) }
+                        } catch(e: Exception) { "Import failed: ${e.message ?: "I/O error"}" }
+                        finally { importing=false }
+                    }
+                }
                 fun openNewGame(mode: GameMode) {
                     selectedMode=mode
                     moreSetupOptions=false
@@ -259,7 +270,8 @@ class MainActivity: ComponentActivity() {
                                 Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                                     TextButton(onClick={screen="home"}) { Text("‹ Home") }
                                     Spacer(Modifier.weight(1f))
-                                    if(history.isNotEmpty()) TextButton(onClick={dialog="export"}) { Text("Export games") }
+                                    TextButton(enabled=!importing,onClick={importPicker.launch(arrayOf("*/*"))}) { Text(if(importing) "Importing…" else "Import") }
+                                    if(history.isNotEmpty()) TextButton(onClick={dialog="export"}) { Text("Export") }
                                 }
                                 Text("Your games",fontFamily=FontFamily.Serif,fontSize=30.sp)
                                 if(history.isEmpty()) Text("Your first game starts here.")
@@ -501,6 +513,11 @@ class MainActivity: ComponentActivity() {
                         TextButton(onClick={dialog=""}){Text("Cancel")}
                     }})
                 }
+                importMessage?.let { message ->
+                    AlertDialog(onDismissRequest={importMessage=null},title={Text("Import games")},
+                        text={Text(message,modifier=Modifier.verticalScroll(rememberScrollState()))},
+                        confirmButton={TextButton(onClick={importMessage=null}){Text("OK")}})
+                }
                 exportMessage?.let { message ->
                     AlertDialog(onDismissRequest={exportMessage=null},title={Text("Export")},text={Text(message)},
                         confirmButton={TextButton(onClick={exportMessage=null}){Text("OK")}})
@@ -626,6 +643,23 @@ class MainActivity: ComponentActivity() {
         vm.enter(overrideMove ?: pending.text,pending.positionKey!!) { error ->
             if(draft.positionKey==pending.positionKey) draft=if(error==null) NotationDraft() else pending.rejected(error)
         }
+    }
+    /** Reads a user-chosen text document; UTF-8 first, then Latin-1 (the PGN standard's encoding). */
+    private suspend fun readTextDocument(uri: Uri, maxBytes: Int): String = withContext(Dispatchers.IO) {
+        val bytes=ByteArrayOutputStream()
+        (contentResolver.openInputStream(uri) ?: throw IOException("The file could not be opened.")).use { input ->
+            val buffer=ByteArray(64*1024)
+            while(true) {
+                val count=input.read(buffer)
+                if(count<0) break
+                if(bytes.size()+count>maxBytes) throw IOException("The file is larger than ${maxBytes/(1024*1024)} MB.")
+                bytes.write(buffer,0,count)
+            }
+        }
+        val raw=bytes.toByteArray()
+        runCatching {
+            Charsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(raw)).toString()
+        }.getOrElse { String(raw,Charsets.ISO_8859_1) }
     }
     /** Writes the selected games as one PGN file to a document the user chose. */
     private suspend fun writeExport(uri: Uri, mode: ExportModeFilter, period: ExportPeriod): Int {

@@ -226,6 +226,14 @@ class GameViewModel private constructor(
         state.value=state.value.copy(game=saved)
     } }
     fun acknowledgeResult() { state.value=state.value.copy(resultEvent=null) }
+    data class ImportSummary(val imported: Int, val duplicates: Int, val failures: List<String>)
+    /** Adds the games in [pgn] to the history. The open game is not changed. */
+    suspend fun importGames(pgn: String): ImportSummary = withContext(Dispatchers.Default) {
+        val parsed = parsePgnLibrary(pgn)
+        val fresh = withoutDuplicates(parsed.games, db.games().allOldestFirst())
+        fresh.forEach { db.games().save(it) }
+        ImportSummary(fresh.size, parsed.games.size - fresh.size, parsed.failures)
+    }
     suspend fun gamesForExport(mode: ExportModeFilter, period: ExportPeriod) =
         selectForExport(db.games().allOldestFirst(), mode, period)
     fun delete(game: SavedGame) = viewModelScope.launch { commitLock.withLock {
