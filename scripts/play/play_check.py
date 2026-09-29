@@ -1,10 +1,12 @@
 """Read-only Play Console check: opens an edit, reads state, deletes the edit."""
+import os
 import sys
+from pathlib import Path
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-KEY = r"~/SquareChessSigning\play-service-account.json"
+KEY = os.environ.get("SQUARECHESS_PLAY_KEY", str(Path.home() / "SquareChessSigning" / "play-service-account.json"))
 PACKAGE = sys.argv[1] if len(sys.argv) > 1 else "com.dataespresso.squarechess"
 
 creds = service_account.Credentials.from_service_account_file(
