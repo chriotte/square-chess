@@ -55,7 +55,8 @@ private fun splitPgnGames(text: String): List<Pair<Map<String, String>, String>>
         if (tags.isNotEmpty() || movetext.isNotBlank()) games += tags to movetext.toString()
         tags = linkedMapOf(); movetext.setLength(0)
     }
-    for (line in text.removePrefix("﻿").lineSequence()) {
+    // Drop a UTF-8 byte-order mark (U+FEFF) at the start of the file.
+    for (line in text.removePrefix(0xFEFF.toChar().toString()).lineSequence()) {
         val tag = TAG.matchEntire(line)
         if (tag != null) {
             // A tag after movetext starts the next game.

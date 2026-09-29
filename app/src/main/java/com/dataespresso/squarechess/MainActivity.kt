@@ -1,5 +1,6 @@
 package com.dataespresso.squarechess
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Build
 import android.content.Intent
@@ -549,6 +550,10 @@ class MainActivity: ComponentActivity() {
             }
         }
     }
+    // Lint reports super.dispatchKeyEvent as restricted because androidx.core's
+    // ComponentActivity marks its override @RestrictTo; calling the platform
+    // Activity method through it is the documented way to intercept keys.
+    @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         // A captured key's UP must not reach a focused button and activate it.
         if(event.action==KeyEvent.ACTION_UP && consumedKeys.remove(event.keyCode)) return true
@@ -557,7 +562,7 @@ class MainActivity: ComponentActivity() {
         if(gameVisible && !modalVisible && !event.isCtrlPressed && !event.isMetaPressed) {
             if(event.action==KeyEvent.ACTION_DOWN && event.keyCode in listOf(KeyEvent.KEYCODE_TAB,
                     KeyEvent.KEYCODE_DPAD_UP,KeyEvent.KEYCODE_DPAD_DOWN,KeyEvent.KEYCODE_DPAD_LEFT,
-                    KeyEvent.KEYCODE_DPAD_RIGHT,KeyEvent.KEYCODE_ESCAPE,KeyEvent.KEYCODE_BACK)) blockedNotation=false
+                    KeyEvent.KEYCODE_DPAD_RIGHT,KeyEvent.KEYCODE_ESCAPE)) blockedNotation=false
             if(reviewing || !vm.state.value.canEnterMove()) {
                 val characters=if(event.action==KeyEvent.ACTION_MULTIPLE) event.characters.orEmpty()
                     else if(event.action==KeyEvent.ACTION_DOWN) event.unicodeChar.toChar().toString() else ""
@@ -584,7 +589,9 @@ class MainActivity: ComponentActivity() {
             when(event.keyCode) {
                 KeyEvent.KEYCODE_ENTER,KeyEvent.KEYCODE_NUMPAD_ENTER -> { if(draft.text.isNotBlank()) {submitDraft();return consumeGameKey(event)} }
                 KeyEvent.KEYCODE_DEL -> if(draft.text.isNotEmpty()) { draft=draft.backspace(); return consumeGameKey(event) }
-                KeyEvent.KEYCODE_ESCAPE,KeyEvent.KEYCODE_BACK -> if(draft.text.isNotEmpty()) {draft=NotationDraft();return consumeGameKey(event)}
+                // Back is handled by BackHandler: with predictive back (target SDK 36) the
+                // system no longer delivers KEYCODE_BACK here.
+                KeyEvent.KEYCODE_ESCAPE -> if(draft.text.isNotEmpty()) {draft=NotationDraft();return consumeGameKey(event)}
                 else -> { val c=event.unicodeChar.toChar(); if(c.isLetterOrDigit() || c in "-+#=") {
                     draft=draft.type(c.toString(),vm.state.value.positionKey())
                     return consumeGameKey(event)
@@ -837,7 +844,7 @@ internal fun historyDate(millis: Long): String =
                 val recent=last.startsWith(square.name.lowercase()) || last.drop(2).startsWith(square.name.lowercase())
                 val check=piece!=Piece.NONE && piece.pieceType.name=="KING" && piece.pieceSide==s.position.board.sideToMove && s.position.board.isKingAttacked
                 val color=when { selected==square->Color(0xFFC8B56E);check->Color(0xFFBF7669);recent->Color(0xFFA7AC78);(rank+file)%2==1->lightSquare;else->darkSquare }
-                BoxWithConstraints(Modifier.weight(1f).fillMaxHeight().background(color).semantics { contentDescription="${square.name.lowercase()}, ${if(piece==Piece.NONE) "empty" else piece.name.lowercase().replace('_',' ')}${if(targets.isNotEmpty()) ", legal destination" else ""}${if(check) ", check" else ""}" }.clickable(enabled=canInteract,role=Role.Button) {
+                Box(Modifier.weight(1f).fillMaxHeight().background(color).semantics { contentDescription="${square.name.lowercase()}, ${if(piece==Piece.NONE) "empty" else piece.name.lowercase().replace('_',' ')}${if(targets.isNotEmpty()) ", legal destination" else ""}${if(check) ", check" else ""}" }.clickable(enabled=canInteract,role=Role.Button) {
                     if(cancelDraft()) selected=null
                     else if(targets.size>1) promotion=targets.map{it.toString()}
                     else if(targets.size==1) {onMove(targets[0].toString());selected=null}
