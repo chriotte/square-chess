@@ -62,11 +62,13 @@ jobs:
       - name: Compare every file except the signature
         run: |
           python3 - <<'EOF'
-          import glob, hashlib, sys, zipfile
+          import glob, hashlib, re, sys, zipfile
+          # Only v1 (JAR) signature files are skipped; APK v2/v3 signatures are outside the entries.
+          SIGNATURE = re.compile(r"^META-INF/(MANIFEST\.MF|[^/]+\.(SF|RSA|DSA|EC))$")
           def entries(path):
               with zipfile.ZipFile(path) as z:
                   return {n: hashlib.sha256(z.read(n)).hexdigest() for n in z.namelist()
-                          if not n.startswith("META-INF/")}
+                          if not SIGNATURE.match(n)}
           published = entries(glob.glob("published/*.apk")[0])
           rebuilt = entries("build/com.dataespresso.squarechess/app/build/outputs/apk/release/app-release-unsigned.apk")
           differ = sorted(n for n in published.keys() | rebuilt.keys() if published.get(n) != rebuilt.get(n))
