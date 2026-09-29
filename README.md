@@ -15,7 +15,7 @@ Build options:
 
 - `-Pdev=true` builds the separate test app `com.dataespresso.squarechess.dev` ("Square Chess Dev"). Run the emulator test suite only against this app: fixture tests clear saved games, and they refuse to run in the real app.
 - `bundleRelease` signs with the Play upload key when `~/SquareChessSigning/keystore.properties` exists (override with `-PsigningProperties=<path>` or `SQUARECHESS_SIGNING`). The key and its password are never stored in this repository; keep a second copy in a password manager.
-- `-Pengine=stockfish` builds the preserved Stockfish 19 baseline (`com.dataespresso.squarechess.stockfishbaseline`). It needs `./scripts/fetch-network.ps1` and the verified NNUE asset in `app/src/stockfish/assets`.
+- The earlier Stockfish 19 build was removed; findings and the restore tag are in `docs/engine/stockfish19-baseline.md`.
 
 Release builds target ARM64/API 29+. Debug builds also include x86_64 for Android emulators. Runtime has no INTERNET permission. The build needs Internet access for tool/dependency/network downloads.
 
@@ -27,7 +27,7 @@ Install the Android Emulator and the `Google APIs x86_64` system image for API 3
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-emulators.ps1
 ```
 
-Add `-InstallMissingComponents` to install the Android Emulator and API 36 image using the SDK Manager instead of installing them in Android Studio. It creates five AVDs with screen sizes and host-keyboard input approximating the devices below. Existing AVDs with the same names are left unchanged. A fold's inner and outer screens are separate AVDs; fold/unfold transitions and manufacturer-specific firmware are not emulated.
+Add `-InstallMissingComponents` to install the Android Emulator and API 36 image using the SDK Manager instead of installing them in Android Studio. It creates six AVDs with screen sizes and host-keyboard input approximating the devices below. Existing AVDs with the same names are left unchanged. A fold's inner and outer screens are separate AVDs; fold/unfold transitions and manufacturer-specific firmware are not emulated.
 
 | AVD | Display resolution | Density | Hardware keyboard |
 | --- | ---: | ---: | --- |
@@ -36,6 +36,9 @@ Add `-InstallMissingComponents` to install the Android Emulator and API 36 image
 | `SquareChess_Clicks_Communicator` | 1080 x 1200 | 400 dpi | Yes |
 | `SquareChess_Titan_2` | 1440 x 1440 | 480 dpi | Yes |
 | `SquareChess_Titan_2_Elite` | 1080 x 1200 | 300 dpi | Yes |
+| `SquareChess_Light_Phone_III` | 1080 x 1240 | 420 dpi | No |
+
+The Light Phone III profile matches its 3.92-inch 1080 x 1240 screen (about 419 ppi). It is plain Android, not LightOS, so it tests layout and touch size only.
 
 Launch one from Android Studio's Device Manager or with the `emulator.exe` path printed by the setup script. If the SDK's emulator directory is on `PATH`, for example:
 

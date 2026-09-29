@@ -1,4 +1,5 @@
 import java.util.Properties
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 
 plugins {
     id("com.android.application")
@@ -7,16 +8,10 @@ plugins {
     id("org.jetbrains.kotlin.kapt")
 }
 kapt { arguments { arg("room.schemaLocation", "$projectDir/schemas") } }
-// Fairy-Stockfish is the production engine. -Pengine=stockfish builds the preserved
-// Stockfish 19 baseline; -Pdev=true builds the separate test app that fixture tests require.
-val fairyEngine = providers.gradleProperty("engine").orNull != "stockfish"
+// -Pdev=true builds the separate test app that fixture tests require.
 val devBuild = providers.gradleProperty("dev").orNull == "true"
-// Older checkouts kept the 98 MB Stockfish network in main assets, where it would be
-// packaged into every Fairy APK. It belongs in src/stockfish/assets.
-file("src/main/assets").listFiles { f -> f.name.endsWith(".nnue") }?.firstOrNull()?.let {
-    throw GradleException("Move ${it.name} from app/src/main/assets to app/src/stockfish/assets")
-}
-// Play upload key: kept outside the repository. Override the location with
+// Release signing key, kept outside the repository. The default is the Play upload
+// key; the standalone (GitHub/F-Droid) release passes its own properties file with
 // -PsigningProperties=<path> or the SQUARECHESS_SIGNING environment variable.
 val signingFile = file(providers.gradleProperty("signingProperties").orNull
     ?: System.getenv("SQUARECHESS_SIGNING")
@@ -25,7 +20,7 @@ val signing = Properties().apply { if (signingFile.exists()) signingFile.inputSt
 android {
     namespace = "com.dataespresso.squarechess"
     signingConfigs {
-        if (signingFile.exists()) create("upload") {
+        if (signingFile.exists()) create("release") {
             storeFile = file(signing.getProperty("storeFile"))
             storePassword = signing.getProperty("storePassword")
             keyAlias = signing.getProperty("keyAlias")
@@ -36,18 +31,14 @@ android {
     ndkVersion = "28.2.13676358"
     defaultConfig {
         applicationId = "com.dataespresso.squarechess"
-        applicationIdSuffix = when { !fairyEngine -> ".stockfishbaseline"; devBuild -> ".dev"; else -> null }
-        manifestPlaceholders["appLabel"] = when { !fairyEngine -> "Square Chess SF Baseline"; devBuild -> "Square Chess Dev"; else -> "Square Chess" }
-        buildConfigField("boolean", "FAIRY_ENGINE", fairyEngine.toString())
+        applicationIdSuffix = if (devBuild) ".dev" else null
+        manifestPlaceholders["appLabel"] = if (devBuild) "Square Chess Dev" else "Square Chess"
         minSdk = 29
         targetSdk = 36
         versionCode = 4
         versionName = "1.0.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        externalNativeBuild { cmake {
-            cppFlags += "-std=c++17"
-            arguments += "-DFAIRY_ENGINE=${if(fairyEngine) "ON" else "OFF"}"
-        } }
+        externalNativeBuild { cmake { cppFlags += "-std=c++17" } }
     }
     buildTypes {
         getByName("debug") {
@@ -56,11 +47,10 @@ android {
         getByName("release") {
             // Symbol tables let Play Console show readable native crash reports.
             ndk { abiFilters += "arm64-v8a"; debugSymbolLevel = "SYMBOL_TABLE" }
-            signingConfig = signingConfigs.findByName("upload")
+            signingConfig = signingConfigs.findByName("release")
         }
     }
     buildFeatures { compose = true; buildConfig = true }
-    if(!fairyEngine) sourceSets.getByName("main").assets.srcDir("src/stockfish/assets")
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
     externalNativeBuild { cmake { path = file("../native/CMakeLists.txt"); version = "3.22.1" } }
@@ -79,8 +69,37 @@ dependencies {
     implementation("androidx.room:room-runtime:2.7.2")
     implementation("androidx.room:room-ktx:2.7.2")
     kapt("androidx.room:room-compiler:2.7.2")
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test:runner:1.6.2")
 }
+
+// Release policy: Square Chess must work without Google Play Services and must not
+// gain network or other permissions by accident (for example through a new library).
+val forbiddenDependencyGroups = listOf(
+    "com.google.android.gms", "com.google.firebase", "com.android.billingclient",
+    "com.google.android.play", "com.crashlytics"
+)
+val allowedPermissions = setOf(
+    // Added by AndroidX core for its own receivers; it grants nothing to other apps.
+    "com.dataespresso.squarechess.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+)
+tasks.register("verifyReleasePolicy") {
+    group = "verification"
+    description = "Fails on proprietary Google runtime libraries or unexpected release permissions."
+    dependsOn("processReleaseManifest")
+    val runtime = configurations.named("releaseRuntimeClasspath")
+    val manifest = layout.buildDirectory.file("intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml")
+    doLast {
+        val modules = runtime.get().incoming.resolutionResult.allComponents
+            .mapNotNull { (it.id as? ModuleComponentIdentifier)?.let { id -> "${id.group}:${id.module}:${id.version}" } }
+        val forbidden = modules.filter { module -> forbiddenDependencyGroups.any { module.startsWith("$it:") || module.startsWith("$it.") } }
+        if (forbidden.isNotEmpty()) throw GradleException("Forbidden proprietary dependencies:\n" + forbidden.joinToString("\n"))
+        val permissions = Regex("<uses-permission[^>]*android:name=\"([^\"]+)\"")
+            .findAll(manifest.get().asFile.readText()).map { it.groupValues[1] }.toSet()
+        val unexpected = permissions - allowedPermissions
+        if (unexpected.isNotEmpty()) throw GradleException("Unexpected permissions in the release manifest:\n" + unexpected.joinToString("\n"))
+        println("Release policy OK: ${modules.size} runtime libraries, none proprietary; permissions: $permissions")
+    }
+}
+tasks.named("check") { dependsOn("verifyReleasePolicy") }

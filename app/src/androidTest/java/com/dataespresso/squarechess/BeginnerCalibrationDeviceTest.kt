@@ -20,7 +20,7 @@ class BeginnerCalibrationDeviceTest {
         val args=InstrumentationRegistry.getArguments()
         assumeTrue(args.getString("beginnerCalibration")=="true")
         val context=InstrumentationRegistry.getInstrumentation().targetContext
-        check(BuildConfig.FAIRY_ENGINE && isIsolatedTestPackage(context.packageName))
+        check(isIsolatedTestPackage(context.packageName))
         val folder=File(context.filesDir,"beginner-calibration").apply {mkdirs()}
         val engine=StockfishController(context)
         val wanted=args.getString("levels")?.split(",")?.mapNotNull { it.trim().toIntOrNull() }

@@ -47,6 +47,17 @@ $deviceProfiles = @(
         Height = 1200
         Density = 300
         Keyboard = $true
+    },
+    [pscustomobject]@{
+        # Light Phone III: 3.92 in AMOLED, 1080 x 1240, about 419 ppi (420 is the
+        # nearest Android density), so about 411 x 472 dp. No keyboard. This is a
+        # stock Android profile; it does not emulate LightOS or its SDK.
+        Name = 'SquareChess_Light_Phone_III'
+        DisplayName = 'Square Chess - Light Phone III'
+        Width = 1080
+        Height = 1240
+        Density = 420
+        Keyboard = $false
     }
 )
 
@@ -166,7 +177,9 @@ foreach ($avdProfile in $selectedProfiles) {
     $previousErrorPreference = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        $createOutput = 'no' | & $avdManager create avd -n "$($avdProfile.Name)" -k $systemImage 2>&1
+        # cmd supplies the "no": a PowerShell pipe can add a UTF-8 byte-order mark,
+        # and avdmanager then rejects the reply.
+        $createOutput = cmd /c "echo no| `"$avdManager`" create avd -n `"$($avdProfile.Name)`" -k `"$systemImage`"" 2>&1
         $createExitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousErrorPreference

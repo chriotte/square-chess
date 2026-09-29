@@ -14,7 +14,7 @@ class FairyEngineDeviceTest {
     private val context get()=InstrumentationRegistry.getInstrumentation().targetContext
     private fun checkIsolation()=check(isIsolatedTestPackage(context.packageName))
     @Test fun actualOptionsNegativeSkillsLegalMovesAndRestart() = runBlocking {
-        assumeTrue(BuildConfig.FAIRY_ENGINE);checkIsolation()
+        checkIsolation()
         val engine=StockfishController(context)
         try {
             repeat(2) {
@@ -32,7 +32,7 @@ class FairyEngineDeviceTest {
         } finally {engine.close()}
     }
     @Test fun cancellationNewSearchAndTerminalPositions() = runBlocking {
-        assumeTrue(BuildConfig.FAIRY_ENGINE);checkIsolation()
+        checkIsolation()
         val engine=StockfishController(context)
         try {
             engine.start()
@@ -105,13 +105,12 @@ class FairyEngineDeviceTest {
         try {
             File(folder,"results.csv").bufferedWriter().use {out ->
                 out.appendLine("engine,profile,skill,multipv,budget_ms,position,fen,repeat,move,depth,nodes,elapsed_ms,pss_kb,error")
-                val profiles=if(BuildConfig.FAIRY_ENGINE) ENGINE_LEVELS.map { it.level } else listOf(2)
-                for(profile in profiles) for((name,fen) in positions) repeat(6) {repeat ->
+                for(profile in ENGINE_LEVELS.map { it.level }) for((name,fen) in positions) repeat(6) {repeat ->
                     engine.newGame()
                     val began=SystemClock.elapsedRealtime()
-                    val budget=if(BuildConfig.FAIRY_ENGINE) ENGINE_MOVE_TIME_MS else 100+profile*80
+                    val budget=ENGINE_MOVE_TIME_MS
                     val options=engineLevel(profile)
-                    val move=withContext(Dispatchers.IO) {if(BuildConfig.FAIRY_ENGINE) NativeEngine.search(fen,"",options.skill,options.multiPv,budget) else NativeEngine.search(fen,"",profile,1,budget)}
+                    val move=withContext(Dispatchers.IO) {NativeEngine.search(fen,"",options.skill,options.multiPv,budget)}
                     val elapsed=SystemClock.elapsedRealtime()-began
                     val position=ChessPosition(fen)
                     assertNotNull("Illegal engine move $move in $name",position.resolve(move));legal++
@@ -119,9 +118,8 @@ class FairyEngineDeviceTest {
                     val depth=Regex("\\bdepth (\\d+)").findAll(info).map {it.groupValues[1].toInt()}.maxOrNull() ?: 0
                     val nodes=Regex("\\bnodes (\\d+)").findAll(info).map {it.groupValues[1].toLong()}.maxOrNull() ?: 0
                     val pss=Debug.getPss();peakPss=maxOf(peakPss,pss)
-                    val skill=if(BuildConfig.FAIRY_ENGINE) options.skill else 2
                     val label="Level$profile"
-                    out.appendLine("${if(BuildConfig.FAIRY_ENGINE) "Fairy" else "Stockfish19"},$label,$skill,${if(BuildConfig.FAIRY_ENGINE) options.multiPv else 1},$budget,$name,\"$fen\",$repeat,$move,$depth,$nodes,$elapsed,$pss,")
+                    out.appendLine("Fairy,$label,${options.skill},${options.multiPv},$budget,$name,\"$fen\",$repeat,$move,$depth,$nodes,$elapsed,$pss,")
                     out.flush()
                     File(folder,"trace-$label-$name-$repeat.txt").writeText(info)
                 }

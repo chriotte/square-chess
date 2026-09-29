@@ -5,10 +5,9 @@ import androidx.test.platform.app.InstrumentationRegistry
 
 /**
  * Fixture tests clear or overwrite saved games. They may only run in the separate
- * dev build (-Pdev=true) or the Stockfish baseline, never in the user's app.
+ * dev build (-Pdev=true), never in the user's app.
  */
-internal fun isIsolatedTestPackage(name: String) =
-    name=="com.dataespresso.squarechess.dev" || name=="com.dataespresso.squarechess.stockfishbaseline"
+internal fun isIsolatedTestPackage(name: String) = name=="com.dataespresso.squarechess.dev"
 
 internal fun dismissImmersiveModePrompt() {
     val automation = InstrumentationRegistry.getInstrumentation().uiAutomation

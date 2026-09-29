@@ -373,7 +373,7 @@ class MainActivity: ComponentActivity() {
                     Column(Modifier.verticalScroll(rememberScrollState())) {
                         if(selectedMode==GameMode.COMPUTER) {
                             val shownLevel=level.coerceIn(1,ENGINE_LEVELS.size)
-                            Text("${difficultyLabel(shownLevel)} · ${if(BuildConfig.FAIRY_ENGINE) engineLevel(shownLevel).description else "Experimental strength"}")
+                            Text("${difficultyLabel(shownLevel)} · ${engineLevel(shownLevel).description}")
                             Slider(value=shownLevel.toFloat(),onValueChange={level=it.roundToInt()},valueRange=1f..10f,steps=8,
                                 modifier=Modifier.semantics { contentDescription="Difficulty" })
                             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {

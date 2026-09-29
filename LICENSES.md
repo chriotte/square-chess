@@ -8,15 +8,7 @@ Square Chess original code: GNU GPL v3 or later; full licence in LICENSE.
 - Local changes and evidence: native/fairy/PROVENANCE.md. native/fairy_bridge.cpp is our GPL JNI wrapper.
 - GPL-3.0-or-later; native/fairy/Copying.txt and AUTHORS. No NNUE network is bundled.
 
-## Stockfish 19 (baseline build only)
-
-- Official repository: https://github.com/official-stockfish/Stockfish
-- Release: sf_19, commit `edb0d9db6731067ec50ce619ff372b463bc4dd5d`.
-- Source submodule: native/stockfish. No source modifications; native/bridge.cpp is our GPL wrapper.
-- Licence and authors: native/stockfish/Copying.txt and AUTHORS.
-- Network: `nn-1a298aa575a0.nnue`, official distribution at https://tests.stockfishchess.org/api/nn/nn-1a298aa575a0.nnue
-- SHA-256: `1a298aa575a085434d29027978dc36867fe9c5bcea9376654b7a8eba1e52dfc2`; 98,511,183 bytes.
-- Fetch script verifies the network. Public releases must provide network provenance, matching source and reproducible build instructions, including wrapper and exact toolchain, to recipients. Complete distribution audit remains pending.
+Stockfish 19 is no longer part of the source tree or any build. Its former provenance (release, commit, NNUE network and checksum) is recorded in docs/engine/stockfish19-baseline.md.
 
 ## Chesslib
 

@@ -122,7 +122,7 @@ import kotlinx.coroutines.withContext
                         HelpAction(R.string.licence_art) {page="art"}
                     }
                     "notices","gpl","chesslib","art" -> {
-                        val path=when(page) { "gpl"->"licences/Stockfish-GPLv3.txt"; "chesslib"->"licences/Chesslib-Apache-2.0.txt"; "art"->"pieces/LICENSE.txt"; else->"licences/NOTICES.txt" }
+                        val path=when(page) { "gpl"->"licences/GPLv3.txt"; "chesslib"->"licences/Chesslib-Apache-2.0.txt"; "art"->"pieces/LICENSE.txt"; else->"licences/NOTICES.txt" }
                         val contents by produceState("",path) {
                             value=withContext(Dispatchers.IO) { context.assets.open(path).bufferedReader().use { it.readText() } }
                         }
