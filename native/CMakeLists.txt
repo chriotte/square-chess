@@ -16,5 +16,12 @@ else()
     message(FATAL_ERROR "Unsupported Android ABI: ${ANDROID_ABI}")
 endif()
 target_compile_options(squarefish PRIVATE -O3 -fexceptions -frtti)
+# Reproducible builds (F-Droid): the unstripped library holds file paths, and the
+# linker's build ID is a hash of it. Map the source, build and NDK folders to fixed
+# names so the library, and its build ID, are the same in any checkout folder.
+target_compile_options(squarefish PRIVATE
+    "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=/src"
+    "-ffile-prefix-map=${CMAKE_BINARY_DIR}=/build"
+    "-ffile-prefix-map=${ANDROID_NDK}=/ndk")
 target_link_options(squarefish PRIVATE "-Wl,-z,max-page-size=16384")
 target_link_libraries(squarefish android log)
