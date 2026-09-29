@@ -5,9 +5,9 @@ and muted green palette. This identity is separate from the third-party
 Chessnut pieces used on the playable board.
 
 - `square-chess-icon.svg`: editable source, 108-unit adaptive-icon canvas.
-- `play-store-icon.png`: 512 x 512 opaque RGBA export, with no baked-in
-  rounded corners or outer shadow. Prepared as a store artwork asset;
-  it has not been submitted to Google Play.
+- Store icon (512 x 512, opaque, no baked-in rounded corners or shadow),
+  feature graphic and screenshots: `fastlane/metadata/android/en-US/images/`,
+  used by Google Play and F-Droid.
 - Android foreground/background layers and a separate monochrome rook are
   bundled for adaptive and themed icons. Legacy PNG densities are included.
 - The compact vector mark is also used beside the landing-screen title.

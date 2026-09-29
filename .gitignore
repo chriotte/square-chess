@@ -5,8 +5,11 @@
 local.properties
 *.jks
 *.keystore
+*.p12
+# Signing and Play API credentials live in ~/SquareChessSigning, never here.
+keystore.properties
+standalone.properties
+*service-account*.json
 *.nnue
 *.hprof
 
-# Generated review installers are archived outside the source checkout.
-test-artifacts/**/*.apk

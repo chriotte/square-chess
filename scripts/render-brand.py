@@ -55,9 +55,10 @@ for density, pixels in [("mdpi", 48), ("hdpi", 72), ("xhdpi", 96), ("xxhdpi", 14
     dest = res / f"mipmap-{density}/ic_launcher.png"
     dest.parent.mkdir(parents=True, exist_ok=True)
     cairosvg.svg2png(bytestring=compact_svg, write_to=str(dest), output_width=pixels, output_height=pixels)
-cairosvg.svg2png(bytestring=compact_svg, write_to=str(root / "design/play-store-icon.png"), output_width=512, output_height=512)
+# The store icon lives with the Play/F-Droid metadata.
+store_icon = root / "fastlane/metadata/android/en-US/images/icon.png"
+cairosvg.svg2png(bytestring=compact_svg, write_to=str(store_icon), output_width=512, output_height=512)
 # CairoSVG can optimize fully opaque exports to RGB; keep a 32-bit RGBA
 # store asset while retaining an entirely opaque background.
-store_icon = root / "design/play-store-icon.png"
 with Image.open(store_icon) as rendered:
     rendered.convert("RGBA").save(store_icon)

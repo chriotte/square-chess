@@ -1,0 +1,87 @@
+name: Release
+
+# A tag such as v1.0.4 builds the standalone APK, signs it with the standalone
+# release key and creates a DRAFT GitHub release. The owner reviews and publishes
+# the draft; nothing is published automatically.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    # Configure required reviewers for this environment in the repository settings.
+    environment: production-release
+    env:
+      # Certificate SHA-256 of the standalone release key (docs/releases/signing.md).
+      EXPECTED_CERT: e6302c95f0da65d8f27c80c82d4b82c979af75bbc1ea383547cd079ec178cf44
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tag must match versionName
+        run: |
+          VERSION=$(grep -Po 'versionName = "\K[^"]+' app/build.gradle.kts)
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match versionName $VERSION"; exit 1
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses > /dev/null
+          sdkmanager --install "platforms;android-36" "build-tools;36.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Tests and release policy
+        run: ./gradlew --no-daemon testReleaseUnitTest verifyReleasePolicy
+
+      - name: Prepare signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then echo "Signing secrets are not configured"; exit 1; fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          printf 'storeFile=%s\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+            "$RUNNER_TEMP/release.jks" "$STORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD" > "$RUNNER_TEMP/signing.properties"
+
+      - name: Build signed APK
+        run: ./gradlew --no-daemon "-PsigningProperties=$RUNNER_TEMP/signing.properties" assembleRelease
+
+      - name: Remove signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks" "$RUNNER_TEMP/signing.properties"
+
+      - name: Verify signature and prepare files
+        run: |
+          APK=app/build/outputs/apk/release/app-release.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$APK" | tee certs.txt
+          grep -qi "certificate SHA-256 digest: $EXPECTED_CERT" certs.txt || { echo "APK is not signed with the standalone release key"; exit 1; }
+          mkdir dist
+          cp "$APK" "dist/Square-Chess-$GITHUB_REF_NAME.apk"
+          (cd dist && sha256sum *.apk > SHA256SUMS)
+          cat dist/SHA256SUMS
+
+      - name: Create draft GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CODE=$(grep -Po 'versionCode = \K\d+' app/build.gradle.kts)
+          NOTES=fastlane/metadata/android/en-US/changelogs/$CODE.txt
+          [ -f "$NOTES" ] || { echo "Missing $NOTES"; exit 1; }
+          { cat "$NOTES"; echo; echo "SHA-256:"; echo '```'; cat dist/SHA256SUMS; echo '```'; } > notes.md
+          gh release create "$GITHUB_REF_NAME" dist/* --draft \
+            --title "Square Chess ${GITHUB_REF_NAME#v}" --notes-file notes.md

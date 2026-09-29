@@ -1,0 +1,1 @@
+First release of Square Chess: offline chess made for square screens and keyboard phones, with ten computer levels, over-the-board play, game recording, a chess clock and PGN export.

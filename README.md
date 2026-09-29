@@ -1,64 +1,58 @@
 # Square Chess
 
-An offline native Android chess app for compact displays and physical keyboards.
+Offline chess for square and near-square screens, compact phones and phones with a physical keyboard.
 
-**Development checkpoint, not a release candidate.** PROJECT.md defines V1; IMPLEMENTATION_PLAN.md and TEST_PLAN.md track the remaining gates.
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" alt="A game against the computer, with legal-move markers" width="320">
 
-## Build
+## Features
 
-1. Clone with `git clone --recurse-submodules https://github.com/chriotte/square-chess.git`.
-2. Install JDK 17, Android SDK platform 36/build-tools 36.0.0, NDK 28.2.13676358 and CMake 3.22.1. Set `JAVA_HOME` and `ANDROID_HOME` or `sdk.dir` in untracked `local.properties`.
-3. Run `./gradlew :app:assembleDebug :app:testDebugUnitTest`. The engine is Fairy-Stockfish with classical evaluation, so no network file is needed.
-4. Install `app/build/outputs/apk/debug/app-debug.apk` with ADB.
+- **Play the computer** at ten levels, from a true beginner to full-strength Fairy-Stockfish. The engine runs on your phone.
+- **Over the board:** two players on one phone, with an optional chess clock.
+- **Record** games played on a real board, then review them move by move.
+- **Chess clock** for over-the-board games, with increment and delay.
+- **Keyboard entry:** type `e4`, `Nf3` or `e2e4` on a physical keyboard, or tap and drag pieces.
+- **Review, undo, resign and draw claims.**
+- **PGN export and import** of your whole game library, for Lichess, ChessBase and other chess software.
+- Board colours, move sounds, vibration, legal-move markers and coordinates.
 
-Build options:
+## Why Square Chess?
 
-- `-Pdev=true` builds the separate test app `com.dataespresso.squarechess.dev` ("Square Chess Dev"). Run the emulator test suite only against this app: fixture tests clear saved games, and they refuse to run in the real app.
-- `bundleRelease` signs with the Play upload key when `~/SquareChessSigning/keystore.properties` exists (override with `-PsigningProperties=<path>` or `SQUARECHESS_SIGNING`). The key and its password are never stored in this repository; keep a second copy in a password manager.
-- The earlier Stockfish 19 build was removed; findings and the restore tag are in `docs/engine/stockfish19-baseline.md`.
+Most chess apps are designed for tall phones and leave a small board on square screens. Square Chess sizes the board first and fits everything else around it. Optional information appears only in space the board cannot use.
 
-Release builds target ARM64/API 29+. Debug builds also include x86_64 for Android emulators. Runtime has no INTERNET permission. The build needs Internet access for tool/dependency/network downloads.
+## Privacy
 
-## Emulators
+Square Chess works fully offline and does not require Google Play Services or a Google account. It has **no Internet permission**, no account, no advertising and no analytics. Your games and settings stay on your device. See the [privacy policy](PRIVACY_POLICY.md).
 
-Install the Android Emulator and the `Google APIs x86_64` system image for API 36 in Android Studio's SDK Manager, then run this PowerShell script from the project root:
+## Installation
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-emulators.ps1
+- **Google Play:** [com.dataespresso.squarechess](https://play.google.com/store/apps/details?id=com.dataespresso.squarechess)
+- **GitHub Releases:** signed APK with SHA-256 checksum (planned)
+- **F-Droid:** planned
+
+Play and GitHub/F-Droid builds are signed with different keys, so one cannot update the other. To move between them, export your games (Game history → Export), install the other build, and import the file (Game history → Import).
+
+## Supported devices
+
+Android 10 (API 29) or newer, ARM64. Designed on the Unihertz Titan 2 Elite and tested with emulator profiles for other square and keyboard phones (`docs/testing/test-plan.md`). Works on ordinary phones too.
+
+## Building from source
+
+JDK 17, the Android SDK (platform 36), NDK 28.2.13676358 and CMake 3.22.1:
+
+```sh
+./gradlew check assembleDebug
 ```
 
-Add `-InstallMissingComponents` to install the Android Emulator and API 36 image using the SDK Manager instead of installing them in Android Studio. It creates six AVDs with screen sizes and host-keyboard input approximating the devices below. Existing AVDs with the same names are left unchanged. A fold's inner and outer screens are separate AVDs; fold/unfold transitions and manufacturer-specific firmware are not emulated.
+Details: [docs/development/building.md](docs/development/building.md). Architecture: [docs/architecture/overview.md](docs/architecture/overview.md).
 
-| AVD | Display resolution | Density | Hardware keyboard |
-| --- | ---: | ---: | --- |
-| `SquareChess_Fold_Inner` | 1840 x 2208 | 420 dpi | No |
-| `SquareChess_Fold_Outer` | 1080 x 2092 | 420 dpi | No |
-| `SquareChess_Clicks_Communicator` | 1080 x 1200 | 400 dpi | Yes |
-| `SquareChess_Titan_2` | 1440 x 1440 | 480 dpi | Yes |
-| `SquareChess_Titan_2_Elite` | 1080 x 1200 | 300 dpi | Yes |
-| `SquareChess_Light_Phone_III` | 1080 x 1240 | 420 dpi | No |
+## Chess engine
 
-The Light Phone III profile matches its 3.92-inch 1080 x 1240 screen (about 419 ppi). It is plain Android, not LightOS, so it tests layout and touch size only.
+Square Chess uses [Fairy-Stockfish](https://github.com/fairy-stockfish/Fairy-Stockfish) with classical evaluation, from the Lichess mobile app's pinned [multistockfish](https://github.com/lichess-org/dart-multistockfish) package, compiled from source (`native/fairy/`). Difficulty levels set only the engine's own Skill Level and MultiPV options. How the levels were chosen: [docs/engine/](docs/engine/).
 
-Launch one from Android Studio's Device Manager or with the `emulator.exe` path printed by the setup script. If the SDK's emulator directory is on `PATH`, for example:
+## Contributing
 
-```powershell
-emulator -avd SquareChess_Clicks_Communicator
-.\gradlew.bat :app:installDebug
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 
-The debug variant includes x86_64 and ARM64; release remains ARM64-only. On a running keyboard AVD, use the desktop keyboard to exercise physical-key input. These profiles reproduce approximate display dimensions/density and keyboard availability, not exact device cutouts, fold posture behavior, keyboard firmware, or vendor-specific software.
+## Licence
 
-## Controls
-
-Tap source and destination, or drag a piece; choose promotion when prompted. While reviewing, swipe the board to step through moves. On a hardware keyboard, enter UCI (`e2e4`, `e7e8n`) or SAN (`Nf3`) then Enter. Backspace edits, Escape/Back cancels entry, F flips an otherwise empty move entry. Menu exposes history, takeback, result and home. All confirmed moves are stored locally in Room.
-
-The home screen also offers a **Chess clock** for games played on a physical board. Choose a preset or set base time, increment and delay; select which side starts, then tap the active side after each move. Pause, resume, reset and rotate the display as needed. It does not create or update game records.
-
-## Status
-
-The compact board, three game modes, persistence, Fairy-Stockfish JNI integration with ten difficulty levels, integrated game clocks, the standalone over-the-board clock, single-game PGN sharing in all modes, optional position import (.fen), and current-position FEN sharing are implemented for feasibility testing. Levels 1-10 set the engine's own Skill Level and MultiPV options; they are not Elo ratings (see docs/fairy-experiment). Game history supports delete, a full PGN export with filters, and PGN import (duplicates are skipped). Settings cover sounds, vibration, legal-move markers, coordinates and board colours. Clock lifecycle, flagfall, delay, PGN formatting/sharing, and custom-FEN persistence have automated device coverage; richer OTB metadata/correction, manual FEN picker verification, post-game analysis, expanded layout, TalkBack/device matrix and release compliance remain required work. See USABILITY_REVIEW_WRAP_UP.md for current verification and limitations.
-
-## Source and licences
-
-GPL-3.0-or-later. Fairy-Stockfish is vendored under native/fairy (see native/fairy/PROVENANCE.md); Stockfish 19 stays pinned as a source submodule for the baseline build. Chesslib source is vendored under Apache-2.0. See LICENSES.md. This private development repository is not yet a public corresponding-source distribution endpoint.
+Square Chess is free software: [GNU GPL v3.0 or later](LICENSE). Third-party components and their licences: [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).

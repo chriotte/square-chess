@@ -32,11 +32,11 @@ Square Chess shipped its first versions with **Fairy-Stockfish** (classical eval
 | Engine start (network already extracted) | 575 ms | 197 ms |
 | Mean / p95 reply, level 2 vs Fairy 500 ms budget | 212 / 264 ms | 408 / 505 ms |
 
-Raw data: `docs/fairy-experiment/DIFFICULTY_TEST_RESULTS.csv`, `ENGINE_SIZE_COMPARISON.md`.
+Raw data: `docs/engine/calibration/DIFFICULTY_TEST_RESULTS.csv`, `ENGINE_SIZE_COMPARISON.md`.
 
 ## Why we switched
 
-1. **Beginner play.** Stockfish 19's lowest skill levels were still far too strong for beginners (user playtest). Fairy-Stockfish accepts negative skill levels, which give a real beginner range (see `docs/fairy-experiment/FAIRY_STOCKFISH_RECOMMENDATION.md`).
+1. **Beginner play.** Stockfish 19's lowest skill levels were still far too strong for beginners (user playtest). Fairy-Stockfish accepts negative skill levels, which give a real beginner range (see `docs/engine/calibration/FAIRY_STOCKFISH_RECOMMENDATION.md`).
 2. **Size.** The NNUE network made the app about 80 MB larger and stored a second copy in private storage.
 3. **Licensing and distribution.** No network file to document, download or verify; simpler corresponding source.
 
@@ -45,6 +45,6 @@ Raw data: `docs/fairy-experiment/DIFFICULTY_TEST_RESULTS.csv`, `ENGINE_SIZE_COMP
 - **Strength.** Stockfish 19 needs its own beginner solution: `UCI_LimitStrength` / `UCI_Elo` starts at about 1320 Elo, which is still too strong for real beginners. Negative skill levels do not exist in Stockfish 19.
 - **Network size.** Consider a smaller network (for example the "small net" that Stockfish also ships) or an on-demand download; a download needs the INTERNET permission, which the app does not have today.
 - **Do not store the network twice.** Load it from a file descriptor or embed it in the native library instead of copying the asset to private storage.
-- **Licence notices.** Restore the Stockfish section of `LICENSES.md` and the in-app notices, and document the network provenance for recipients.
+- **Licence notices.** Add Stockfish back to `THIRD_PARTY_LICENSES.md` and the in-app notices, and document the network provenance for recipients.
 - **Tests.** `FairyEngineDeviceTest` and `BeginnerCalibrationDeviceTest` call `NativeEngine.search(fen, moves, skill, multiPv, millis)`; the baseline bridge ignored `multiPv` and read `skill` as the app level.
 - **Hybrid option.** Both engines can live in one app (two native libraries, one `EngineController` per engine): Fairy for levels 1–5, Stockfish for strong levels. This costs the network size again.

@@ -1,0 +1,1 @@
+Drag-and-drop stays accurate after screen size changes. Game export works with more storage providers.
