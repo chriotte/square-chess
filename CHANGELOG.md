@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.5 — 29 September 2026
+- Reproducible build: the native engine no longer embeds the build folder paths, so two builds of the same tag are byte-identical. This lets F-Droid publish the same signed APK as GitHub Releases. No changes to the app itself.
+- F-Droid recipe (`.fdroid.yml`) and documentation (`docs/releases/fdroid.md`).
+- CI uses the runner's Android SDK and current action versions; the release workflow can rebuild an existing tag.
+
 ## 1.0.4 — 29 September 2026
 - Import games from a PGN file (Game history → Import): all games in the file, comments and variations ignored, duplicates skipped, unreadable games reported. Together with Export, this moves a game library between phones or between Play and other sources.
 - New "How to play" guide in Help & About: game types, moving pieces, keyboard moves, levels, clocks, review, draws, game history and settings.
