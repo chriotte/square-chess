@@ -13,7 +13,7 @@ ART = Path(r"~\Documents\Codex\2026-09-25\ge\outputs\square-chess\design\play-st
 ICON = Path(r"~\Documents\Codex\2026-09-25\ge\outputs\square-chess\design\play-store-icon.png")
 
 TITLE = "Square Chess"
-SHORT = "Chess made for square 1:1 screens and keyboard phones. Offline, no ads."
+SHORT = "Offline chess with ten computer levels, keyboard moves and chess clock. No ads."
 FULL = """Square Chess is built for square and near-square screens, compact phones, and devices with physical QWERTY keyboards.
 
 Most chess apps are designed around tall smartphone displays, leaving a relatively small board on compact devices. Square Chess takes the opposite approach: it gives the board as much of the screen as possible, with an interface designed specifically for 1:1, 9:10 and other compact display shapes.
