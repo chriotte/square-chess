@@ -2,7 +2,7 @@
 
 > **Status, 29 September 2026 (later the same day):** items 1–3 of section 6 are done — working notes and `test-artifacts/` removed, documentation moved to `docs/`, new README, `CONTRIBUTING.md`, `SECURITY.md`, `THIRD_PARTY_LICENSES.md`, and `fastlane/` metadata (now the single source for the Play listing). CI and release workflows are in `.github/workflows/`. The table below describes the repository as it was before that cleanup.
 
-29 September 2026, at commit `6dc2e57` (after the Stockfish 19 and DataStore removal). The repository is **private**; nothing here changes that.
+29 September 2026, after the Stockfish 19 and DataStore removal. The repository is **private**; nothing here changes that.
 
 ## 1. Repository
 

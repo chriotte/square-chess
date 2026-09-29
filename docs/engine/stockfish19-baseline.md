@@ -4,7 +4,7 @@ Square Chess shipped its first versions with **Fairy-Stockfish** (classical eval
 
 ## Restore point
 
-- Git tag **`stockfish19-baseline-last`** (commit `18f4a34`) is the last commit that builds the baseline with `-Pengine=stockfish`.
+- Git tag **`stockfish19-baseline-last`** marks the last commit that builds the baseline with `-Pengine=stockfish`.
 - Restore the files from that tag rather than rewriting them: `native/bridge.cpp`, the Stockfish branch of `native/CMakeLists.txt`, the non-Fairy branch of `Engine.kt` (`StockfishController.ensureStarted`), `scripts/fetch-network.ps1`, the `native/stockfish` submodule entry in `.gitmodules`, and the `engine` property in `app/build.gradle.kts`.
 
 ## What the baseline was
