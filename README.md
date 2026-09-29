@@ -26,7 +26,7 @@ Square Chess works fully offline and does not require Google Play Services or a 
 ## Installation
 
 - **Google Play:** [Square Chess on Google Play](https://play.google.com/store/apps/details?id=com.dataespresso.squarechess)
-- **GitHub Releases:** a signed APK with its SHA-256 checksum for every version, built automatically from the release tag
+- **APK:** [download the latest release](https://github.com/chriotte/square-chess/releases/latest) (signed APK with its SHA-256 checksum)
 - **F-Droid:** planned
 
 Play and GitHub/F-Droid builds are signed with different keys, so one cannot update the other. To move between them, export your games (Game history → Export), install the other build, and import the file (Game history → Import).
