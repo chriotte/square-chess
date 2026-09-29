@@ -1,62 +1,119 @@
 # Square Chess
 
-Offline chess for square and near-square screens, compact phones and phones with a physical keyboard.
+**Chess built for square screens, compact phones and physical keyboards.**
+
+Square Chess is an offline Android chess app designed to give the board as much of the screen as possible, especially on square and near-square devices.
+
+On phones with a physical QWERTY keyboard, you can also play by typing moves such as `e2e4`.
 
 <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" alt="A game against the computer, with legal-move markers" width="320">
 
 ## Features
 
-- **Play the computer** at ten levels, from a true beginner to full-strength Fairy-Stockfish. The engine runs on your phone.
-- **Over the board:** two players on one phone, with an optional chess clock.
-- **Record** games played on a real board, then review them move by move.
-- **Chess clock** for over-the-board games, with increment and delay.
-- **Keyboard entry:** type `e4`, `Nf3` or `e2e4` on a physical keyboard, or tap and drag pieces.
-- **Review, undo, resign and draw claims.**
-- **PGN export and import** of your whole game library, for Lichess, ChessBase and other chess software.
-- Board colours, move sounds, vibration, legal-move markers and coordinates.
+- **Play against the computer** at ten difficulty levels, from beginner-friendly play up to full-strength Fairy-Stockfish. The engine runs entirely on your phone.
+- **Play with a friend** on the same device, with an optional chess clock.
+- **Record games played on a real board** and review them afterwards move by move.
+- **Standalone chess clock** for over-the-board games, with increment and delay.
+- **Physical keyboard input** using moves such as `e4`, `Nf3`, `O-O` or `e2e4`.
+- **Touch controls** with both tap-to-move and drag-and-drop.
+- **Review your games** with move history, undo, resign and draw handling.
+- **Import and export PGN** for Lichess, ChessBase and other chess software.
+- **Customise the board** with colours, coordinates, legal-move markers, move sounds and vibration.
 
 ## Why Square Chess?
 
-Most chess apps are designed for tall phones and leave a small board on square screens. Square Chess sizes the board first and fits everything else around it. Optional information appears only in space the board cannot use.
+Most Android chess apps are designed around tall phone screens.
 
-## Privacy
+Square Chess takes a board-first approach: the chessboard is made as large as possible, while controls and optional information are fitted around the space that remains.
 
-Square Chess works fully offline and does not require Google Play Services or a Google account. It has **no Internet permission**, no account, no advertising and no analytics. Your games and settings stay on your device. See the [privacy policy](PRIVACY_POLICY.md).
+It is particularly suited to square and near-square phones, including 1:1 and 9:10 displays, while still working on conventional Android screens.
+
+## Private and offline
+
+Square Chess works fully offline and does not require Google Play Services or a Google account.
+
+It has:
+
+- **No Internet permission**
+- **No account**
+- **No advertising**
+- **No analytics**
+
+Your games and settings stay on your device.
+
+See the [privacy policy](PRIVACY_POLICY.md).
 
 ## Installation
 
 - **Google Play:** [Square Chess on Google Play](https://play.google.com/store/apps/details?id=com.dataespresso.squarechess)
-- **APK:** [download the latest release](https://github.com/chriotte/square-chess/releases/latest) (signed APK with its SHA-256 checksum)
+- **GitHub:** [download the latest release](https://github.com/chriotte/square-chess/releases/latest) — signed APK with its SHA-256 checksum
 - **F-Droid:** planned
 
-Play and GitHub/F-Droid builds are signed with different keys, so one cannot update the other. To move between them, export your games (Game history → Export), install the other build, and import the file (Game history → Import).
+Google Play and GitHub/F-Droid builds are signed with different keys, so they cannot update one another directly.
+
+To move between builds:
+
+1. Export your games from **Game history → Export**
+2. Install the other build
+3. Import them using **Game history → Import**
 
 ## Supported devices
 
-Android 10 (API 29) or newer, ARM64. Designed on the Unihertz Titan 2 Elite and tested with emulator profiles for other square and keyboard phones (`docs/testing/test-plan.md`). Works on ordinary phones too.
+Square Chess requires:
+
+- Android 10 (API 29) or newer
+- ARM64
+
+It is designed and tested on the **Unihertz Titan 2 Elite**, with additional emulator testing for other square-screen and physical-keyboard phones.
+
+It also works on conventional Android phones.
+
+See the [device testing plan](docs/testing/test-plan.md).
 
 ## Building from source
 
-JDK 17, the Android SDK (platform 36), NDK 28.2.13676358 and CMake 3.22.1:
+Requirements:
+
+- JDK 17
+- Android SDK, platform 36
+- Android NDK 28.2.13676358
+- CMake 3.22.1
+
+Build and run the checks with:
 
 ```sh
 ./gradlew check assembleDebug
 ```
 
-Details: [docs/development/building.md](docs/development/building.md). Architecture: [docs/architecture/overview.md](docs/architecture/overview.md).
+See [Building from source](docs/development/building.md) for full instructions.
+
+For an overview of the project structure, see [Architecture](docs/architecture/overview.md).
 
 ## Chess engine
 
-Square Chess uses [Fairy-Stockfish](https://github.com/fairy-stockfish/Fairy-Stockfish) with classical evaluation, from the Lichess mobile app's pinned [multistockfish](https://github.com/lichess-org/dart-multistockfish) package, compiled from source (`native/fairy/`). Difficulty levels set only the engine's own Skill Level and MultiPV options. How the levels were chosen: [docs/engine/](docs/engine/).
+Square Chess uses [Fairy-Stockfish](https://github.com/fairy-stockfish/Fairy-Stockfish) with classical evaluation.
 
-## Author
+The engine is based on the version pinned by the Lichess mobile project's [multistockfish](https://github.com/lichess-org/dart-multistockfish) package and is compiled from source in [`native/fairy/`](native/fairy/).
 
-Square Chess is designed and built by **Christopher Ottesen** ([DataEspresso](https://dataespresso.com/)).
+Difficulty levels use Fairy-Stockfish's own **Skill Level** and **MultiPV** settings rather than a custom move-weakening algorithm.
+
+See [engine documentation](docs/engine/) for calibration and implementation details.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+Contributions, bug reports and suggestions are welcome.
+
+See:
+
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [SECURITY.md](SECURITY.md)
+
+## Author
+
+Square Chess is designed and built by **Christopher Ottesen** 
 
 ## Licence
 
-Square Chess is free software: [GNU GPL v3.0 or later](LICENSE). Third-party components and their licences: [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+Square Chess is free software licensed under the [GNU General Public License v3.0 or later](LICENSE).
+
+Third-party components and their licences are documented in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
