@@ -15,7 +15,7 @@ One source tree, one build. Every channel gets the same code; only the signer di
 2. The **Release** workflow checks the tag against `versionName`, runs the tests and the release policy, builds the APK, signs it with the standalone release key, verifies the certificate, and creates a **draft** release with `Square-Chess-v<versionName>.apk` and `SHA256SUMS`.
 3. Review the draft on GitHub and publish it.
 
-One-time setup: add the four signing secrets as repository secrets (Settings → Secrets and variables → Actions → New repository secret) with `scripts/release/copy-signing-secrets.ps1`. GitHub Free offers environments only for public repositories; after publication, move the secrets to an environment `production-release` with yourself as required reviewer, and enable the `environment:` line in `release.yml`.
+One-time setup (done): repository Settings → Environments → `production-release`. Its deployment rule allows only tags matching `v*`, and its four secrets were added with `scripts/release/copy-signing-secrets.ps1`. Add yourself as a required reviewer if the GitHub plan offers it.
 
 ## 3. Google Play
 
