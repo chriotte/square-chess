@@ -35,8 +35,8 @@ android {
         manifestPlaceholders["appLabel"] = if (devBuild) "Square Chess Dev" else "Square Chess"
         minSdk = 29
         targetSdk = 36
-        versionCode = 4
-        versionName = "1.0.3"
+        versionCode = 5
+        versionName = "1.0.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild { cmake { cppFlags += "-std=c++17" } }
     }

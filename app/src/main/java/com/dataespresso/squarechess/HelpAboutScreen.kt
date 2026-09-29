@@ -66,7 +66,7 @@ import kotlinx.coroutines.withContext
     BackHandler { back() }
     val title=when(page) {
         "bug"->R.string.report_bug; "feature"->R.string.suggest_feature; "preview"->R.string.review_message
-        "about"->R.string.about_title; "privacy"->R.string.privacy_title; "info"->R.string.app_information
+        "about"->R.string.about_title; "howto"->R.string.how_to_play; "privacy"->R.string.privacy_title; "info"->R.string.app_information
         "licences"->R.string.licences_title; "notices"->R.string.licence_notices
         "gpl"->R.string.licence_gpl; "chesslib"->R.string.licence_chesslib; "art"->R.string.licence_art
         else->R.string.help_title
@@ -86,6 +86,7 @@ import kotlinx.coroutines.withContext
                             Image(painterResource(R.drawable.ic_square_chess),null,Modifier.size(40.dp))
                             Column { Text("Square Chess",fontSize=20.sp); Text(stringResource(R.string.help_tagline),fontSize=14.sp) }
                         }
+                        HelpAction(R.string.how_to_play) { page="howto" }
                         HelpAction(R.string.report_bug) { page="bug" }
                         HelpAction(R.string.suggest_feature) { page="feature" }
                         HorizontalDivider()
@@ -93,12 +94,13 @@ import kotlinx.coroutines.withContext
                         HelpAction(R.string.privacy_title) { page="privacy" }
                         HelpAction(R.string.licences_title) { page="licences" }
                         HelpAction(R.string.app_information) { page="info" }
-                        Text(stringResource(R.string.made_by),fontSize=13.sp)
                     }
-                    "about" -> {
-                        Text(stringResource(R.string.about_story))
-                        Text(stringResource(R.string.how_to_play),fontWeight=FontWeight.Bold,modifier=Modifier.semantics { heading() })
-                        Text(stringResource(R.string.play_instructions))
+                    "about" -> Text(stringResource(R.string.about_story))
+                    "howto" -> HOW_TO_PLAY.forEach { (title,body) ->
+                        Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
+                            Text(stringResource(title),fontWeight=FontWeight.Bold,modifier=Modifier.semantics { heading() })
+                            Text(stringResource(body))
+                        }
                     }
                     "info" -> {
                         val info=remember { appInformation(context) }
@@ -180,6 +182,20 @@ import kotlinx.coroutines.withContext
         }
     }
 }
+
+/** How to play: section titles and bodies, in the order a new player needs them. */
+private val HOW_TO_PLAY=listOf(
+    R.string.howto_start_title to R.string.howto_start_body,
+    R.string.howto_move_title to R.string.howto_move_body,
+    R.string.howto_keyboard_title to R.string.howto_keyboard_body,
+    R.string.howto_levels_title to R.string.howto_levels_body,
+    R.string.howto_clock_title to R.string.howto_clock_body,
+    R.string.howto_review_title to R.string.howto_review_body,
+    R.string.howto_end_title to R.string.howto_end_body,
+    R.string.howto_history_title to R.string.howto_history_body,
+    R.string.howto_clockapp_title to R.string.howto_clockapp_body,
+    R.string.howto_settings_title to R.string.howto_settings_body
+)
 
 @Composable private fun HelpAction(label: Int,onClick: ()->Unit) {
     OutlinedButton(onClick=onClick,modifier=Modifier.fillMaxWidth().heightIn(min=52.dp),

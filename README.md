@@ -25,8 +25,8 @@ Square Chess works fully offline and does not require Google Play Services or a 
 
 ## Installation
 
-- **Google Play:** [com.dataespresso.squarechess](https://play.google.com/store/apps/details?id=com.dataespresso.squarechess)
-- **GitHub Releases:** signed APK with SHA-256 checksum (planned)
+- **Google Play:** [Square Chess on Google Play](https://play.google.com/store/apps/details?id=com.dataespresso.squarechess)
+- **GitHub Releases:** a signed APK with its SHA-256 checksum for every version, built automatically from the release tag
 - **F-Droid:** planned
 
 Play and GitHub/F-Droid builds are signed with different keys, so one cannot update the other. To move between them, export your games (Game history → Export), install the other build, and import the file (Game history → Import).
@@ -48,6 +48,10 @@ Details: [docs/development/building.md](docs/development/building.md). Architect
 ## Chess engine
 
 Square Chess uses [Fairy-Stockfish](https://github.com/fairy-stockfish/Fairy-Stockfish) with classical evaluation, from the Lichess mobile app's pinned [multistockfish](https://github.com/lichess-org/dart-multistockfish) package, compiled from source (`native/fairy/`). Difficulty levels set only the engine's own Skill Level and MultiPV options. How the levels were chosen: [docs/engine/](docs/engine/).
+
+## Author
+
+Square Chess is designed and built by **Christopher Ottesen** ([DataEspresso](https://dataespresso.com/)).
 
 ## Contributing
 

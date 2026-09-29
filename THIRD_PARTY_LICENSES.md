@@ -2,7 +2,7 @@
 
 ## Square Chess
 
-Copyright DataEspresso (Christopher Ottesen). Square Chess is free software under the **GNU General Public License v3.0 or later**; the full text is in [LICENSE](LICENSE). The app includes a GPL chess engine, so the complete app is distributed under the GPL.
+Copyright © 2026 Christopher Ottesen (DataEspresso). Square Chess is free software under the **GNU General Public License v3.0 or later**; the full text is in [LICENSE](LICENSE). The app includes a GPL chess engine, so the complete app is distributed under the GPL.
 
 ## Third-party components
 

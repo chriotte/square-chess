@@ -1,0 +1,1 @@
+Import games from a PGN file: Game history → Import. Duplicates are skipped and unreadable games are listed. With Export, you can move your games to a new phone or between app stores. New: a How to play guide in Help & About.

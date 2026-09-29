@@ -5,10 +5,29 @@
     <string name="report_bug">Report a bug</string>
     <string name="suggest_feature">Suggest a feature</string>
     <string name="about_title">About Square Chess</string>
-    <string name="about_story">Square Chess began as a project to make chess feel at home on compact, nearly square Android displays, starting with the Unihertz Titan 2 Elite. It is designed to work across compatible Android devices. Play against the computer, play locally with another person, or record a game played on a real board. Built independently by DataEspresso.</string>
-    <string name="made_by">Made by DataEspresso</string>
+    <string name="about_story">Square Chess began as a project to make chess feel at home on compact, nearly square Android displays, starting with the Unihertz Titan 2 Elite. It is designed to work across compatible Android devices. Play against the computer, play locally with another person, or record a game played on a real board. Designed and built independently by Christopher Ottesen at DataEspresso.</string>
     <string name="how_to_play">How to play</string>
-    <string name="play_instructions">Tap a piece, then its destination. Legal destinations are marked. Use Review to step through earlier moves, then Return to resume your game. Undo asks for confirmation. Menu contains additional actions, including Flip board and Save &amp; home. Games save after each confirmed move.</string>
+    <!-- How to play: one title and one body per section, shown in this order. -->
+    <string name="howto_start_title">Start a game</string>
+    <string name="howto_start_body">Play against computer: choose a level and your colour.\nOver the board: two players share this phone.\nRecord physical game: enter the moves of a game you play on a real board. There are no hints during recording.\n\nFor the first two, Time control lets you play untimed or with a clock, for example 3+2 (3 minutes each, plus 2 seconds for each move). More options → Import position starts from a position saved as a .fen file.</string>
+    <string name="howto_move_title">Move the pieces</string>
+    <string name="howto_move_body">Tap a piece, then tap the square to move it to. Dots mark the empty squares it can go to, and rings mark the pieces it can capture. You can also drag a piece to its square. Tap the selected piece again to cancel. When a pawn reaches the last row, choose the new piece.</string>
+    <string name="howto_keyboard_title">Keyboard moves</string>
+    <string name="howto_keyboard_body">On a phone with a keyboard, type a move and press Enter. Use chess notation (e4, Nf3, exd5, O-O, e8=Q) or the two squares (e2e4, e7e8q). The move shows above the board while you type. Backspace deletes the last character; Escape clears the move.</string>
+    <string name="howto_levels_title">Computer levels</string>
+    <string name="howto_levels_body">Level 1 and 2: beginner, makes clear mistakes and often misses captures.\nLevel 3 and 4: casual, takes free pieces but misses tactics.\nLevel 5 to 7: improving player to club player.\nLevel 8 to 10: strong, up to the engine\'s full strength.\n\nThe computer thinks for about half a second for each move. It runs on your phone and needs no connection.</string>
+    <string name="howto_clock_title">Clocks</string>
+    <string name="howto_clock_body">With a time control, the clock of the player to move runs. Tap Pause to stop it and Resume to continue. The clock also stops when you leave the app. A player whose time runs out loses; if the other player cannot give checkmate, the game is a draw.</string>
+    <string name="howto_review_title">Review a game</string>
+    <string name="howto_review_body">Tap Review to look at earlier positions. Use the arrows, or swipe the board left or right, to go one move at a time. Tap Return to go back to the game. Menu → Move list shows all moves.</string>
+    <string name="howto_end_title">Undo, resign and draws</string>
+    <string name="howto_end_body">Undo takes back the last move. Against the computer, it also takes back the computer\'s reply, so it is your turn again.\nResign ends a game against the computer. In the other game types, Menu → End game records the result that the players agree.\nClaim draw is in the menu after the same position occurs three times, or after 50 moves by each player without a capture or a pawn move.\nCheckmate, stalemate, five repetitions, 75 moves without a capture or pawn move, and positions where no one can win end the game automatically.</string>
+    <string name="howto_history_title">Your games</string>
+    <string name="howto_history_body">Square Chess saves every move at once, so you can close the app at any time. Game history lists your games: tap a game to continue or review it, and long-press a game to delete it.\nExport saves your games as one PGN file, which Lichess, ChessBase and other chess programs can open. Import adds the games from a PGN file and skips games you already have.\nIn a game, Menu → Share PGN or Share FEN sends the game or the current position to another app.</string>
+    <string name="howto_clockapp_title">Chess clock for a real board</string>
+    <string name="howto_clockapp_body">Chess clock on the home screen is for games on a real board. Choose a time control and the player who starts, then tap your half of the screen after each move. Rotate 180° turns the screen for the player opposite you. This clock does not save a game.</string>
+    <string name="howto_settings_title">Settings</string>
+    <string name="howto_settings_body">Settings on the home screen turn move sounds, vibration, legal-move markers and coordinates on or off, and change the board colours.</string>
     <string name="privacy_title">Privacy</string>
     <string name="privacy_details">Games and settings stay on this device. This build has no accounts, advertising, analytics or automatic telemetry. Gameplay and these help pages work without a connection.\n\nFeedback is shared only when you choose to send it with your email app. You can preview and edit the entire message first. Optional bug-report details include only the app version, device manufacturer/model, Android version and game mode. Reports do not automatically include identifiers, saved games, moves, positions, screenshots or logs. Your email app may add your email address or signature.\n\nFeedback drafts are kept temporarily so you can return to them; Square Chess does not upload them or send email itself.</string>
     <string name="privacy_not_published">A public privacy-policy page has not been published yet.</string>
@@ -20,7 +39,7 @@
     <string name="licence_chesslib">Chesslib · Apache 2.0</string>
     <string name="licence_art">Chessnut pieces · Apache 2.0</string>
     <string name="app_information">App information</string>
-    <string name="app_info_details">%1$s\nVersion %2$s\nDeveloper: DataEspresso\nContact: %3$s</string>
+    <string name="app_info_details">%1$s\nVersion %2$s\nDeveloper: Christopher Ottesen (DataEspresso)\nContact: %3$s</string>
     <string name="bug_what">What happened? (required)</string>
     <string name="bug_steps">How can we reproduce it?</string>
     <string name="bug_expected">What did you expect to happen?</string>
