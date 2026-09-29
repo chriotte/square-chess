@@ -17,7 +17,10 @@ Tested 29 September 2026: two clean checkouts in different folders produced byte
 - `native/CMakeLists.txt` maps the source, build and NDK folders to fixed names (`-ffile-prefix-map`). Without this, only the 20-byte GNU build ID of `libsquarefish.so` differed, because the linker hashes the unstripped library, which contains the folder paths.
 - Pinned toolchain: Gradle 8.13 (wrapper), AGP 8.13.0, Kotlin 2.2.10, JDK 17, NDK 28.2.13676358, CMake 3.22.1, SDK 36.
 
-The first version with this fix is 1.0.5; earlier tags cannot reproduce on another machine.
+- `native/fairy/src/misc.cpp` no longer embeds the compile date (`__DATE__`), which made every build day different.
+- `.gitattributes` keeps packaged assets LF on every OS, so a Windows build matches a Linux build.
+
+The first version with all fixes is 1.0.6; earlier tags cannot reproduce on another day or machine.
 
 ## Submitting
 

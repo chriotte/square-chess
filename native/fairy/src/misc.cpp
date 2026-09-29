@@ -67,7 +67,9 @@ namespace {
 
 /// Version number. If Version is left empty, then compile date in the format
 /// DD-MM-YY and show in engine_info.
-const string Version = "";
+// Square Chess: a fixed version (the upstream base commit) instead of the compile
+// date, so that builds of the same source are byte-identical (reproducible builds).
+const string Version = "2b5d951";
 
 /// Our fancy logging facility. The trick here is to replace the rdbuf() of the
 /// engine's own input and output streams with two Tie objects that tie them to a
@@ -144,7 +146,8 @@ string engine_info(bool to_uci, bool to_xboard) {
 
   const string months("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec");
   string month, day, year;
-  stringstream ss, date(__DATE__); // From compiler, format is "Sep 21 2008"
+  // Square Chess: no __DATE__, which would differ on every build day. Unused while Version is set.
+  stringstream ss, date("Jan 01 2000");
 
   ss << "Fairy-Stockfish " << Version << setfill('0');
 

@@ -3,5 +3,7 @@
 gradlew text eol=lf
 *.sh text eol=lf
 *.bat text eol=crlf
+# Packaged assets must be byte-identical on every OS (reproducible builds).
+app/src/main/assets/** text eol=lf
 *.png binary
 *.jar binary

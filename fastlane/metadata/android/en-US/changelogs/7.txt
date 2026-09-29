@@ -1,0 +1,1 @@
+The build is now fully reproducible on any day and computer, so F-Droid can verify that the app matches its source code. No changes to the app itself.

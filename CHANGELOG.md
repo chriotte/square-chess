@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.6 — 29 September 2026
+- Reproducible on any day and computer: the engine no longer embeds its compile date, and packaged assets keep LF line endings on every OS. No changes to the app itself.
+
 ## 1.0.5 — 29 September 2026
 - Reproducible build: the native engine no longer embeds the build folder paths, so two builds of the same tag are byte-identical. This lets F-Droid publish the same signed APK as GitHub Releases. No changes to the app itself.
 - F-Droid recipe (`.fdroid.yml`) and documentation (`docs/releases/fdroid.md`).
