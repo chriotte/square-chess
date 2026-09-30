@@ -1,0 +1,1 @@
+Built with the same Java version as F-Droid, so F-Droid can verify that the app matches its source code. No changes to the app itself.

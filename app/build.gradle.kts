@@ -35,8 +35,8 @@ android {
         manifestPlaceholders["appLabel"] = if (devBuild) "Square Chess Dev" else "Square Chess"
         minSdk = 29
         targetSdk = 36
-        versionCode = 7
-        versionName = "1.0.6"
+        versionCode = 9
+        versionName = "1.0.8"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild { cmake { cppFlags += "-std=c++17" } }
     }
@@ -57,6 +57,9 @@ android {
     packaging { resources.excludes += setOf("META-INF/LICENSE*", "META-INF/NOTICE*") }
     // Settings → Language can pick any translation, so Play must install all of them, not only the phone's languages.
     bundle { language { enableSplit = false } }
+    // The encrypted dependency list is for Google Play; F-Droid rejects the extra APK signing block.
+    // The Play bundle keeps it.
+    dependenciesInfo { includeInApk = false; includeInBundle = true }
     testOptions { unitTests.isReturnDefaultValues = true }
 }
 dependencies {

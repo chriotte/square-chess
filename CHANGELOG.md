@@ -5,6 +5,12 @@
 - E-ink mode (Settings): black and white only, without animations, for e-paper screens such as Boox. Dark squares are hatched as in printed chess diagrams, and the selected square, the last move and check are shown by shapes. On by default on Boox devices.
 - Languages: Simplified Chinese, Norwegian Bokmål, German, Spanish and French, in addition to English. The app follows the phone's language; Settings → Language chooses another one.
 
+## 1.0.8 — 30 September 2026
+- The APK no longer contains Google's encrypted dependency list (an extra signing block that F-Droid does not accept). The Play bundle still has it. No changes to the app itself.
+
+## 1.0.7 — 30 September 2026
+- Release builds use JDK 21, the same as the F-Droid build server, so F-Droid's build of the source matches the signed APK on GitHub Releases. No changes to the app itself.
+
 ## 1.0.6 — 29 September 2026
 - Reproducible on any day and computer: the engine no longer embeds its compile date, and packaged assets keep LF line endings on every OS. No changes to the app itself.
 

@@ -74,7 +74,7 @@ See the [device testing plan](docs/testing/test-plan.md).
 
 Requirements:
 
-- JDK 17
+- JDK 21
 - Android SDK, platform 36
 - Android NDK 28.2.13676358
 - CMake 3.22.1
