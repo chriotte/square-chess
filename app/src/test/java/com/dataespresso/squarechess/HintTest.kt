@@ -50,7 +50,9 @@ class HintTest {
         assertFalse(state.copy(game=game.copy(mode=GameMode.LOCAL_TWO_PLAYER.name)).hintsAvailable())
     }
     @Test fun hintButtonTakesSpaceFromSecondaryActionsFirst() {
-        assertEquals(ToolbarLayout(true,false,false,true),toolbarLayout(411f,1f,hints=true))
+        // With hints, Undo stays before Review.
+        assertEquals(ToolbarLayout(false,true,false,true),toolbarLayout(411f,1f,hints=true))
+        assertEquals(ToolbarLayout(true,true,true,true),toolbarLayout(500f,1f,hints=true))
         assertEquals(ToolbarLayout(false,false,false,true),toolbarLayout(300f,1f,hints=true))
         assertEquals(ToolbarLayout(false,false,false,false),toolbarLayout(360f,2f,hints=true))
         assertFalse(toolbarLayout(500f,1f).hint)

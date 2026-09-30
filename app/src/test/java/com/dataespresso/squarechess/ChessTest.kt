@@ -3,6 +3,20 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ChessTest {
+    @Test fun kingOntoItsRookCastles() {
+        val p=ChessPosition("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1")
+        fun sq(name: String)=com.github.bhlangonijr.chesslib.Square.fromValue(name)
+        assertEquals("e1g1",p.castlingOntoRook(sq("E1"),sq("H1")).toString())
+        assertEquals("e1c1",p.castlingOntoRook(sq("E1"),sq("A1")).toString())
+        // Not the other side's rook, not another piece, and not without the right to castle.
+        assertNull(p.castlingOntoRook(sq("E1"),sq("E8")))
+        assertNull(p.castlingOntoRook(sq("A1"),sq("H1")))
+        assertNull(ChessPosition("r3k2r/8/8/8/8/8/8/R3K2R w Qkq - 0 1").castlingOntoRook(sq("E1"),sq("H1")))
+        // Black, from the position in the report: 1.e4 g6 2.d4 Bg7 3.Nc3 d6 4.Be2 Nf6 5.Qd3.
+        val black=ChessPosition(moves=listOf("e2e4","g7g6","d2d4","f8g7","b1c3","d7d6","f1e2","g8f6","d1d3"))
+        assertEquals("e8g8",black.castlingOntoRook(sq("E8"),sq("H8")).toString())
+        assertNull(black.castlingOntoRook(sq("E8"),sq("A8")))
+    }
     @Test fun bareKingCannotWinOnTimeAgainstStrongerMaterial() {
         val p=ChessPosition("7k/8/8/8/8/8/R7/K7 w - - 0 1")
         org.junit.Assert.assertFalse(p.provenDeadMaterial())

@@ -2,6 +2,8 @@ package com.dataespresso.squarechess
 
 import com.github.bhlangonijr.chesslib.Board
 import com.github.bhlangonijr.chesslib.Piece
+import com.github.bhlangonijr.chesslib.PieceType
+import com.github.bhlangonijr.chesslib.Square
 import com.github.bhlangonijr.chesslib.Side
 import com.github.bhlangonijr.chesslib.move.Move
 import com.github.bhlangonijr.chesslib.move.MoveList
@@ -33,6 +35,16 @@ class ChessPosition(val initialFen: String = START_FEN, val moves: List<String> 
             val m=list.first()
             legal.firstOrNull { it == m }
         }.getOrNull()
+    }
+    /**
+     * The castling move when the king is moved onto its own rook, as many chess apps allow; the
+     * rule's own move is the king's two-square step. Null when that castling is not legal now.
+     */
+    fun castlingOntoRook(from: Square, to: Square): Move? {
+        val king=board.getPiece(from); val rook=board.getPiece(to)
+        if(king.pieceType!=PieceType.KING || rook.pieceType!=PieceType.ROOK || king.pieceSide!=rook.pieceSide || from.rank!=to.rank) return null
+        val step=if(to.file.ordinal>from.file.ordinal) 2 else -2
+        return legal.firstOrNull { it.from==from && it.to.rank==from.rank && it.to.file.ordinal-from.file.ordinal==step }
     }
     fun append(move: Move) = ChessPosition(initialFen, moves + move.toString())
     fun automaticResult(): String? = when {

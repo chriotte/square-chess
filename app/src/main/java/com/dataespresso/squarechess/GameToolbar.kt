@@ -23,11 +23,13 @@ data class ToolbarLayout(val review: Boolean, val undo: Boolean, val difficulty:
 /**
  * Buttons that fit beside the status text. The Hint button ranks after Menu: it takes its
  * space from Review, Undo and the level label, which stay in the menu. The board never shrinks.
+ * With hints, Undo ranks before Review: a player who asks for hints also takes moves back.
  */
 fun toolbarLayout(widthDp: Float, fontScale: Float, hints: Boolean = false): ToolbarLayout {
     val effective=widthDp/fontScale.coerceAtLeast(1f)
     val hintWidth=if(hints) HINT_BUTTON_SPACE else 0f
-    return ToolbarLayout(review=effective>=270+hintWidth,undo=effective>=410+hintWidth,
+    val (reviewWidth,undoWidth)=if(hints) 410f to 270f else 270f to 410f
+    return ToolbarLayout(review=effective>=reviewWidth+hintWidth,undo=effective>=undoWidth+hintWidth,
         difficulty=effective>=400+hintWidth,hint=hints && effective>=200)
 }
 private const val HINT_BUTTON_SPACE=72f

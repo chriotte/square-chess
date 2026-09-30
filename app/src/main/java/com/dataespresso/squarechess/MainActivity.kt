@@ -910,6 +910,7 @@ internal fun historyDate(millis: Long): String =
                     val targets=legal.filter { it.from==from && it.to==to }
                     if(targets.size>1) promotion=targets.map { it.toString() }
                     else if(targets.size==1) { currentOnMove(targets[0].toString()); selected=null }
+                    else s.position.castlingOntoRook(from,to)?.let { currentOnMove(it.toString()); selected=null }
                 }
             },
             onDragCancel={ dragFrom=null })
@@ -941,7 +942,12 @@ internal fun historyDate(millis: Long): String =
                     if(cancelDraft()) selected=null
                     else if(targets.size>1) promotion=targets.map{it.toString()}
                     else if(targets.size==1) {onMove(targets[0].toString());selected=null}
-                    else selected=if(piece!=Piece.NONE && piece.pieceSide==s.position.board.sideToMove && selected!=square) square else null
+                    else {
+                        // A tap on the king's own rook castles, as in many chess apps.
+                        val castle=selected?.let { s.position.castlingOntoRook(it,square) }
+                        if(castle!=null) { onMove(castle.toString());selected=null }
+                        else selected=if(piece!=Piece.NONE && piece.pieceSide==s.position.board.sideToMove && selected!=square) square else null
+                    }
                 },contentAlignment=Alignment.Center) {
                     if(piece!=Piece.NONE) {
                         // On hatched squares a white halo keeps the piece outline apart from the lines.
