@@ -1,0 +1,1 @@
+New: optional hints against the computer, an e-ink mode for Boox and other e-paper screens, and the app in Chinese, Norwegian, German, Spanish and French. Numbers from a held key now work with more keyboard apps. Fixes for phones with a central camera and for the chess clock.

@@ -1,9 +1,13 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 — 30 September 2026
 - Optional hints against the computer: tick "Allow hints" when you start the game. During your turn, Hint shows one suggested move from Fairy-Stockfish at full strength, as an arrow with a framed start square and a ring on the target square, plus the move in text ("Hint: Nf3 · Knight g1 → f3"). The shapes do not depend on colour. The hint never plays the move, does not stop the clock and is not saved in the PGN. It goes away when the position changes. Off by default; the choice is saved with the game (database version 5).
 - E-ink mode (Settings): black and white only, without animations, for e-paper screens such as Boox. Dark squares are hatched as in printed chess diagrams, and the selected square, the last move and check are shown by shapes. On by default on Boox devices.
 - Languages: Simplified Chinese, Norwegian Bokmål, German, Spanish and French, in addition to English. The app follows the phone's language; Settings → Language chooses another one.
+- Numbers from a held key: holding a letter key types its Alt character (E → 2 on a Titan), so long-press numbers work with keyboard apps such as PhysiBoard as well as Pastiera.
+- E-ink mode: dialogs and menus have a black outline.
+- Phones with a camera hole in the middle of the screen (for example the CMF Phone 2 Pro): the game header now sits below the camera instead of beside it.
+- Fix: the standalone chess clock did not always pause when you left the app.
 
 ## 1.0.8 — 30 September 2026
 - The APK no longer contains Google's encrypted dependency list (an extra signing block that F-Droid does not accept). The Play bundle still has it. No changes to the app itself.
