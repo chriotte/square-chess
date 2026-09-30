@@ -120,7 +120,7 @@ See:
 
 Square Chess is designed and built by **Christopher Ottesen**.
 
-If you want to support development, you can donate on [Liberapay](https://liberapay.com/chriotte).
+If you want to support development, you can donate on [Ko-fi](https://ko-fi.com/chriotte) or [Liberapay](https://liberapay.com/chriotte).
 
 ## Licence
 
