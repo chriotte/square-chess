@@ -34,6 +34,12 @@ fun heldMoveCharacter(altCodes: List<Int>): Char? = altCodes
     .firstOrNull { it.isDigit() || it in "-+#=" }
 
 fun GameUi.positionKey() = "${game?.id}:${position.initialFen}:${position.moves.joinToString(" ")}:${game?.result}"
+/** Whether the game board takes moves now: the game runs, it is a human's turn and the clock (if any) runs. */
+fun GameUi.boardInteractive(): Boolean {
+    val g=game ?: return false
+    val humanTurn=g.mode!=GameMode.COMPUTER.name || ((position.board.sideToMove==com.github.bhlangonijr.chesslib.Side.WHITE)==g.humanWhite)
+    return !busy && g.result=="*" && humanTurn && (clock==null || clock.phase==ClockPhase.RUNNING)
+}
 fun GameUi.canEnterMove(): Boolean = game?.let {
     !busy && it.result == "*" &&
         (clock == null || clock.phase == ClockPhase.RUNNING) &&
