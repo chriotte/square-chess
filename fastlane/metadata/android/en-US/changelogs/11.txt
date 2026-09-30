@@ -1,0 +1,1 @@
+New: optional evaluation that rates each move and shows who is ahead, and opening names in the header and the move list. You can now castle by moving the king onto its rook. With hints on, Undo stays in the header. E-ink mode starts on more e-ink devices.

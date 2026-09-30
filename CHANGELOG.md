@@ -1,9 +1,11 @@
 # Changelog
 
-## Unreleased
+## 1.2.0 — 30 September 2026
 - Optional evaluation: tick "Show evaluation" when you start a game against the computer or over the board. After each move the header shows the move's label (best move, good move, inaccuracy, mistake or blunder) and who is ahead, for example "+0.6 · White slightly better". The engine rates each position for 0.3 seconds at full strength, and the computer replies after the rating. The review shows the label of each move, and the move list counts each side's inaccuracies, mistakes and blunders. Off by default, because it uses more battery; the choice and the ratings are saved with the game (database version 6). Not available when you record a real-board game.
 - Opening names: the header and the move list show the opening, for example "C60 Ruy Lopez", from the Lichess opening list (CC0). The names are in English in all languages.
 - E-ink mode is on by default on more e-ink devices: Boyue/Likebook, Meebook, Bigme, Hanvon, Nook GlowLight, Tolino, Hisense A5 and A9, and other e-reader brands and boards. Brands that also make colour screens need an exact model.
+- Castling: tap the king and then its own rook, or drag the king onto the rook. Tapping the king's destination square still works.
+- With hints on, the Undo button now stays in the header and Review moves to the menu when there is not room for both.
 
 ## 1.1.0 — 30 September 2026
 - Optional hints against the computer: tick "Allow hints" when you start the game. During your turn, Hint shows one suggested move from Fairy-Stockfish at full strength, as an arrow with a framed start square and a ring on the target square, plus the move in text ("Hint: Nf3 · Knight g1 → f3"). The shapes do not depend on colour. The hint never plays the move, does not stop the clock and is not saved in the PGN. It goes away when the position changes. Off by default; the choice is saved with the game (database version 5).
