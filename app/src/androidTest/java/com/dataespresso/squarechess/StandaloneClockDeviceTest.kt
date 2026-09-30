@@ -65,6 +65,8 @@ class StandaloneClockDeviceTest {
                 scenario.moveToState(Lifecycle.State.RESUMED)
                 node("Resume clock")
                 tap("Reset")
+                // Wait for the confirmation, or the second tap can reach the first Reset button again.
+                node("Reset clock?")
                 tap("Reset")
                 node("Start clock")
             }

@@ -147,6 +147,8 @@
     <string name="play_as_black">Spill som svart</string>
     <string name="allow_hints">Tillat tips</string>
     <string name="allow_hints_help">Vis en tipsknapp når det er din tur.</string>
+    <string name="show_evaluation">Vis evaluering</string>
+    <string name="show_evaluation_help">Vurder hvert trekk og vis hvem som leder. Bruker mer batteri.</string>
     <string name="recording_help">Skriv inn trekkene fra brettet ditt. Ingen tips eller motoranalyse under noteringen. En uformell hjelper, ikke godkjent utstyr for turneringer.</string>
     <string name="over_board_help">Del brettet med en venn. Velg en tidskontroll eller spill uten klokke.</string>
     <string name="time_control">Tidskontroll · %1$s</string>
@@ -336,4 +338,22 @@
     <string name="tap_after_move">Trykk etter trekket ditt</string>
     <string name="ready_to_start">Klar til start</string>
     <string name="paused">Stoppet</string>
+    <!-- Evaluation and openings -->
+    <string name="quality_best">Beste trekk</string>
+    <string name="quality_good">Godt trekk</string>
+    <string name="quality_inaccuracy">Unøyaktighet</string>
+    <string name="quality_mistake">Feil</string>
+    <string name="quality_blunder">Bukk</string>
+    <string name="lead_equal">Likt</string>
+    <string name="lead_white_slightly">Hvit litt bedre</string>
+    <string name="lead_black_slightly">Svart litt bedre</string>
+    <string name="lead_white_better">Hvit bedre</string>
+    <string name="lead_black_better">Svart bedre</string>
+    <string name="lead_white_winning">Hvit vinner</string>
+    <string name="lead_black_winning">Svart vinner</string>
+    <plurals name="lead_white_mates"><item quantity="one">Hvit setter matt i %d</item><item quantity="other">Hvit setter matt i %d</item></plurals>
+    <plurals name="lead_black_mates"><item quantity="one">Svart setter matt i %d</item><item quantity="other">Svart setter matt i %d</item></plurals>
+    <string name="lead_checkmate">Sjakkmatt</string>
+    <string name="mistakes_white">Hvit: unøyaktigheter %1$d, feil %2$d, bukker %3$d</string>
+    <string name="mistakes_black">Svart: unøyaktigheter %1$d, feil %2$d, bukker %3$d</string>
 </resources>

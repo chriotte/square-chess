@@ -148,6 +148,8 @@
     <string name="play_as_black">Jouer les Noirs</string>
     <string name="allow_hints">Autoriser les indices</string>
     <string name="allow_hints_help">Affiche un bouton Indice pendant vos tours.</string>
+    <string name="show_evaluation">Afficher l\'évaluation</string>
+    <string name="show_evaluation_help">Évalue chaque coup et montre qui mène. Consomme plus de batterie.</string>
     <string name="recording_help">Saisissez les coups de votre échiquier. Pas d’indices ni d’analyse du moteur pendant la notation. Un compagnon de jeu, pas un équipement homologué pour les tournois.</string>
     <string name="over_board_help">Partagez cet échiquier avec une autre personne. Choisissez une cadence ou jouez sans pendule.</string>
     <string name="time_control">Cadence · %1$s</string>
@@ -343,4 +345,22 @@
     <string name="tap_after_move">Touchez après votre coup</string>
     <string name="ready_to_start">Prête à démarrer</string>
     <string name="paused">En pause</string>
+    <!-- Evaluation and openings -->
+    <string name="quality_best">Meilleur coup</string>
+    <string name="quality_good">Bon coup</string>
+    <string name="quality_inaccuracy">Imprécision</string>
+    <string name="quality_mistake">Erreur</string>
+    <string name="quality_blunder">Gaffe</string>
+    <string name="lead_equal">Égalité</string>
+    <string name="lead_white_slightly">Blancs légèrement mieux</string>
+    <string name="lead_black_slightly">Noirs légèrement mieux</string>
+    <string name="lead_white_better">Blancs mieux</string>
+    <string name="lead_black_better">Noirs mieux</string>
+    <string name="lead_white_winning">Blancs gagnants</string>
+    <string name="lead_black_winning">Noirs gagnants</string>
+    <plurals name="lead_white_mates"><item quantity="one">Les Blancs matent en %d</item><item quantity="many">Les Blancs matent en %d</item><item quantity="other">Les Blancs matent en %d</item></plurals>
+    <plurals name="lead_black_mates"><item quantity="one">Les Noirs matent en %d</item><item quantity="many">Les Noirs matent en %d</item><item quantity="other">Les Noirs matent en %d</item></plurals>
+    <string name="lead_checkmate">Échec et mat</string>
+    <string name="mistakes_white">Blancs : imprécisions %1$d, erreurs %2$d, gaffes %3$d</string>
+    <string name="mistakes_black">Noirs : imprécisions %1$d, erreurs %2$d, gaffes %3$d</string>
 </resources>

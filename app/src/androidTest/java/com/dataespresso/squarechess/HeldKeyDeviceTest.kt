@@ -1,10 +1,13 @@
 package com.dataespresso.squarechess
 
+import android.content.pm.ApplicationInfo
 import android.os.SystemClock
+import android.provider.Settings
 import android.view.InputDevice
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.inputmethod.InputMethodManager
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -62,6 +65,12 @@ class HeldKeyDeviceTest {
     @Test fun heldKeyReplacesItsLetterWithTheAltCharacter() = runBlocking<Unit> {
         val context=instrumentation.targetContext
         check(isIsolatedTestPackage(context.packageName))
+        // Keyboard apps such as PhysiBoard time a hold themselves, so synthetic events do not act
+        // like a real hold there. Those apps are tested by hand: docs/testing/keyboard-apps.md.
+        val current=Settings.Secure.getString(context.contentResolver,Settings.Secure.DEFAULT_INPUT_METHOD)
+        val ime=context.getSystemService(InputMethodManager::class.java).enabledInputMethodList.firstOrNull { it.id==current }
+        assumeTrue("Keyboard app $current handles held keys itself",
+            ime==null || (ime.serviceInfo.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM)!=0)
         val map=KeyCharacterMap.load(keyboard)
         // A letter key that gives a digit with Alt on this keyboard (on a Titan: E -> 2).
         val key=(KeyEvent.KEYCODE_A..KeyEvent.KEYCODE_Z).firstOrNull { code ->

@@ -24,7 +24,9 @@ data class GameUi(
     val ready: Boolean = false,
     val hint: Hint? = null,
     val hintBusy: Boolean = false,
-    val hintFailed: Boolean = false
+    val hintFailed: Boolean = false,
+    /** Engine evaluations of this game's positions, by number of moves played. */
+    val evals: Map<Int,Eval> = emptyMap()
 )
 /** Why a typed move was not played; the screen shows it in the player's language. */
 enum class EntryError { POSITION_CHANGED, ILLEGAL, CLOCK_PAUSED, TIME_EXPIRED }
@@ -43,8 +45,10 @@ class GameViewModel private constructor(
     private var foreground = true
     private var engineJob: Job? = null
     private var hintJob: Job? = null
+    private var evalJob: Job? = null
     private var clockCheckpointJob: Job? = null
     init {
+        viewModelScope.launch { runCatching { Openings.load(app) }.onFailure { Log.e("SquareChess","Opening names not loaded",it) } }
         viewModelScope.launch {
             val saved = db.games().latest()
             runCatching { saved?.let { load(it) } }.onFailure { state.value=GameUi(message="Saved game could not be recovered: ${it.message}") }
@@ -58,6 +62,8 @@ class GameViewModel private constructor(
         engineJob=null
         hintJob?.cancel()
         hintJob=null
+        evalJob?.cancel()
+        evalJob=null
         clockCheckpointJob?.cancel()
         clockCheckpointJob=null
         // A shown hint stays: visibleHint() hides it once the position is different.
@@ -80,7 +86,7 @@ class GameViewModel private constructor(
             clock?.phase == ClockPhase.PAUSED -> clockPauseMessage(clock)
             else -> "${p.board.sideToMove.name.lowercase().replaceFirstChar(Char::titlecase)} to move"
         }
-        state.value=GameUi(loadedGame,p,clock=clock,message=message,ready=true)
+        state.value=GameUi(loadedGame,p,clock=clock,message=message,ready=true,evals=decodeEvaluations(loadedGame.evaluations))
     }
     fun resume(game: SavedGame) = viewModelScope.launch { foreground=true; commitLock.withLock { load(game) }; maybeEngine() }
     fun newGame(
@@ -89,7 +95,8 @@ class GameViewModel private constructor(
         humanWhite: Boolean,
         clockConfig: ClockConfig? = null,
         initialFen: String = START_FEN,
-        hintsEnabled: Boolean = false
+        hintsEnabled: Boolean = false,
+        evaluationEnabled: Boolean = false
     ) = viewModelScope.launch {
         foreground=true
         commitLock.withLock {
@@ -104,7 +111,7 @@ class GameViewModel private constructor(
                 white=if(mode==GameMode.COMPUTER && !humanWhite) "Computer (${difficultyLabel(level)})" else "White",
                 black=if(mode==GameMode.COMPUTER && humanWhite) "Computer (${difficultyLabel(level)})" else "Black",
                 result=result,resultReason=if(result!="*") initialPosition.automaticResultReason().orEmpty() else "",
-                hintsEnabled=hintsEnabled && mode==GameMode.COMPUTER)
+                hintsEnabled=hintsEnabled && mode==GameMode.COMPUTER,evaluationEnabled=evaluationEnabled)
                 .withClock(clock, now)
             db.games().save(game)
             load(game, recoverClock=false)
@@ -175,15 +182,20 @@ class GameViewModel private constructor(
     }
     private fun humanTurn(s: GameUi) = (s.position.board.sideToMove==Side.WHITE)==s.game!!.humanWhite
     fun maybeEngine() {
+        maybeEvaluate()
         val s=state.value; val g=s.game ?: return
         if(!foreground || s.busy || g.result!="*" || g.mode!=GameMode.COMPUTER.name || humanTurn(s) ||
             s.clock?.phase?.let { it != ClockPhase.RUNNING } == true) return
         val token=revision
         state.value=s.copy(busy=true,engineError=null,message="Computer is thinking…")
+        val evaluation=evalJob
         engineJob=viewModelScope.launch {
             try {
+                // The player's move is rated first, so its label shows while the computer thinks.
+                evaluation?.join()
                 val best=engine.search(g.initialFen,s.position.moves,g.level)
                 commitLock.withLock { if(token==revision && foreground) commit(best) }
+                maybeEvaluate()
             } catch(e: CancellationException) { throw e }
             catch(e: Exception) {
                 if(token==revision) state.value=state.value.copy(
@@ -193,6 +205,35 @@ class GameViewModel private constructor(
                 )
                 Log.e("SquareChess","Engine failed",e)
             }
+        }
+    }
+    /**
+     * Rates the latest positions when the game has evaluation on: the one before the last move
+     * too, when it is missing, because a move's label needs both. One position at a time; each
+     * result is kept only while the game still contains that position.
+     */
+    private fun maybeEvaluate() {
+        val s=state.value; val g=s.game ?: return
+        if(!g.evaluationEnabled || !foreground || evalJob?.isActive==true) return
+        val moves=s.position.moves
+        val ply=listOf(moves.size-1,moves.size).firstOrNull { it>=0 && it !in s.evals } ?: return
+        val prefix=moves.take(ply)
+        val position=if(ply==moves.size) s.position else ChessPosition(g.initialFen,prefix)
+        evalJob=viewModelScope.launch {
+            val eval=terminalEval(position) ?: try { engine.evaluate(g.initialFen,prefix) }
+                catch(e: CancellationException) { throw e }
+                catch(e: Exception) { Log.e("SquareChess","Evaluation failed",e); null }
+            if(eval==null) return@launch
+            commitLock.withLock {
+                val now=state.value; val game=now.game ?: return@withLock
+                if(game.id!=g.id || now.position.moves.size<ply || now.position.moves.take(ply)!=prefix) return@withLock
+                val evals=now.evals+(ply to eval)
+                val encoded=encodeEvaluations(evals)
+                db.games().setEvaluations(game.id,encoded)
+                state.value=now.copy(game=game.copy(evaluations=encoded),evals=evals)
+            }
+            evalJob=null
+            maybeEvaluate()
         }
     }
     /**
@@ -242,7 +283,8 @@ class GameViewModel private constructor(
             anchorMs = 0,
             interrupted = false
         )
-        val saved=g.copy(moves=moves.joinToString(" "),result="*",resultReason="",updated=System.currentTimeMillis())
+        val saved=g.copy(moves=moves.joinToString(" "),result="*",resultReason="",updated=System.currentTimeMillis(),
+            evaluations=encodeEvaluations(s.evals.filterKeys { it<=moves.size }))
             .withClock(clock, now)
         db.games().save(saved)
         load(saved, recoverClock=false)

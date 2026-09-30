@@ -138,6 +138,7 @@ class MainActivity: ComponentActivity() {
                 var level by rememberSaveable { mutableIntStateOf(DEFAULT_LEVEL) }
                 var white by rememberSaveable { mutableStateOf(true) }
                 var allowHints by rememberSaveable { mutableStateOf(false) }
+                var showEvaluation by rememberSaveable { mutableStateOf(false) }
                 var standaloneClock by rememberSaveable(stateSaver=clockStateSaver) {
                     mutableStateOf(ClockState(ClockConfig(300_000,0)))
                 }
@@ -197,6 +198,7 @@ class MainActivity: ComponentActivity() {
                 fun openNewGame(mode: GameMode) {
                     selectedMode=mode
                     allowHints=false
+                    showEvaluation=false
                     moreSetupOptions=false
                     importedFen=null
                     fenImportError=null
@@ -408,17 +410,11 @@ class MainActivity: ComponentActivity() {
                                 onWhiteSelected={white=true},
                                 onBlackSelected={white=false}
                             )
-                            Row(Modifier.fillMaxWidth().padding(top=8.dp).clip(RoundedCornerShape(8.dp))
-                                .toggleable(value=allowHints,role=Role.Checkbox,onValueChange={allowHints=it})
-                                .padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically) {
-                                Checkbox(checked=allowHints,onCheckedChange=null)
-                                Spacer(Modifier.width(8.dp))
-                                Column {
-                                    Text(stringResource(R.string.allow_hints))
-                                    Text(stringResource(R.string.allow_hints_help),fontSize=12.sp,color=LocalPalette.current.muted)
-                                }
-                            }
+                            OptionCheckbox(allowHints,{allowHints=it},stringResource(R.string.allow_hints),stringResource(R.string.allow_hints_help))
                         } else Text(stringResource(if(selectedMode==GameMode.PHYSICAL_BOARD_RECORDING) R.string.recording_help else R.string.over_board_help))
+                        // Recording a real-board game has no engine help; see recording_help.
+                        if(selectedMode!=GameMode.PHYSICAL_BOARD_RECORDING)
+                            OptionCheckbox(showEvaluation,{showEvaluation=it},stringResource(R.string.show_evaluation),stringResource(R.string.show_evaluation_help))
                         Spacer(Modifier.height(8.dp))
                         if(selectedMode!=GameMode.PHYSICAL_BOARD_RECORDING) Box {
                             val presetName=presetText(clockPreset)
@@ -457,7 +453,8 @@ class MainActivity: ComponentActivity() {
                     val clockConfig=if(selectedMode==GameMode.PHYSICAL_BOARD_RECORDING) null else selectedClockPreset.config
                     flip=selectedMode==GameMode.COMPUTER && !white
                     vm.newGame(selectedMode,level.coerceIn(1,ENGINE_LEVELS.size),white,clockConfig,importedFen ?: START_FEN,
-                        hintsEnabled=selectedMode==GameMode.COMPUTER && allowHints)
+                        hintsEnabled=selectedMode==GameMode.COMPUTER && allowHints,
+                        evaluationEnabled=selectedMode!=GameMode.PHYSICAL_BOARD_RECORDING && showEvaluation)
                     importedFen=null;fenImportError=null
                     screen="game";draft=NotationDraft();dialog=""
                 }) {Text(stringResource(R.string.start_game))}},dismissButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.cancel))}})
@@ -549,7 +546,7 @@ class MainActivity: ComponentActivity() {
                 }
                 if(dialog=="undo") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.undo_title))},text={Text(stringResource(R.string.undo_text))},confirmButton={TextButton(onClick={vm.undo();dialog=""}){Text(stringResource(R.string.take_back))}},dismissButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.keep_playing))}})
                 if(dialog=="end") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.end_title))},text={Column{ Text(stringResource(R.string.end_text)); listOf(R.string.white_wins to "1-0",R.string.black_wins to "0-1",R.string.draw to "1/2-1/2").forEach{(name,result)->TextButton(onClick={vm.end(result,"Result recorded by the players");dialog=""}){Text(stringResource(name))}} }},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.cancel))}})
-                if(dialog=="history") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.moves_title))},text={Column(Modifier.verticalScroll(rememberScrollState())){if(s.position.moves.isEmpty()) Text(stringResource(R.string.no_moves)) else s.position.san.chunked(2).forEachIndexed { i,pair-> Text("${i+1}.  ${pair.joinToString("    ")}",fontFamily=FontFamily.Monospace,modifier=Modifier.padding(4.dp)) }}},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.close))}})
+                if(dialog=="history") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.moves_title))},text={Column(Modifier.verticalScroll(rememberScrollState())){MoveListSummary(s); if(s.position.moves.isEmpty()) Text(stringResource(R.string.no_moves)) else s.position.san.chunked(2).forEachIndexed { i,pair-> Text("${i+1}.  ${pair.joinToString("    ")}",fontFamily=FontFamily.Monospace,modifier=Modifier.padding(4.dp)) }}},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.close))}})
                 if(entryPromotions.isNotEmpty()) PromotionDialog(entryPromotions,white=s.position.board.sideToMove==Side.WHITE,
                     onPick={ move -> entryPromotions=emptyList();submitDraft(move) },onCancel={entryPromotions=emptyList()})
                 if(resultDialog!=null) {
@@ -565,7 +562,7 @@ class MainActivity: ComponentActivity() {
                         confirmButton={TextButton(onClick={
                             val g=s.game
                             resultDialog=null;vm.acknowledgeResult()
-                            if(g!=null) { selectedMode=runCatching { GameMode.valueOf(g.mode) }.getOrDefault(selectedMode); level=g.level; white=g.humanWhite; allowHints=g.hintsEnabled }
+                            if(g!=null) { selectedMode=runCatching { GameMode.valueOf(g.mode) }.getOrDefault(selectedMode); level=g.level; white=g.humanWhite; allowHints=g.hintsEnabled; showEvaluation=g.evaluationEnabled }
                             dialog="new"
                         }) { Text(stringResource(R.string.play_again)) }},
                         dismissButton={TextButton(onClick={resultDialog=null;vm.acknowledgeResult();screen="home";vm.pauseForNavigation()}) { Text(stringResource(R.string.save_home)) }}
@@ -810,6 +807,33 @@ private fun Modifier.card(palette: Palette): Modifier =
 @Composable private fun MenuSection(title: String) {
     Text(title.uppercase(),fontSize=11.sp,letterSpacing=1.sp,color=LocalPalette.current.muted,
         modifier=Modifier.padding(start=12.dp,top=10.dp,bottom=2.dp).semantics { heading() })
+}
+
+/** A check box with a title and a short explanation, as used in the new-game dialog. */
+@Composable private fun OptionCheckbox(checked: Boolean, onChange: (Boolean)->Unit, title: String, help: String) {
+    Row(Modifier.fillMaxWidth().padding(top=8.dp).clip(RoundedCornerShape(8.dp))
+        .toggleable(value=checked,role=Role.Checkbox,onValueChange=onChange)
+        .padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically) {
+        Checkbox(checked=checked,onCheckedChange=null)
+        Spacer(Modifier.width(8.dp))
+        Column {
+            Text(title)
+            Text(help,fontSize=12.sp,color=LocalPalette.current.muted)
+        }
+    }
+}
+
+/** Above the move list: the opening, and each side's mistakes when the game was evaluated. */
+@Composable private fun MoveListSummary(s: GameUi) {
+    val table=Openings.table
+    val opening=remember(table,s.position) { table?.let { openingAt(it,s.position.initialFen,s.position.moves) } }
+    opening?.let { Text(stringResource(R.string.opening_line,it.eco,it.name),fontWeight=FontWeight.Medium,modifier=Modifier.padding(4.dp)) }
+    if(s.evaluationOn() && s.position.moves.isNotEmpty()) {
+        val (white,black)=remember(s.evals,s.position) { qualitySummary(s.evals,s.position.initialFen,s.position.moves) }
+        Text(stringResource(R.string.mistakes_white,white.inaccuracies,white.mistakes,white.blunders),fontSize=13.sp,modifier=Modifier.padding(horizontal=4.dp))
+        Text(stringResource(R.string.mistakes_black,black.inaccuracies,black.mistakes,black.blunders),fontSize=13.sp,modifier=Modifier.padding(horizontal=4.dp))
+    }
+    if(opening!=null || s.evaluationOn()) HorizontalDivider(Modifier.padding(vertical=4.dp))
 }
 
 internal fun historyDate(millis: Long): String =

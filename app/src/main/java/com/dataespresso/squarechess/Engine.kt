@@ -14,6 +14,8 @@ interface EngineController {
     suspend fun search(fen: String, moves: List<String>, level: Int): String
     /** A suggested move for the player: full strength (Skill 20, one line), whatever the opponent's level. */
     suspend fun hint(fen: String, moves: List<String>): String = search(fen, moves, HINT_LEVEL)
+    /** The engine's full-strength opinion of the position after [moves], or null if it gave no score. */
+    suspend fun evaluate(fen: String, moves: List<String>): Eval? = null
     fun stop()
     suspend fun close()
 }
@@ -48,6 +50,17 @@ class StockfishController(@Suppress("unused") private val context: Context) : En
             currentCoroutineContext().ensureActive()
             val options=engineLevel(level)
             NativeEngine.search(fen, moves.joinToString(" "), options.skill, options.multiPv, ENGINE_MOVE_TIME_MS)
+        }
+    }
+    override suspend fun evaluate(fen: String, moves: List<String>): Eval? = withContext(Dispatchers.IO) {
+        mutex.withLock {
+            ensureStarted()
+            currentCoroutineContext().ensureActive()
+            val options=engineLevel(HINT_LEVEL)
+            val best=NativeEngine.search(fen, moves.joinToString(" "), options.skill, options.multiPv, EVALUATION_TIME_MS)
+            // The bridge keeps the search's output lines; the last full score belongs to this search.
+            val whiteToMove=ChessPosition(fen, moves).board.sideToMove==com.github.bhlangonijr.chesslib.Side.WHITE
+            parseSearchScore(NativeEngine.metrics(), whiteToMove, best.takeIf { it.length in 4..5 })
         }
     }
     override fun stop() { if(started) NativeEngine.stop() }

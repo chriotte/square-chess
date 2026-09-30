@@ -54,6 +54,33 @@ fun gameStatus(s: GameUi): GameStatus = when {
     else -> if(s.position.board.sideToMove==com.github.bhlangonijr.chesslib.Side.WHITE) GameStatus.WHITE_TO_MOVE else GameStatus.BLACK_TO_MOVE
 }
 
+/** States the player must see even when the header shows an evaluation. */
+val STATUS_BEFORE_EVALUATION=setOf(GameStatus.GAME_OVER,GameStatus.CLOCK_PAUSED,GameStatus.CLOCK_PAUSED_INTERRUPTED,
+    GameStatus.TIME_EXPIRED,GameStatus.COMPUTER_UNAVAILABLE)
+
+/**
+ * The status text. [move] is the last move with its separator ("12. Nf3 · ") or empty.
+ * Without an evaluation it is the usual status, with the opening name on a second line when
+ * there is room. With one, the move's label replaces the status (the move tells whose turn it
+ * is) and the lead takes the second line; a single line (a clock is shown) keeps the lead only.
+ * [statusFirst] keeps the status for states the player must see.
+ */
+fun headerText(move: String, status: String, difficulty: String, quality: String?, lead: String?, opening: String?,
+               oneLine: Boolean, statusFirst: Boolean, review: Boolean): String {
+    val usual=move+status+difficulty
+    if(statusFirst || lead==null && quality==null) return if(!oneLine && opening!=null) "$usual\n$opening" else usual
+    val first=when {
+        review -> listOfNotNull(status,quality).joinToString(" · ")
+        quality!=null -> move+quality
+        else -> move+status
+    }
+    return when {
+        lead==null -> first
+        oneLine -> if(review) "$first · $lead" else move+listOfNotNull(quality,lead).joinToString(" · ")
+        else -> "$first\n$lead"
+    }
+}
+
 /** Review arrows shown in the header when no review bar fits below the board. */
 class HeaderReviewNav(val onFirst: ()->Unit, val onPrevious: ()->Unit, val onNext: ()->Unit, val onLast: ()->Unit)
 
@@ -75,15 +102,27 @@ class HeaderReviewNav(val onFirst: ()->Unit, val onPrevious: ()->Unit, val onNex
         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
             Column(Modifier.weight(1f).padding(end=4.dp)) {
                 val hint=if(hints) remember(s.hint,s.hintBusy,s.hintFailed,s.position,res) { hintStatus(res,s) } else null
-                val status=if(reviewPly!=null) stringResource(R.string.status_review,reviewPly,s.position.moves.size)
-                    else stringResource(statusText(gameStatus(s)))
                 val difficulty=if(layout.difficulty && s.game?.mode==GameMode.COMPUTER.name) " · ${levelLabel(s.game.level)}" else ""
                 // Two 14 sp lines fit the 56 dp minimum header up to font scale 1.3, so the
                 // extra text cannot make the header (and so the board) change size.
                 val move=if(reviewPly==null && lastMove!=null && LocalDensity.current.fontScale<=1.3f) "$lastMove · " else ""
+                val shownPly=reviewPly ?: s.position.moves.size
+                val evaluation=s.evaluationOn()
+                val quality=if(evaluation) qualityAt(s.evals,s.position.initialFen,s.position.moves,shownPly)?.let { stringResource(qualityText(it)) } else null
+                // While the newest position is still being rated, the previous lead stands in.
+                val leadEval=if(!evaluation) null else s.evals[shownPly] ?: if(reviewPly==null) s.evals[shownPly-1] else null
+                val lead=leadEval?.let { leadText(res,it) }
+                val table=Openings.table
+                val opening=remember(table,s.position,shownPly) {
+                    table?.let { openingAt(it,s.position.initialFen,s.position.moves,shownPly) }
+                }?.let { stringResource(R.string.opening_line,it.eco,it.name) }
+                val status=gameStatus(s)
+                val statusFirst=reviewPly==null && status in STATUS_BEFORE_EVALUATION
                 // A hint replaces the status in the same text line, so the header keeps its height.
                 val text=when {
-                    hint==null -> move+status+difficulty
+                    hint==null -> headerText(move,
+                        if(reviewPly!=null) stringResource(R.string.status_review,reviewPly,s.position.moves.size) else stringResource(statusText(status)),
+                        difficulty,quality,lead,opening,oneLine=clock!=null,statusFirst=statusFirst,review=reviewPly!=null)
                     hint.san.isEmpty() -> hint.detail
                     else -> stringResource(R.string.hint_line,hint.san,hint.detail)
                 }

@@ -108,3 +108,30 @@ fun hintText(res: Resources, hint: HintMove): HintText {
     }
     return HintText(hint.san, detail, spoken)
 }
+
+@StringRes fun qualityText(quality: MoveQuality): Int = when (quality) {
+    MoveQuality.BEST -> R.string.quality_best
+    MoveQuality.GOOD -> R.string.quality_good
+    MoveQuality.INACCURACY -> R.string.quality_inaccuracy
+    MoveQuality.MISTAKE -> R.string.quality_mistake
+    MoveQuality.BLUNDER -> R.string.quality_blunder
+}
+
+/** "+1.8 · White better", "Black mates in 3" or "Checkmate". */
+fun leadText(res: Resources, eval: Eval): String {
+    if (eval.mate == 0) return res.getString(R.string.lead_checkmate)
+    val mate = eval.mate
+    val words = when (lead(eval)) {
+        Lead.EQUAL -> res.getString(R.string.lead_equal)
+        Lead.WHITE_SLIGHTLY -> res.getString(R.string.lead_white_slightly)
+        Lead.BLACK_SLIGHTLY -> res.getString(R.string.lead_black_slightly)
+        Lead.WHITE_BETTER -> res.getString(R.string.lead_white_better)
+        Lead.BLACK_BETTER -> res.getString(R.string.lead_black_better)
+        Lead.WHITE_WINNING -> res.getString(R.string.lead_white_winning)
+        Lead.BLACK_WINNING -> res.getString(R.string.lead_black_winning)
+        Lead.WHITE_MATES -> res.getQuantityString(R.plurals.lead_white_mates, mate ?: 0, mate ?: 0)
+        Lead.BLACK_MATES -> res.getQuantityString(R.plurals.lead_black_mates, mate ?: 0, mate ?: 0)
+    }
+    val score = scoreText(eval)
+    return if (score.isEmpty()) words else res.getString(R.string.lead_with_score, words, score)
+}

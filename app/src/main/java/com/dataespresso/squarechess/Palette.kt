@@ -1,6 +1,5 @@
 package com.dataespresso.squarechess
 
-import android.os.Build
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -50,9 +49,6 @@ val EinkPalette = Palette(
 )
 
 val LocalPalette = staticCompositionLocalOf { StandardPalette }
-
-/** Boox (Onyx) readers are e-paper; other devices start with the standard colours. */
-fun isKnownEinkDevice(): Boolean = Build.MANUFACTURER.equals("ONYX", ignoreCase = true)
 
 private val StandardScheme = darkColorScheme(
     primary = Sand, onPrimary = Ink,

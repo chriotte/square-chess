@@ -30,16 +30,22 @@ data class SavedGame(
     @ColumnInfo(defaultValue="NULL") val clockDelayMs: Long? = null,
     @ColumnInfo(defaultValue="NULL") val clockDelayRemainingMs: Long? = null,
     /** Chosen when a computer game starts; an app setting, not PGN metadata. */
-    @ColumnInfo(defaultValue="0") val hintsEnabled: Boolean = false
+    @ColumnInfo(defaultValue="0") val hintsEnabled: Boolean = false,
+    /** Chosen when a game starts: the engine rates each move and shows who is ahead. */
+    @ColumnInfo(defaultValue="0") val evaluationEnabled: Boolean = false,
+    /** Engine evaluations by position; see encodeEvaluations in Evaluation.kt. */
+    @ColumnInfo(defaultValue="''") val evaluations: String = ""
 )
 @Dao interface GameDao {
     @Query("SELECT * FROM games ORDER BY updated DESC") fun observeGames(): Flow<List<SavedGame>>
     @Query("SELECT * FROM games ORDER BY updated DESC LIMIT 1") suspend fun latest(): SavedGame?
     @Query("SELECT * FROM games ORDER BY updated ASC") suspend fun allOldestFirst(): List<SavedGame>
     @Insert(onConflict=OnConflictStrategy.REPLACE) suspend fun save(game: SavedGame)
+    /** Changes only the evaluations, so a running clock's saved state is not touched. */
+    @Query("UPDATE games SET evaluations = :evaluations WHERE id = :id") suspend fun setEvaluations(id: String, evaluations: String)
     @Query("DELETE FROM games WHERE id = :id") suspend fun delete(id: String)
 }
-@Database(entities=[SavedGame::class], version=5, exportSchema=true)
+@Database(entities=[SavedGame::class], version=6, exportSchema=true)
 abstract class ChessDatabase : RoomDatabase() { abstract fun games(): GameDao }
 
 val MIGRATION_1_2 = object: Migration(1,2) {
@@ -70,9 +76,15 @@ val MIGRATION_4_5 = object: Migration(4,5) {
         db.execSQL("ALTER TABLE games ADD COLUMN hintsEnabled INTEGER NOT NULL DEFAULT 0")
     }
 }
+val MIGRATION_5_6 = object: Migration(5,6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE games ADD COLUMN evaluationEnabled INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE games ADD COLUMN evaluations TEXT NOT NULL DEFAULT ''")
+    }
+}
 fun openChessDatabase(context: Context, name: String="square-chess.db") =
     Room.databaseBuilder(context,ChessDatabase::class.java,name)
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).build()
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6).build()
 
 fun defaultFlipFor(game: SavedGame?): Boolean = game?.orientationFlipped
     ?: (game?.mode==GameMode.COMPUTER.name && !game.humanWhite)

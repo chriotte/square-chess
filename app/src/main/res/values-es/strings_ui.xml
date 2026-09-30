@@ -148,6 +148,8 @@
     <string name="play_as_black">Jugar con negras</string>
     <string name="allow_hints">Permitir pistas</string>
     <string name="allow_hints_help">Muestra un botón de pista en tus turnos.</string>
+    <string name="show_evaluation">Mostrar evaluación</string>
+    <string name="show_evaluation_help">Valora cada jugada y muestra quién va por delante. Usa más batería.</string>
     <string name="recording_help">Introduce las jugadas de tu tablero. Sin pistas ni análisis del motor durante la anotación. Un acompañante informal, no un equipo homologado para torneos.</string>
     <string name="over_board_help">Comparte este tablero con otra persona. Elige un control de tiempo o juega sin reloj.</string>
     <string name="time_control">Control de tiempo · %1$s</string>
@@ -343,4 +345,22 @@
     <string name="tap_after_move">Toca después de tu jugada</string>
     <string name="ready_to_start">Listo para empezar</string>
     <string name="paused">En pausa</string>
+    <!-- Evaluation and openings -->
+    <string name="quality_best">Mejor jugada</string>
+    <string name="quality_good">Buena jugada</string>
+    <string name="quality_inaccuracy">Imprecisión</string>
+    <string name="quality_mistake">Error</string>
+    <string name="quality_blunder">Error grave</string>
+    <string name="lead_equal">Igualdad</string>
+    <string name="lead_white_slightly">Blancas algo mejor</string>
+    <string name="lead_black_slightly">Negras algo mejor</string>
+    <string name="lead_white_better">Blancas mejor</string>
+    <string name="lead_black_better">Negras mejor</string>
+    <string name="lead_white_winning">Blancas ganan</string>
+    <string name="lead_black_winning">Negras ganan</string>
+    <plurals name="lead_white_mates"><item quantity="one">Blancas dan mate en %d</item><item quantity="many">Blancas dan mate en %d</item><item quantity="other">Blancas dan mate en %d</item></plurals>
+    <plurals name="lead_black_mates"><item quantity="one">Negras dan mate en %d</item><item quantity="many">Negras dan mate en %d</item><item quantity="other">Negras dan mate en %d</item></plurals>
+    <string name="lead_checkmate">Jaque mate</string>
+    <string name="mistakes_white">Blancas: imprecisiones %1$d, errores %2$d, errores graves %3$d</string>
+    <string name="mistakes_black">Negras: imprecisiones %1$d, errores %2$d, errores graves %3$d</string>
 </resources>

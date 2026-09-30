@@ -8,7 +8,7 @@
     <string name="about_story">Square Chess 起初是一个项目，目标是让国际象棋在紧凑、接近正方形的 Android 屏幕上用起来得心应手，首先是 Unihertz Titan 2 Elite。它可以在各种兼容的 Android 设备上使用。你可以和电脑下棋，和身边的人在同一部手机上对弈，或者记录一盘在真实棋盘上下的对局。由 DataEspresso 的 Christopher Ottesen 独立设计和开发。</string>
     <string name="how_to_play">怎么玩</string>
     <string name="howto_start_title">开始对局</string>
-    <string name="howto_start_body">人机对战：选择难度和执子颜色。如果需要“提示”按钮，请勾选“允许提示”：轮到你时，它会在棋盘上用箭头显示一步建议走法。它从不替你走棋，棋钟也会继续计时。\n面对面：两位棋手共用这部手机。\n记录实体棋盘对局：输入你在真实棋盘上所下对局的走法。记录期间不提供提示。\n\n前两种模式可以在“计时”中选择不计时或计时，例如 3+2（每方 3 分钟，每走一步加 2 秒）。更多选项 → 导入局面 可以从保存为 .fen 文件的局面开始。</string>
+    <string name="howto_start_body">人机对战：选择难度和执子颜色。如果需要“提示”按钮，请勾选“允许提示”：轮到你时，它会在棋盘上用箭头显示一步建议走法。它从不替你走棋，棋钟也会继续计时。\n面对面：两位棋手共用这部手机。\n记录实体棋盘对局：输入你在真实棋盘上所下对局的走法。记录期间不提供提示。\n\n前两种模式可以在“计时”中选择不计时或计时，例如 3+2（每方 3 分钟，每走一步加 2 秒）。更多选项 → 导入局面 可以从保存为 .fen 文件的局面开始。“显示评估”会为每步棋评分（最佳着法、好棋、不精确、错误或严重错误）并显示谁占优。它更耗电。</string>
     <string name="howto_move_title">移动棋子</string>
     <string name="howto_move_body">点按一个棋子，再点按要走到的格子。圆点表示它可以走到的空格，圆环表示它可以吃掉的棋子。你也可以把棋子拖到目标格。再次点按已选中的棋子即可取消。兵走到底线时，请选择升变的棋子。</string>
     <string name="howto_keyboard_title">用键盘走棋</string>

@@ -146,6 +146,8 @@
     <string name="play_as_black">执黑</string>
     <string name="allow_hints">允许提示</string>
     <string name="allow_hints_help">轮到你时显示“提示”按钮。</string>
+    <string name="show_evaluation">显示评估</string>
+    <string name="show_evaluation_help">为每步棋评分并显示谁占优。耗电更多。</string>
     <string name="recording_help">输入实体棋盘上的走法。记录期间不提供提示或引擎分析。这是休闲辅助工具，不是经认证的比赛设备。</string>
     <string name="over_board_help">和朋友共用这个棋盘。选择计时方式，或不计时对局。</string>
     <string name="time_control">计时 · %1$s</string>
@@ -329,4 +331,22 @@
     <string name="tap_after_move">走完后点按</string>
     <string name="ready_to_start">准备开始</string>
     <string name="paused">已暂停</string>
+    <!-- Evaluation and openings -->
+    <string name="quality_best">最佳着法</string>
+    <string name="quality_good">好棋</string>
+    <string name="quality_inaccuracy">不精确</string>
+    <string name="quality_mistake">错误</string>
+    <string name="quality_blunder">严重错误</string>
+    <string name="lead_equal">均势</string>
+    <string name="lead_white_slightly">白方略优</string>
+    <string name="lead_black_slightly">黑方略优</string>
+    <string name="lead_white_better">白方占优</string>
+    <string name="lead_black_better">黑方占优</string>
+    <string name="lead_white_winning">白方胜势</string>
+    <string name="lead_black_winning">黑方胜势</string>
+    <plurals name="lead_white_mates"><item quantity="other">白方 %d 步杀</item></plurals>
+    <plurals name="lead_black_mates"><item quantity="other">黑方 %d 步杀</item></plurals>
+    <string name="lead_checkmate">将杀</string>
+    <string name="mistakes_white">白方：不精确 %1$d，错误 %2$d，严重错误 %3$d</string>
+    <string name="mistakes_black">黑方：不精确 %1$d，错误 %2$d，严重错误 %3$d</string>
 </resources>

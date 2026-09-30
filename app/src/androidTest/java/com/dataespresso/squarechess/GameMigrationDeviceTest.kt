@@ -31,10 +31,13 @@ class GameMigrationDeviceTest {
                 assertNull(old.clockIncrementMs)
                 assertNull(old.clockPhase)
                 assertFalse("Old games upgrade with hints off",old.hintsEnabled)
+                assertFalse("Old games upgrade with evaluation off",old.evaluationEnabled)
+                assertEquals("",old.evaluations)
                 assertTrue(defaultFlipFor(old))
                 assertNotNull(ChessPosition(moves=old.moves.split(" ")).resolve("Nf3"))
                 val clock=ClockState(ClockConfig(300_000,5_000,3_000)).start(100).finish(200)
-                db.games().save(old.copy(orientationFlipped=false,result="1-0",resultReason="Resignation",hintsEnabled=true)
+                db.games().save(old.copy(orientationFlipped=false,result="1-0",resultReason="Resignation",hintsEnabled=true,
+                    evaluationEnabled=true,evaluations="0=c30/e2e4")
                     .withClock(clock,200))
             } finally { db.close() }
             val reopened=openChessDatabase(context,name)
@@ -44,6 +47,8 @@ class GameMigrationDeviceTest {
                 assertEquals("1-0",restored.result)
                 assertEquals("Resignation",restored.resultReason)
                 assertTrue(restored.hintsEnabled)
+                assertTrue(restored.evaluationEnabled)
+                assertEquals("0=c30/e2e4",restored.evaluations)
                 assertEquals("e2e4 e7e5",restored.moves)
                 assertEquals(300_000L,restored.clockBaseMs)
                 assertEquals(5_000L,restored.clockIncrementMs)

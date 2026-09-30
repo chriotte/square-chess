@@ -151,6 +151,8 @@
     <string name="play_as_black">Play as Black</string>
     <string name="allow_hints">Allow hints</string>
     <string name="allow_hints_help">Show a Hint button during your turns.</string>
+    <string name="show_evaluation">Show evaluation</string>
+    <string name="show_evaluation_help">Rate each move and show who is ahead. Uses more battery.</string>
     <string name="recording_help">Enter moves from your board. No hints or engine analysis during recording. A casual companion, not tournament-approved equipment.</string>
     <string name="over_board_help">Share this board with a friend. Choose a time control or play untimed.</string>
     <string name="time_control">Time control · %1$s</string>
@@ -341,4 +343,27 @@
     <string name="tap_after_move">Tap after your move</string>
     <string name="ready_to_start">Ready to start</string>
     <string name="paused">Paused</string>
+
+    <!-- Evaluation and openings -->
+    <string name="quality_best">Best move</string>
+    <string name="quality_good">Good move</string>
+    <string name="quality_inaccuracy">Inaccuracy</string>
+    <string name="quality_mistake">Mistake</string>
+    <string name="quality_blunder">Blunder</string>
+    <string name="lead_equal">Equal</string>
+    <string name="lead_white_slightly">White slightly better</string>
+    <string name="lead_black_slightly">Black slightly better</string>
+    <string name="lead_white_better">White better</string>
+    <string name="lead_black_better">Black better</string>
+    <string name="lead_white_winning">White winning</string>
+    <string name="lead_black_winning">Black winning</string>
+    <plurals name="lead_white_mates"><item quantity="one">White mates in %d</item><item quantity="other">White mates in %d</item></plurals>
+    <plurals name="lead_black_mates"><item quantity="one">Black mates in %d</item><item quantity="other">Black mates in %d</item></plurals>
+    <string name="lead_checkmate">Checkmate</string>
+    <!-- The score in pawns before the lead in words, for example "+1.8 · White better": a narrow header cuts the end. -->
+    <string name="lead_with_score" translatable="false">%2$s · %1$s</string>
+    <string name="mistakes_white">White: inaccuracies %1$d, mistakes %2$d, blunders %3$d</string>
+    <string name="mistakes_black">Black: inaccuracies %1$d, mistakes %2$d, blunders %3$d</string>
+    <!-- ECO code and the opening's name, which stays in English, for example "C60 Ruy Lopez". -->
+    <string name="opening_line" translatable="false">%1$s %2$s</string>
 </resources>
