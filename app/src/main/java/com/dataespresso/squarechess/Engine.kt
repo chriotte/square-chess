@@ -12,6 +12,8 @@ interface EngineController {
     suspend fun start()
     suspend fun newGame()
     suspend fun search(fen: String, moves: List<String>, level: Int): String
+    /** A suggested move for the player: full strength (Skill 20, one line), whatever the opponent's level. */
+    suspend fun hint(fen: String, moves: List<String>): String = search(fen, moves, HINT_LEVEL)
     fun stop()
     suspend fun close()
 }

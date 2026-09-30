@@ -18,10 +18,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
-data class ToolbarLayout(val review: Boolean, val undo: Boolean, val difficulty: Boolean)
-fun toolbarLayout(widthDp: Float, fontScale: Float): ToolbarLayout {
+data class ToolbarLayout(val review: Boolean, val undo: Boolean, val difficulty: Boolean, val hint: Boolean = false)
+/**
+ * Buttons that fit beside the status text. The Hint button ranks after Menu: it takes its
+ * space from Review, Undo and the level label, which stay in the menu. The board never shrinks.
+ */
+fun toolbarLayout(widthDp: Float, fontScale: Float, hints: Boolean = false): ToolbarLayout {
     val effective=widthDp/fontScale.coerceAtLeast(1f)
-    return ToolbarLayout(review=effective>=270,undo=effective>=410,difficulty=effective>=400)
+    val hintWidth=if(hints) HINT_BUTTON_SPACE else 0f
+    return ToolbarLayout(review=effective>=270+hintWidth,undo=effective>=410+hintWidth,
+        difficulty=effective>=400+hintWidth,hint=hints && effective>=200)
+}
+private const val HINT_BUTTON_SPACE=72f
+
+/** Header text while a hint is involved, or null for the normal status. */
+fun hintStatus(s: GameUi): HintText? {
+    s.visibleHint()?.let { hint -> return hintText(s.position,hint.move) }
+    if(s.hintBusy) return HintText("","Finding hint…","Finding hint")
+    s.hintError?.let { return HintText("",it,it) }
+    return null
 }
 
 fun gameStatus(s: GameUi): String = when {
@@ -43,20 +58,30 @@ class HeaderReviewNav(val onFirst: ()->Unit, val onPrevious: ()->Unit, val onNex
     s: GameUi, reviewPly: Int?, clock: ClockState? = null,
     onReview: ()->Unit, onReturn: ()->Unit, onUndo: ()->Unit, onMenu: ()->Unit,
     onPauseClock: ()->Unit = {}, onResumeClock: ()->Unit = {}, onClockExpired: ()->Unit = {},
-    reviewNav: HeaderReviewNav? = null, lastMove: String? = null
+    reviewNav: HeaderReviewNav? = null, lastMove: String? = null,
+    onHint: ()->Unit = {}, onHideHint: ()->Unit = {}
 ) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val layout=toolbarLayout(maxWidth.value,LocalDensity.current.fontScale)
+        val hints=reviewPly==null && s.hintsAvailable() && s.game?.result=="*"
+        val layout=toolbarLayout(maxWidth.value,LocalDensity.current.fontScale,hints)
         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
             Column(Modifier.weight(1f).padding(end=4.dp)) {
+                val hint=if(hints) remember(s.hint,s.hintBusy,s.hintError,s.position) { hintStatus(s) } else null
                 val status=if(reviewPly!=null) "Review · $reviewPly/${s.position.moves.size}" else gameStatus(s)
                 val difficulty=if(layout.difficulty && s.game?.mode==GameMode.COMPUTER.name) " · ${difficultyLabel(s.game.level)}" else ""
                 // Two 14 sp lines fit the 56 dp minimum header up to font scale 1.3, so the
                 // extra text cannot make the header (and so the board) change size.
                 val move=if(reviewPly==null && lastMove!=null && LocalDensity.current.fontScale<=1.3f) "$lastMove · " else ""
+                // A hint replaces the status in the same text line, so the header keeps its height.
+                val text=when {
+                    hint==null -> move+status+difficulty
+                    hint.san.isEmpty() -> hint.detail
+                    else -> "Hint: ${hint.san} · ${hint.detail}"
+                }
                 // With a clock the header already holds two rows; one status line keeps its height unchanged.
-                Text(move+status+difficulty,fontSize=14.sp,fontWeight=FontWeight.Medium,
-                    maxLines=if(clock!=null) 1 else 2,overflow=TextOverflow.Ellipsis)
+                Text(text,fontSize=14.sp,fontWeight=FontWeight.Medium,
+                    maxLines=if(clock!=null) 1 else 2,overflow=TextOverflow.Ellipsis,
+                    modifier=if(hint!=null) Modifier.semantics { contentDescription=hint.spoken } else Modifier)
                 if(clock!=null) ClockReadout(
                     clock,onPauseClock,onResumeClock,onClockExpired,
                     canToggle=reviewPly==null && s.game?.result=="*"
@@ -73,6 +98,14 @@ class HeaderReviewNav(val onFirst: ()->Unit, val onPrevious: ()->Unit, val onNex
                 Arrow("‹","Previous move",reviewPly>0,reviewNav.onPrevious)
                 Arrow("›","Next move",reviewPly<total,reviewNav.onNext)
                 if(edges) Arrow("›|","Last position",reviewPly<total,reviewNav.onLast)
+            }
+            if(layout.hint) {
+                val shown=s.visibleHint()!=null
+                FilledTonalButton(onClick=if(shown) onHideHint else onHint,
+                    enabled=shown || (s.canEnterMove() && !s.hintBusy),
+                    modifier=Modifier.sizeIn(minWidth=64.dp,minHeight=48.dp)
+                        .semantics { contentDescription=if(shown) "Hide hint" else "Show hint" },
+                    contentPadding=PaddingValues(horizontal=10.dp)) { Text(if(shown) "Hide" else "Hint") }
             }
             if(reviewPly!=null) FilledTonalButton(onClick=onReturn,
                 modifier=Modifier.heightIn(min=48.dp).semantics { contentDescription="Return to game" },

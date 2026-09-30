@@ -21,7 +21,10 @@ data class GameUi(
     val engineError: String? = null,
     val clock: ClockState? = null,
     val resultEvent: ResultEvent? = null,
-    val ready: Boolean = false
+    val ready: Boolean = false,
+    val hint: Hint? = null,
+    val hintBusy: Boolean = false,
+    val hintError: String? = null
 )
 data class ResultEvent(val result: String, val reason: String)
 class GameViewModel private constructor(
@@ -37,6 +40,7 @@ class GameViewModel private constructor(
     private val commitLock = Mutex()
     private var foreground = true
     private var engineJob: Job? = null
+    private var hintJob: Job? = null
     private var clockCheckpointJob: Job? = null
     init {
         viewModelScope.launch {
@@ -50,9 +54,12 @@ class GameViewModel private constructor(
         engine.stop()
         engineJob?.cancel()
         engineJob=null
+        hintJob?.cancel()
+        hintJob=null
         clockCheckpointJob?.cancel()
         clockCheckpointJob=null
-        if(state.value.busy) state.value=state.value.copy(busy=false)
+        // A shown hint stays: visibleHint() hides it once the position is different.
+        if(state.value.busy || state.value.hintBusy) state.value=state.value.copy(busy=false,hintBusy=false)
     }
     suspend fun load(game: SavedGame, recoverClock: Boolean = true) {
         invalidate()
@@ -79,7 +86,8 @@ class GameViewModel private constructor(
         level: Int,
         humanWhite: Boolean,
         clockConfig: ClockConfig? = null,
-        initialFen: String = START_FEN
+        initialFen: String = START_FEN,
+        hintsEnabled: Boolean = false
     ) = viewModelScope.launch {
         foreground=true
         commitLock.withLock {
@@ -93,7 +101,8 @@ class GameViewModel private constructor(
             val game=SavedGame(UUID.randomUUID().toString(),mode.name,initialFen=initialFen,level=level,humanWhite=humanWhite,
                 white=if(mode==GameMode.COMPUTER && !humanWhite) "Computer (${difficultyLabel(level)})" else "White",
                 black=if(mode==GameMode.COMPUTER && humanWhite) "Computer (${difficultyLabel(level)})" else "Black",
-                result=result,resultReason=if(result!="*") initialPosition.automaticResultReason().orEmpty() else "")
+                result=result,resultReason=if(result!="*") initialPosition.automaticResultReason().orEmpty() else "",
+                hintsEnabled=hintsEnabled && mode==GameMode.COMPUTER)
                 .withClock(clock, now)
             db.games().save(game)
             load(game, recoverClock=false)
@@ -140,12 +149,16 @@ class GameViewModel private constructor(
             .withClock(clock, now)
         db.games().save(saved)
         revision++
+        if(s.hintBusy) { hintJob?.cancel(); hintJob=null; engine.stop() }
         val highlightRevision=revision
         state.value=s.copy(
             game=saved,
             position=p,
             busy=false,
             engineError=null,
+            hint=null,
+            hintBusy=false,
+            hintError=null,
             clock=clock,
             highlightMove=uci,
             resultEvent=if(result!="*") ResultEvent(result,p.automaticResultReason() ?: "Game finished") else null,
@@ -179,6 +192,35 @@ class GameViewModel private constructor(
                 Log.e("SquareChess","Engine failed",e)
             }
         }
+    }
+    /**
+     * Asks the engine for a suggested move on the player's turn. The move is only shown, never
+     * played, and the clock keeps running. A result for a position that has since changed is dropped.
+     */
+    fun requestHint() {
+        val s=state.value; val g=s.game ?: return
+        if(!foreground || !s.hintsAvailable() || !s.canEnterMove() || s.hintBusy) return
+        val key=s.positionKey()
+        val token=revision
+        state.value=s.copy(hint=null,hintBusy=true,hintError=null)
+        hintJob=viewModelScope.launch {
+            val best=try { engine.hint(g.initialFen,s.position.moves) }
+                catch(e: CancellationException) { throw e }
+                catch(e: Exception) { Log.e("SquareChess","Hint failed",e); null }
+            commitLock.withLock {
+                val now=state.value
+                if(token!=revision || now.positionKey()!=key || !now.hintBusy) return@withLock
+                val move=best?.let { now.position.resolve(it) }
+                if(best!=null && move==null) Log.e("SquareChess","Engine hint is not legal here: $best")
+                state.value=if(move!=null) now.copy(hint=Hint(move.toString(),key),hintBusy=false)
+                    else now.copy(hintBusy=false,hintError="Hint unavailable · Try again")
+            }
+        }
+    }
+    fun clearHint() {
+        if(state.value.hintBusy) { hintJob?.cancel(); engine.stop() }
+        hintJob=null
+        state.value=state.value.copy(hint=null,hintBusy=false,hintError=null)
     }
     fun undo() = viewModelScope.launch { commitLock.withLock {
         val s=state.value; val g=s.game ?: return@withLock
@@ -333,6 +375,8 @@ class GameViewModel private constructor(
         revision++
         engine.stop()
         engineJob = null
+        hintJob?.cancel()
+        hintJob = null
         val flagged = clock.active
         val opponent=if(flagged==ClockSide.WHITE) Side.BLACK else Side.WHITE
         val result = if (s.position.provenUnableToMate(opponent)) "1/2-1/2"
@@ -340,7 +384,7 @@ class GameViewModel private constructor(
         val reason = "${flagged.name.lowercase().replaceFirstChar(Char::titlecase)} ran out of time"
         val saved = game.copy(result=result,resultReason=reason,updated=System.currentTimeMillis()).withClock(clock,SystemClock.elapsedRealtime())
         db.games().save(saved)
-        state.value=s.copy(game=saved,clock=clock,busy=false,engineError=null,
+        state.value=s.copy(game=saved,clock=clock,busy=false,engineError=null,hint=null,hintBusy=false,hintError=null,
             resultEvent=ResultEvent(result,reason),message="Time expired · $result")
     }
     override fun onCleared() { engine.stop(); db.close(); super.onCleared() }

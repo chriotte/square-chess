@@ -28,7 +28,9 @@ data class SavedGame(
     @ColumnInfo(defaultValue="NULL") val clockPhase: String? = null,
     @ColumnInfo(defaultValue="NULL") val clockInterrupted: Boolean? = null,
     @ColumnInfo(defaultValue="NULL") val clockDelayMs: Long? = null,
-    @ColumnInfo(defaultValue="NULL") val clockDelayRemainingMs: Long? = null
+    @ColumnInfo(defaultValue="NULL") val clockDelayRemainingMs: Long? = null,
+    /** Chosen when a computer game starts; an app setting, not PGN metadata. */
+    @ColumnInfo(defaultValue="0") val hintsEnabled: Boolean = false
 )
 @Dao interface GameDao {
     @Query("SELECT * FROM games ORDER BY updated DESC") fun observeGames(): Flow<List<SavedGame>>
@@ -37,7 +39,7 @@ data class SavedGame(
     @Insert(onConflict=OnConflictStrategy.REPLACE) suspend fun save(game: SavedGame)
     @Query("DELETE FROM games WHERE id = :id") suspend fun delete(id: String)
 }
-@Database(entities=[SavedGame::class], version=4, exportSchema=true)
+@Database(entities=[SavedGame::class], version=5, exportSchema=true)
 abstract class ChessDatabase : RoomDatabase() { abstract fun games(): GameDao }
 
 val MIGRATION_1_2 = object: Migration(1,2) {
@@ -63,9 +65,14 @@ val MIGRATION_3_4 = object: Migration(3,4) {
         db.execSQL("ALTER TABLE games ADD COLUMN clockDelayRemainingMs INTEGER DEFAULT NULL")
     }
 }
+val MIGRATION_4_5 = object: Migration(4,5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE games ADD COLUMN hintsEnabled INTEGER NOT NULL DEFAULT 0")
+    }
+}
 fun openChessDatabase(context: Context, name: String="square-chess.db") =
     Room.databaseBuilder(context,ChessDatabase::class.java,name)
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).build()
 
 fun defaultFlipFor(game: SavedGame?): Boolean = game?.orientationFlipped
     ?: (game?.mode==GameMode.COMPUTER.name && !game.humanWhite)

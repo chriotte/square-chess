@@ -26,6 +26,8 @@ val ENGINE_LEVELS=listOf(
 )
 const val DEFAULT_LEVEL=3
 const val ENGINE_MOVE_TIME_MS=500
+/** Hints use the full-strength level, so a Level 1 player gets a good move, not a weak one. */
+val HINT_LEVEL=ENGINE_LEVELS.size
 
 fun engineLevel(level: Int)=ENGINE_LEVELS[level.coerceIn(1,ENGINE_LEVELS.size)-1]
 fun difficultyLabel(level: Int)="Level ${level.coerceIn(1,ENGINE_LEVELS.size)}"

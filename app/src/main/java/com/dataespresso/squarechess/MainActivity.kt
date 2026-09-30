@@ -18,6 +18,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -143,6 +144,7 @@ class MainActivity: ComponentActivity() {
                 var selectedMode by rememberSaveable { mutableStateOf(GameMode.COMPUTER) }
                 var level by rememberSaveable { mutableIntStateOf(DEFAULT_LEVEL) }
                 var white by rememberSaveable { mutableStateOf(true) }
+                var allowHints by rememberSaveable { mutableStateOf(false) }
                 var standaloneClock by rememberSaveable(stateSaver=clockStateSaver) {
                     mutableStateOf(ClockState(ClockConfig(300_000,0)))
                 }
@@ -201,6 +203,7 @@ class MainActivity: ComponentActivity() {
                 }
                 fun openNewGame(mode: GameMode) {
                     selectedMode=mode
+                    allowHints=false
                     moreSetupOptions=false
                     importedFen=null
                     fenImportError=null
@@ -314,7 +317,8 @@ class MainActivity: ComponentActivity() {
                                         reviewNav=if(reviewBarBelow) null else HeaderReviewNav(
                                             onFirst={stepReview(0)},onPrevious={stepReview((reviewPly ?: 0)-1)},
                                             onNext={stepReview((reviewPly ?: 0)+1)},onLast={stepReview(s.position.moves.size)}),
-                                        lastMove=if(moveStripShown) null else lastMoveText(san,firstMoveNumber,whiteFirst))
+                                        lastMove=if(moveStripShown) null else lastMoveText(san,firstMoveNumber,whiteFirst),
+                                        onHint={vm.requestHint()},onHideHint={vm.clearHint()})
                                 }
                                 BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(),contentAlignment=Alignment.TopCenter) {
                                     // The board size is decided first and never depends on the optional
@@ -355,6 +359,10 @@ class MainActivity: ComponentActivity() {
                                     ChessBoard(display,flip,Modifier.fillMaxSize(),prefs, cancelDraft={
                                         if(draft.text.isNotEmpty()) { draft=NotationDraft(); true } else false
                                     }) { move -> vm.enter(move) }
+                                    // Drawn over the board but without pointer input, so moves still reach it.
+                                    if(reviewPly==null) s.visibleHint()?.let { hint ->
+                                        HintOverlay(hint.move,flip,Modifier.fillMaxSize())
+                                    }
                                     if(draft.text.isNotEmpty()) Surface(
                                         modifier=Modifier.align(Alignment.TopCenter).padding(8.dp),
                                         shape=RoundedCornerShape(12.dp), tonalElevation=8.dp
@@ -401,6 +409,16 @@ class MainActivity: ComponentActivity() {
                                 onWhiteSelected={white=true},
                                 onBlackSelected={white=false}
                             )
+                            Row(Modifier.fillMaxWidth().padding(top=8.dp).clip(RoundedCornerShape(8.dp))
+                                .toggleable(value=allowHints,role=Role.Checkbox,onValueChange={allowHints=it})
+                                .padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically) {
+                                Checkbox(checked=allowHints,onCheckedChange=null)
+                                Spacer(Modifier.width(8.dp))
+                                Column {
+                                    Text("Allow hints")
+                                    Text("Show a Hint button during your turns.",fontSize=12.sp,color=Color(0xFFAFBCB4))
+                                }
+                            }
                         } else Text(if(selectedMode==GameMode.PHYSICAL_BOARD_RECORDING) "Enter moves from your board. No hints or engine analysis during recording. A casual companion, not tournament-approved equipment." else "Share this board with a friend. Choose a time control or play untimed.")
                         Spacer(Modifier.height(8.dp))
                         if(selectedMode!=GameMode.PHYSICAL_BOARD_RECORDING) Box {
@@ -437,7 +455,8 @@ class MainActivity: ComponentActivity() {
                         ?: error("Unknown time control: $clockPreset")
                     val clockConfig=if(selectedMode==GameMode.PHYSICAL_BOARD_RECORDING) null else selectedClockPreset.config
                     flip=selectedMode==GameMode.COMPUTER && !white
-                    vm.newGame(selectedMode,level.coerceIn(1,ENGINE_LEVELS.size),white,clockConfig,importedFen ?: START_FEN)
+                    vm.newGame(selectedMode,level.coerceIn(1,ENGINE_LEVELS.size),white,clockConfig,importedFen ?: START_FEN,
+                        hintsEnabled=selectedMode==GameMode.COMPUTER && allowHints)
                     importedFen=null;fenImportError=null
                     screen="game";draft=NotationDraft();dialog=""
                 }) {Text("Start game")}},dismissButton={TextButton(onClick={dialog=""}){Text("Cancel")}})
@@ -445,6 +464,10 @@ class MainActivity: ComponentActivity() {
                     val computerGame=s.game?.mode==GameMode.COMPUTER.name
                     if(s.game?.result=="*" && reviewPly==null) {
                         MenuSection("Game")
+                        if(s.hintsAvailable()) {
+                            if(s.visibleHint()!=null) TextButton(onClick={vm.clearHint();dialog=""}){Text("Hide hint")}
+                            else TextButton(enabled=s.canEnterMove() && !s.hintBusy,onClick={vm.requestHint();dialog=""}){Text("Show hint")}
+                        }
                         if(s.position.moves.isNotEmpty()) TextButton(enabled=!s.busy,onClick={dialog="undo"}){Text("Undo / take back")}
                         if(s.position.canClaimDraw()) TextButton(onClick={vm.end("1/2-1/2","Draw claimed");dialog=""}){Text("Claim draw")}
                         if(computerGame) TextButton(onClick={dialog="resign"}){Text("Resign")}
@@ -541,7 +564,7 @@ class MainActivity: ComponentActivity() {
                         confirmButton={TextButton(onClick={
                             val g=s.game
                             resultDialog=null;vm.acknowledgeResult()
-                            if(g!=null) { selectedMode=runCatching { GameMode.valueOf(g.mode) }.getOrDefault(selectedMode); level=g.level; white=g.humanWhite }
+                            if(g!=null) { selectedMode=runCatching { GameMode.valueOf(g.mode) }.getOrDefault(selectedMode); level=g.level; white=g.humanWhite; allowHints=g.hintsEnabled }
                             dialog="new"
                         }) { Text("Play again") }},
                         dismissButton={TextButton(onClick={resultDialog=null;vm.acknowledgeResult();screen="home";vm.pauseForNavigation()}) { Text("Save & home") }}
@@ -804,8 +827,7 @@ internal fun historyDate(millis: Long): String =
         val cell=boardPx/8f
         val col=(offset.x/cell).toInt(); val row=(offset.y/cell).toInt()
         if(col !in 0..7 || row !in 0..7) return null
-        val file=if(flip) 7-col else col; val rank=if(flip) row else 7-row
-        return Square.squareAt(rank*8+file)
+        return squareAtCell(col,row,flip)
     }
     val currentOnMove by rememberUpdatedState(onMove)
     val currentCancelDraft by rememberUpdatedState(cancelDraft)
@@ -836,8 +858,8 @@ internal fun historyDate(millis: Long): String =
     }) {
         for(row in 0..7) Row(Modifier.weight(1f)) {
             for(col in 0..7) {
-                val file=if(flip) 7-col else col; val rank=if(flip) row else 7-row
-                val square=Square.squareAt(rank*8+file)
+                val square=squareAtCell(col,row,flip)
+                val file=square.file.ordinal; val rank=square.rank.ordinal
                 val piece=s.position.board.getPiece(square)
                 val targets=if(canInteract) legal.filter{it.from==selected && it.to==square} else emptyList()
                 val last=s.highlightMove.orEmpty()
