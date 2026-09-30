@@ -15,7 +15,9 @@
 </tr>
 </table>
 
-**[Get it on Google Play](https://play.google.com/store/apps/details?id=com.dataespresso.squarechess)** · **[Download the latest APK](https://github.com/chriotte/square-chess/releases/latest)** · F-Droid coming soon
+<a href="https://play.google.com/store/apps/details?id=com.dataespresso.squarechess"><img src="docs/images/badges/google-play.png" alt="Get it on Google Play" height="64"></a> <a href="https://github.com/chriotte/square-chess/releases/latest"><img src="docs/images/badges/github.png" alt="Get the latest APK on GitHub" height="64"></a>
+
+F-Droid: coming soon
 
 ## Why Square Chess?
 
@@ -72,7 +74,7 @@ Square Chess requires:
 - Android 10 (API 29) or newer
 - ARM64
 
-It is developed and tested on the **Unihertz Titan 2 Elite** and an **e-ink Android tablet**, with additional testing for other screen sizes and physical-keyboard devices.
+It is developed and tested on the **Unihertz Titan 2 Elite** and an **Onyx Boox Note3** e-ink tablet, with additional testing for other screen sizes and physical-keyboard devices.
 
 It also works on conventional Android phones and tablets.
 
@@ -123,3 +125,5 @@ Square Chess is designed and built by **Christopher Ottesen**.
 Square Chess is free software licensed under the [GNU General Public License v3.0 or later](LICENSE).
 
 Third-party components and their licences are documented in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+
+Google Play and the Google Play logo are trademarks of Google LLC. The GitHub download badge is by @flocke under CC BY-SA 3.0 ([details](docs/images/badges/README.md)).
