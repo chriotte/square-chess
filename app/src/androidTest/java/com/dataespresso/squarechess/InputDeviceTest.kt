@@ -28,9 +28,12 @@ class InputDeviceTest {
     }
     private fun waitNode(text: String): AccessibilityNodeInfo {
         val deadline=SystemClock.uptimeMillis()+10_000
+        var attempts=0
         while(SystemClock.uptimeMillis()<deadline) {
             dismissImmersiveModePrompt()
             find(instrumentation.uiAutomation.rootInActiveWindow,text)?.let { return it }
+            // After 2 s, look further down scrolling lists (small screens).
+            if(++attempts%20==0) scrollForward()
             SystemClock.sleep(100)
         }
         fun visible(node: AccessibilityNodeInfo?): String {
@@ -131,7 +134,8 @@ class InputDeviceTest {
                 waitNode("e4, white pawn")
                 assertEquals("e2e4",db.games().latest()!!.moves)
                 tap("Review")
-                tap("First position")
+                // Narrow screens show no First/Last buttons in the header; one move back is the same here.
+                tap(if(find(instrumentation.uiAutomation.rootInActiveWindow,"First position")!=null) "First position" else "Previous move")
                 waitNode("e4, empty")
                 type("e7e5"); enter()
                 assertEquals("e2e4",db.games().latest()!!.moves)

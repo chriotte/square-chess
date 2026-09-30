@@ -55,10 +55,13 @@ class ClockDeviceTest {
     private fun node(text: String): AccessibilityNodeInfo {
         val deadline=SystemClock.uptimeMillis()+10_000
         var root: AccessibilityNodeInfo? = null
+        var attempts=0
         while(SystemClock.uptimeMillis()<deadline) {
             dismissImmersiveModePrompt()
             root=instrumentation.uiAutomation.rootInActiveWindow
             find(root,text)?.let { return it }
+            // After 2 s, look further down scrolling lists (small screens).
+            if(++attempts%20==0) scrollForward()
             SystemClock.sleep(100)
         }
         error("Missing UI node: $text\n${describe(root)}")

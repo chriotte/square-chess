@@ -30,3 +30,21 @@ internal fun dismissImmersiveModePrompt() {
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
     }
 }
+
+/**
+ * On small screens (Light Phone III) a menu item can be below the visible part of a
+ * scrolling dialog, where Compose does not report it. Scrolls every scrollable node one
+ * step forward; returns false when nothing could scroll further.
+ */
+internal fun scrollForward(): Boolean {
+    val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow ?: return false
+    var scrolled = false
+    fun visit(node: AccessibilityNodeInfo?) {
+        if (node == null) return
+        if (node.isScrollable && node.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)) scrolled = true
+        for (index in 0 until node.childCount) visit(node.getChild(index))
+    }
+    visit(root)
+    InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+    return scrolled
+}
