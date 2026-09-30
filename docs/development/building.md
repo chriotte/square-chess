@@ -4,7 +4,7 @@
 
 | Tool | Version |
 |---|---|
-| JDK | 17 |
+| JDK | 21 (releases; F-Droid builds with 21) |
 | Gradle | 8.13 (wrapper included; use `./gradlew`) |
 | Android Gradle Plugin | 8.13.0 |
 | Kotlin | 2.2.10 |

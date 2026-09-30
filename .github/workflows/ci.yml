@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
 
       # The runner image includes the Android SDK; install only what this build pins.
       # "yes" ends with SIGPIPE when sdkmanager stops reading, so it may not fail the step.

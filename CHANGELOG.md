@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.7 — unreleased
+- Release builds use JDK 21, the same as the F-Droid build server, so F-Droid's build of the source matches the signed APK on GitHub Releases. No changes to the app itself.
+
 ## 1.0.6 — 29 September 2026
 - Reproducible on any day and computer: the engine no longer embeds its compile date, and packaged assets keep LF line endings on every OS. No changes to the app itself.
 
