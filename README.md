@@ -120,6 +120,8 @@ See:
 
 Square Chess is designed and built by **Christopher Ottesen**.
 
+If you want to support development, you can donate on [Liberapay](https://liberapay.com/chriotte).
+
 ## Licence
 
 Square Chess is free software licensed under the [GNU General Public License v3.0 or later](LICENSE).
