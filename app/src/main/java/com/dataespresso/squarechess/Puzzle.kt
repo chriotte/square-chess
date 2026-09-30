@@ -24,11 +24,14 @@ fun parsePuzzleLine(line: String): Puzzle? {
     if(parts.size!=6) return null
     val (id,fen,moves,rating,popularity,themes)=parts
     val list=moves.split(' ').filter(String::isNotBlank)
-    if(id.isBlank() || fen.split(' ').size!=6 || list.size<2 || list.any { !UCI.matches(it) }) return null
+    if(id.isBlank() || fen.count { it==' ' }!=5 || list.size<2 || !list.all(::isUci)) return null
     return Puzzle(id,fen,list,rating.toIntOrNull() ?: return null,popularity.toIntOrNull() ?: return null,
         themes.split(' ').filter(String::isNotBlank).toSet())
 }
-private val UCI=Regex("[a-h][1-8][a-h][1-8][qrbn]?")
+/** "e2e4" or "e7e8q". A plain check: the pack is parsed on every first open, so no regex per move. */
+private fun isUci(move: String): Boolean = (move.length==4 || move.length==5) &&
+    move[0] in 'a'..'h' && move[1] in '1'..'8' && move[2] in 'a'..'h' && move[3] in '1'..'8' &&
+    (move.length==4 || move[4] in "qrbn")
 private operator fun <T> List<T>.component6(): T = this[5]
 
 /** Small theme groups for choosing what to train; the pack keeps the Lichess tags themselves. */

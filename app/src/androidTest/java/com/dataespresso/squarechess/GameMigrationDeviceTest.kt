@@ -33,6 +33,9 @@ class GameMigrationDeviceTest {
                 assertFalse("Old games upgrade with hints off",old.hintsEnabled)
                 assertFalse("Old games upgrade with evaluation off",old.evaluationEnabled)
                 assertEquals("",old.evaluations)
+                // Version 7 adds puzzle progress in its own table.
+                assertEquals(emptyList<PuzzleProgress>(),db.puzzleProgress().all())
+                db.puzzleProgress().save(recordAttempt(null,"00B3B",AttemptResult.WITH_HELP,1,true,42))
                 assertTrue(defaultFlipFor(old))
                 assertNotNull(ChessPosition(moves=old.moves.split(" ")).resolve("Nf3"))
                 val clock=ClockState(ClockConfig(300_000,5_000,3_000)).start(100).finish(200)
@@ -49,6 +52,9 @@ class GameMigrationDeviceTest {
                 assertTrue(restored.hintsEnabled)
                 assertTrue(restored.evaluationEnabled)
                 assertEquals("0=c30/e2e4",restored.evaluations)
+                val puzzle=reopened.puzzleProgress().get("00B3B")!!
+                assertEquals(1,puzzle.hints)
+                assertEquals(42L,puzzle.nextReviewAt)
                 assertEquals("e2e4 e7e5",restored.moves)
                 assertEquals(300_000L,restored.clockBaseMs)
                 assertEquals(5_000L,restored.clockIncrementMs)
