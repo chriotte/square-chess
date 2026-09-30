@@ -289,7 +289,7 @@
     <string name="coordinates">Show coordinates</string>
     <string name="coordinates_help">Files and ranks on the board edge</string>
     <string name="eink_mode">E-ink mode</string>
-    <string name="eink_mode_help">Black and white only, no animations. For e-paper screens such as Boox.</string>
+    <string name="eink_mode_help">Black and white only, no animations. For e-ink devices.</string>
     <string name="board_colours">Board colours</string>
     <string name="eink_board_note">E-ink mode uses a black-and-white board with hatched dark squares.</string>
     <string name="theme_green">Green</string>

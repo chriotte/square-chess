@@ -284,7 +284,7 @@
     <string name="coordinates">Koordinaten zeigen</string>
     <string name="coordinates_help">Linien und Reihen am Brettrand</string>
     <string name="eink_mode">E-Ink-Modus</string>
-    <string name="eink_mode_help">Nur Schwarz und Weiß, keine Animationen. Für E-Paper-Bildschirme wie Boox.</string>
+    <string name="eink_mode_help">Nur Schwarz und Weiß, keine Animationen. Für E-Ink-Geräte.</string>
     <string name="board_colours">Brettfarben</string>
     <string name="eink_board_note">Der E-Ink-Modus verwendet ein schwarz-weißes Brett mit schraffierten dunklen Feldern.</string>
     <string name="theme_green">Grün</string>

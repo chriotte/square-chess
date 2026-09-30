@@ -277,7 +277,7 @@
     <string name="coordinates">显示坐标</string>
     <string name="coordinates_help">在棋盘边缘显示列和行</string>
     <string name="eink_mode">墨水屏模式</string>
-    <string name="eink_mode_help">仅黑白显示，无动画。适用于文石 Boox 等电子纸屏幕。</string>
+    <string name="eink_mode_help">仅黑白显示，无动画。适用于墨水屏设备。</string>
     <string name="board_colours">棋盘颜色</string>
     <string name="eink_board_note">墨水屏模式使用黑白棋盘，深色格子带斜线。</string>
     <string name="theme_green">绿色</string>

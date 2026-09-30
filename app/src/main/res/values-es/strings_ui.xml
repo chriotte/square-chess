@@ -291,7 +291,7 @@
     <string name="coordinates">Mostrar coordenadas</string>
     <string name="coordinates_help">Columnas y filas en el borde del tablero</string>
     <string name="eink_mode">Modo de tinta electrónica</string>
-    <string name="eink_mode_help">Solo blanco y negro, sin animaciones. Para pantallas de papel electrónico como Boox.</string>
+    <string name="eink_mode_help">Solo blanco y negro, sin animaciones. Para dispositivos de tinta electrónica.</string>
     <string name="board_colours">Colores del tablero</string>
     <string name="eink_board_note">El modo de tinta electrónica usa un tablero en blanco y negro con casillas oscuras rayadas.</string>
     <string name="theme_green">Verde</string>

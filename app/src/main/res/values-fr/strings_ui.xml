@@ -291,7 +291,7 @@
     <string name="coordinates">Afficher les coordonnées</string>
     <string name="coordinates_help">Colonnes et rangées au bord de l’échiquier</string>
     <string name="eink_mode">Mode encre électronique</string>
-    <string name="eink_mode_help">Noir et blanc uniquement, sans animations. Pour les écrans à papier électronique comme Boox.</string>
+    <string name="eink_mode_help">Noir et blanc uniquement, sans animations. Pour les appareils à encre électronique.</string>
     <string name="board_colours">Couleurs de l’échiquier</string>
     <string name="eink_board_note">Le mode encre électronique utilise un échiquier noir et blanc aux cases foncées hachurées.</string>
     <string name="theme_green">Vert</string>
