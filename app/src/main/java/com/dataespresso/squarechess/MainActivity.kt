@@ -763,7 +763,10 @@ class MainActivity: ComponentActivity() {
         val widthPx = with(density) { maxWidth.toPx() }
         val topCutouts = view.rootWindowInsets?.displayCutout?.boundingRects.orEmpty()
             .filter { it.top <= 0 && it.bottom > 0 }
-        val centralCutout = topCutouts.any { it.left < widthPx / 2 && it.right > widthPx / 2 }
+        // A camera hole that reaches the middle band is central. Some phones report only part of
+        // the hole: a CMF Phone 2 Pro reports Rect(454, 0 - 540, 126), ending exactly at the centre.
+        val centreBand = widthPx * 0.1f
+        val centralCutout = topCutouts.any { it.right >= widthPx / 2 - centreBand && it.left <= widthPx / 2 + centreBand }
         val unavailableBounds = topInset > 0 && topCutouts.isEmpty()
         val topPadding = if (centralCutout || unavailableBounds) with(density) { topInset.toDp() } else 0.dp
         val leftEdge = topCutouts.filter { it.right <= widthPx / 2 }.maxOfOrNull { it.right } ?: 0
