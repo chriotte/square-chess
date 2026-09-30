@@ -12,7 +12,7 @@
     <string name="howto_move_title">移动棋子</string>
     <string name="howto_move_body">点按一个棋子，再点按要走到的格子。圆点表示它可以走到的空格，圆环表示它可以吃掉的棋子。你也可以把棋子拖到目标格。再次点按已选中的棋子即可取消。兵走到底线时，请选择升变的棋子。</string>
     <string name="howto_keyboard_title">用键盘走棋</string>
-    <string name="howto_keyboard_body">在带键盘的手机上，输入走法后按回车键。请使用英文字母的国际象棋记谱法（e4、Nf3、exd5、O-O、e8=Q），或输入起止两个格子（e2e4、e7e8q）。输入时走法会显示在棋盘上方。退格键删除最后一个字符；Esc 键清除整个走法。</string>
+    <string name="howto_keyboard_body">在带键盘的手机上，输入走法后按回车键。请使用英文字母的国际象棋记谱法（e4、Nf3、exd5、O-O、e8=Q），或输入起止两个格子（e2e4、e7e8q）。输入时走法会显示在棋盘上方。退格键删除最后一个字符；Esc 键清除整个走法。输入数字时，可使用 Alt 键或长按按键。</string>
     <string name="howto_levels_title">电脑难度</string>
     <string name="howto_levels_body">1 级和 2 级：入门，会犯明显错误，常常漏看吃子。\n3 级和 4 级：休闲，会吃掉白送的子，但会漏掉战术。\n5 级到 7 级：从进步中的棋手到俱乐部棋手。\n8 级到 10 级：强，直到引擎的全部实力。\n\n电脑每步大约思考半秒。它在你的手机上运行，不需要联网。</string>
     <string name="howto_clock_title">棋钟</string>

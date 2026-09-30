@@ -23,6 +23,28 @@ class NotationTest {
         assertFalse(draft.submit("b").submitting)
         assertEquals("N",draft.type("N","b").text)
     }
+    @Test fun heldKeyReplacesItsLetterWithTheAltCharacter() {
+        // Hold E on a Titan: E typed 'e', its Alt character is '2'.
+        val typed=NotationDraft().type("ee","p")
+        assertEquals("e2",typed.hold('e','2',"p").text)
+        assertEquals("e2",NotationDraft().type("eE","p").hold('e','2',"p").text)
+        // Nothing changes when the last character is not that key's letter, for another
+        // position, while submitting, or when the key has no move character with Alt.
+        assertEquals("es",NotationDraft().type("es","p").hold('e','2',"p").text)
+        assertEquals(typed,typed.hold('e','2',"q"))
+        val submitting=typed.submit("p")
+        assertEquals(submitting,submitting.hold('e','2',"p"))
+        assertEquals(typed,typed.hold('e',null,"p"))
+        assertEquals("",NotationDraft().hold('e','2',"p").text)
+    }
+    @Test fun heldMoveCharacterSkipsAccentsAndNonNotationCharacters() {
+        assertEquals('2',heldMoveCharacter(listOf('2'.code)))
+        assertEquals('4',heldMoveCharacter(listOf(0,'4'.code)))
+        assertEquals('+',heldMoveCharacter(listOf('+'.code)))
+        assertNull(heldMoveCharacter(listOf('@'.code,0)))
+        assertNull(heldMoveCharacter(listOf('́'.code or android.view.KeyCharacterMap.COMBINING_ACCENT)))
+        assertNull(heldMoveCharacter(emptyList()))
+    }
     @Test fun sanUsesItsOwnPositionEvenOnFreshThread() {
         val executor=Executors.newSingleThreadExecutor()
         try {

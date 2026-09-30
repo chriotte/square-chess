@@ -19,6 +19,20 @@ data class NotationDraft(
     fun rejected(message: String) = copy(submitting=false, error=message)
 }
 
+/**
+ * A held key ("hold E for 2"): [typed] is the letter the key typed when it went down, [held]
+ * its Alt character. The letter is replaced only if it is still the last character of this draft.
+ */
+fun NotationDraft.hold(typed: Char, held: Char?, key: String): NotationDraft =
+    if (held == null || submitting || positionKey != key || text.lastOrNull()?.equals(typed, ignoreCase = true) != true) this
+    else backspace().type(held.toString(), key)
+
+/** The first of a key's Alt characters (key-map codes) that can be part of a move, or null. */
+fun heldMoveCharacter(altCodes: List<Int>): Char? = altCodes
+    .filter { it != 0 && it and android.view.KeyCharacterMap.COMBINING_ACCENT == 0 }
+    .map { it.toChar() }
+    .firstOrNull { it.isDigit() || it in "-+#=" }
+
 fun GameUi.positionKey() = "${game?.id}:${position.initialFen}:${position.moves.joinToString(" ")}:${game?.result}"
 fun GameUi.canEnterMove(): Boolean = game?.let {
     !busy && it.result == "*" &&

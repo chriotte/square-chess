@@ -581,6 +581,15 @@ class MainActivity: ComponentActivity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         // A captured key's UP must not reach a focused button and activate it.
         if(event.action==KeyEvent.ACTION_UP && consumedKeys.remove(event.keyCode)) return true
+        // Holding a key replaces the letter it typed with the key's Alt character, as phone
+        // keyboards do for numbers (hold E for 2 on a Titan). Keyboard apps such as PhysiBoard
+        // write that character into a text field, and a game has none; the key map decides it here.
+        if(gameVisible && !reviewing && !modalVisible && vm.state.value.canEnterMove() && !event.isCtrlPressed && !event.isMetaPressed) {
+            heldKeyCharacter(event)?.let { held ->
+                val changed=draft.hold(event.keyCharacterMap.get(event.keyCode,0).toChar(),held,vm.state.value.positionKey())
+                if(changed!=draft) { draft=changed; return true }
+            }
+        }
         if(event.action==KeyEvent.ACTION_DOWN && event.repeatCount>0 && event.keyCode in consumedKeys) return true
         if(!gameVisible || modalVisible) blockedNotation=false
         if(gameVisible && !modalVisible && !event.isCtrlPressed && !event.isMetaPressed) {
@@ -627,6 +636,16 @@ class MainActivity: ComponentActivity() {
     private fun consumeGameKey(event: KeyEvent): Boolean {
         if(event.action==KeyEvent.ACTION_DOWN) consumedKeys.add(event.keyCode)
         return true
+    }
+    /**
+     * The move character for a held key: the first repeat that Android marks as a long press,
+     * mapped through the keyboard's own key map with Alt. Null for other events and for Alt
+     * characters that cannot be part of a move.
+     */
+    private fun heldKeyCharacter(event: KeyEvent): Char? {
+        if(event.action!=KeyEvent.ACTION_DOWN || event.repeatCount!=1 || event.flags and KeyEvent.FLAG_LONG_PRESS==0 || event.isAltPressed) return null
+        return heldMoveCharacter(listOf(KeyEvent.META_ALT_ON or KeyEvent.META_ALT_RIGHT_ON,KeyEvent.META_ALT_ON or KeyEvent.META_ALT_LEFT_ON)
+            .map { event.keyCharacterMap.get(event.keyCode,it) })
     }
     private fun beginReview() {
         blockedNotation=false

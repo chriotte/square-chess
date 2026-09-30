@@ -13,7 +13,7 @@
     <string name="howto_move_title">Move the pieces</string>
     <string name="howto_move_body">Tap a piece, then tap the square to move it to. Dots mark the empty squares it can go to, and rings mark the pieces it can capture. You can also drag a piece to its square. Tap the selected piece again to cancel. When a pawn reaches the last row, choose the new piece.</string>
     <string name="howto_keyboard_title">Keyboard moves</string>
-    <string name="howto_keyboard_body">On a phone with a keyboard, type a move and press Enter. Use chess notation (e4, Nf3, exd5, O-O, e8=Q) or the two squares (e2e4, e7e8q). The move shows above the board while you type. Backspace deletes the last character; Escape clears the move.</string>
+    <string name="howto_keyboard_body">On a phone with a keyboard, type a move and press Enter. Use chess notation (e4, Nf3, exd5, O-O, e8=Q) or the two squares (e2e4, e7e8q). The move shows above the board while you type. Backspace deletes the last character; Escape clears the move. To type a digit, use Alt or hold the key.</string>
     <string name="howto_levels_title">Computer levels</string>
     <string name="howto_levels_body">Level 1 and 2: beginner, makes clear mistakes and often misses captures.\nLevel 3 and 4: casual, takes free pieces but misses tactics.\nLevel 5 to 7: improving player to club player.\nLevel 8 to 10: strong, up to the engine\'s full strength.\n\nThe computer thinks for about half a second for each move. It runs on your phone and needs no connection.</string>
     <string name="howto_clock_title">Clocks</string>

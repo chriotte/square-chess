@@ -12,7 +12,7 @@
     <string name="howto_move_title">Flytt brikkene</string>
     <string name="howto_move_body">Trykk på en brikke, og trykk deretter på feltet den skal flyttes til. Prikker viser de tomme feltene den kan gå til, og ringer viser brikkene den kan slå. Du kan også dra en brikke til feltet. Trykk på den valgte brikken igjen for å avbryte. Når en bonde når den siste raden, velger du den nye brikken.</string>
     <string name="howto_keyboard_title">Trekk med tastatur</string>
-    <string name="howto_keyboard_body">På en telefon med tastatur skriver du et trekk og trykker Enter. Bruk sjakknotasjon med engelske bokstaver (e4, Nf3, exd5, O-O, e8=Q) eller de to feltene (e2e4, e7e8q). Trekket vises over brettet mens du skriver. Tilbaketasten sletter det siste tegnet; Escape tømmer trekket.</string>
+    <string name="howto_keyboard_body">På en telefon med tastatur skriver du et trekk og trykker Enter. Bruk sjakknotasjon med engelske bokstaver (e4, Nf3, exd5, O-O, e8=Q) eller de to feltene (e2e4, e7e8q). Trekket vises over brettet mens du skriver. Tilbaketasten sletter det siste tegnet; Escape tømmer trekket. Tall skriver du med Alt eller ved å holde tasten inne.</string>
     <string name="howto_levels_title">Datamaskinens nivåer</string>
     <string name="howto_levels_body">Nivå 1 og 2: nybegynner, gjør tydelige feil og overser ofte slag.\nNivå 3 og 4: uformell, tar gratis brikker, men overser taktikker.\nNivå 5 til 7: spiller i utvikling til klubbspiller.\nNivå 8 til 10: sterk, opp til motorens fulle styrke.\n\nDatamaskinen tenker omtrent et halvt sekund per trekk. Den kjører på telefonen din og trenger ingen tilkobling.</string>
     <string name="howto_clock_title">Klokker</string>
