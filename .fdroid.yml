@@ -16,9 +16,9 @@ Repo: https://github.com/chriotte/square-chess.git
 Binaries: https://github.com/chriotte/square-chess/releases/download/v%v/Square-Chess-v%v.apk
 
 Builds:
-  - versionName: 1.0.7
-    versionCode: 8
-    commit: 702d37f83c9adf5c2399b42205d403993095b2af
+  - versionName: 1.0.8
+    versionCode: 9
+    commit: 68a81e7401e57ea02dc0eeddb35362a6c2b30cf2
     subdir: app
     gradle:
       - yes
@@ -28,5 +28,5 @@ AllowedAPKSigningKeys: e6302c95f0da65d8f27c80c82d4b82c979af75bbc1ea383547cd079ec
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[0-9.]+$
-CurrentVersion: 1.0.7
-CurrentVersionCode: 8
+CurrentVersion: 1.0.8
+CurrentVersionCode: 9
