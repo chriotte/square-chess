@@ -1,6 +1,9 @@
 # Changelog
 
-## 1.0.7 — unreleased
+## 1.0.8 — 30 September 2026
+- The APK no longer contains Google's encrypted dependency list (an extra signing block that F-Droid does not accept). The Play bundle still has it. No changes to the app itself.
+
+## 1.0.7 — 30 September 2026
 - Release builds use JDK 21, the same as the F-Droid build server, so F-Droid's build of the source matches the signed APK on GitHub Releases. No changes to the app itself.
 
 ## 1.0.6 — 29 September 2026

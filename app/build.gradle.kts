@@ -35,8 +35,8 @@ android {
         manifestPlaceholders["appLabel"] = if (devBuild) "Square Chess Dev" else "Square Chess"
         minSdk = 29
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.0.7"
+        versionCode = 9
+        versionName = "1.0.8"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild { cmake { cppFlags += "-std=c++17" } }
     }
@@ -55,6 +55,9 @@ android {
     kotlinOptions { jvmTarget = "17" }
     externalNativeBuild { cmake { path = file("../native/CMakeLists.txt"); version = "3.22.1" } }
     packaging { resources.excludes += setOf("META-INF/LICENSE*", "META-INF/NOTICE*") }
+    // The encrypted dependency list is for Google Play; F-Droid rejects the extra APK signing block.
+    // The Play bundle keeps it.
+    dependenciesInfo { includeInApk = false; includeInBundle = true }
     testOptions { unitTests.isReturnDefaultValues = true }
 }
 dependencies {
