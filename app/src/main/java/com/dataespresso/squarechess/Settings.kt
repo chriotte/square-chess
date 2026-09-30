@@ -30,7 +30,8 @@ data class AppSettings(
     val haptics: Boolean = true,
     val coordinates: Boolean = true,
     val legalMoves: Boolean = true,
-    val boardTheme: BoardTheme = BoardTheme.GREEN
+    val boardTheme: BoardTheme = BoardTheme.GREEN,
+    val eink: Boolean = false
 )
 
 /** Small per-device preferences; saved games stay in Room. */
@@ -41,7 +42,8 @@ class SettingsStore(context: Context) {
         haptics = prefs.getBoolean("haptics", true),
         coordinates = prefs.getBoolean("coordinates", true),
         legalMoves = prefs.getBoolean("legalMoves", true),
-        boardTheme = BoardTheme.entries.firstOrNull { it.name == prefs.getString("boardTheme", null) } ?: BoardTheme.GREEN
+        boardTheme = BoardTheme.entries.firstOrNull { it.name == prefs.getString("boardTheme", null) } ?: BoardTheme.GREEN,
+        eink = prefs.getBoolean("eink", isKnownEinkDevice())
     )
     fun save(settings: AppSettings) {
         prefs.edit()
@@ -50,6 +52,7 @@ class SettingsStore(context: Context) {
             .putBoolean("coordinates", settings.coordinates)
             .putBoolean("legalMoves", settings.legalMoves)
             .putString("boardTheme", settings.boardTheme.name)
+            .putBoolean("eink", settings.eink)
             .apply()
     }
 }
@@ -63,9 +66,12 @@ class SettingsStore(context: Context) {
         SettingSwitch("Vibration", "Short vibration when a move is played", settings.haptics) { onChange(settings.copy(haptics = it)) }
         SettingSwitch("Show legal moves", "Dots and rings on the squares a selected piece can move to", settings.legalMoves) { onChange(settings.copy(legalMoves = it)) }
         SettingSwitch("Show coordinates", "Files and ranks on the board edge", settings.coordinates) { onChange(settings.copy(coordinates = it)) }
+        SettingSwitch("E-ink mode", "Black and white only, no animations. For e-paper screens such as Boox.", settings.eink) { onChange(settings.copy(eink = it)) }
         Spacer(Modifier.height(12.dp))
         Text("Board colours", fontSize = 16.sp)
-        Row(Modifier.padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (settings.eink) Text("E-ink mode uses a black-and-white board with hatched dark squares.",
+            fontSize = 12.sp, color = LocalPalette.current.muted, modifier = Modifier.padding(vertical = 8.dp))
+        else Row(Modifier.padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             BoardTheme.entries.forEach { theme ->
                 val selected = settings.boardTheme == theme
                 Column(
@@ -100,7 +106,7 @@ class SettingsStore(context: Context) {
     ) {
         Column(Modifier.weight(1f)) {
             Text(title, fontSize = 16.sp)
-            Text(subtitle, fontSize = 12.sp, color = Color(0xFFAFBCB4))
+            Text(subtitle, fontSize = 12.sp, color = LocalPalette.current.muted)
         }
         Switch(checked = checked, onCheckedChange = null)
     }

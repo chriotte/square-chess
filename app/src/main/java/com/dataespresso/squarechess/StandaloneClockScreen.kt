@@ -7,6 +7,7 @@ import android.os.SystemClock
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -79,7 +80,8 @@ internal fun SideSelectionButtons(
     onBlackSelected: () -> Unit
 ) {
     Row(
-        Modifier.fillMaxWidth().background(Color(0xFF26302C), RoundedCornerShape(14.dp)).padding(4.dp),
+        Modifier.fillMaxWidth().background(LocalPalette.current.card, RoundedCornerShape(14.dp))
+            .then(if (LocalPalette.current.eink) Modifier.border(1.5.dp, LocalPalette.current.text, RoundedCornerShape(14.dp)) else Modifier).padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         listOf(
@@ -89,7 +91,7 @@ internal fun SideSelectionButtons(
             val selected = selectedWhite == isWhite
             Box(
                 Modifier.weight(1f).heightIn(min=48.dp)
-                    .background(if (selected) Color(0xFFDCC399) else Color.Transparent, RoundedCornerShape(11.dp))
+                    .background(if (selected) LocalPalette.current.accent else Color.Transparent, RoundedCornerShape(11.dp))
                     .selectable(
                         selected = selected,
                         role = Role.RadioButton,
@@ -102,7 +104,7 @@ internal fun SideSelectionButtons(
             ) {
                 Text(
                     label,
-                    color = if (selected) Color(0xFF171D1C) else Color(0xFFF3EEDF),
+                    color = if (selected) LocalPalette.current.onAccent else LocalPalette.current.text,
                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                     fontSize = 16.sp
                 )
@@ -213,7 +215,7 @@ internal fun StandaloneClockScreen(
                 }
             }
         )
-        HorizontalDivider(color=Color(0xFF54615B),thickness=2.dp)
+        HorizontalDivider(color=if(LocalPalette.current.eink) Color.Black else Color(0xFF54615B),thickness=2.dp)
         ClockSidePanel(
             side=ClockSide.BLACK,
             clock=clock,
@@ -384,9 +386,13 @@ private fun ClockSidePanel(
     val isWhite=side==ClockSide.WHITE
     val active=clock.active==side && clock.phase==ClockPhase.RUNNING
     val remaining=if(isWhite) clock.whiteMs else clock.blackMs
+    val palette=LocalPalette.current
+    // On e-ink the running clock is shown inverted: white text on black.
+    CompositionLocalProvider(LocalContentColor provides if(palette.eink && active) Color.White else LocalContentColor.current) {
     Column(
         modifier.fillMaxWidth()
-            .background(if(active) Color(0xFF35463E) else Color(0xFF222B28),RoundedCornerShape(14.dp))
+            .background(if(active) palette.clockPanelActive else palette.clockPanel,RoundedCornerShape(14.dp))
+            .then(if(palette.eink) Modifier.border(2.dp,Color.Black,RoundedCornerShape(14.dp)) else Modifier)
             .clickable(enabled=active,onClick=onPress)
             .semantics {
                 contentDescription="${if(isWhite) "White" else "Black"} clock${if(active) ", active" else ""}"
@@ -398,7 +404,7 @@ private fun ClockSidePanel(
             horizontalAlignment=Alignment.CenterHorizontally,
             modifier=Modifier.graphicsLayer { rotationZ=if(rotated) 180f else 0f }
         ) {
-            Text(if(isWhite) "White" else "Black",fontSize=18.sp,color=Color(0xFFDCC399))
+            Text(if(isWhite) "White" else "Black",fontSize=18.sp,color=if(palette.eink) LocalContentColor.current else palette.accent)
             Text(clockText(remaining),fontSize=48.sp,fontWeight=FontWeight.Bold,fontFamily=FontFamily.Monospace)
             if(active && clock.delayRemainingMs>0) {
                 Text("Delay ${clockText(clock.delayRemainingMs)}",fontSize=14.sp)
@@ -410,6 +416,7 @@ private fun ClockSidePanel(
                 clock.phase==ClockPhase.PAUSED && clock.active==side -> Text("Paused",fontSize=13.sp)
             }
         }
+    }
     }
 }
 

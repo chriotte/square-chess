@@ -91,11 +91,13 @@ private fun describe(pieces: List<Piece>, lead: Int): String =
 /** Last moves as one scrolling line; tapping opens the full move list. */
 @Composable fun MoveStrip(san: List<String>, firstMoveNumber: Int, whiteFirst: Boolean, currentPly: Int?, onOpen: () -> Unit, modifier: Modifier = Modifier) {
     val scroll = rememberScrollState()
-    LaunchedEffect(san.size, currentPly) { scroll.animateScrollTo(scroll.maxValue) }
+    val eink = LocalPalette.current.eink
+    // E-ink jumps instead of scrolling smoothly: each animation frame is a screen refresh.
+    LaunchedEffect(san.size, currentPly) { if (eink) scroll.scrollTo(scroll.maxValue) else scroll.animateScrollTo(scroll.maxValue) }
     Row(modifier.height(MOVE_STRIP_HEIGHT).clickable(role = Role.Button, onClick = onOpen)
         .semantics { contentDescription = "Move list, ${san.size} moves" }
         .horizontalScroll(scroll).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        if (san.isEmpty()) Text("No moves yet", fontSize = 13.sp, color = Color(0xFFAFBCB4))
+        if (san.isEmpty()) Text("No moves yet", fontSize = 13.sp, color = LocalPalette.current.muted)
         san.forEachIndexed { ply, move ->
             val whiteMove = (ply % 2 == 0) == whiteFirst
             val number = firstMoveNumber + (ply + if (whiteFirst) 0 else 1) / 2
@@ -143,7 +145,9 @@ fun lastMoveText(san: List<String>, firstMoveNumber: Int, whiteFirst: Boolean): 
                     val type = when (letter) { 'q' -> PieceType.QUEEN; 'r' -> PieceType.ROOK; 'b' -> PieceType.BISHOP; else -> PieceType.KNIGHT }
                     val name = when (letter) { 'q' -> "Queen"; 'r' -> "Rook"; 'b' -> "Bishop"; else -> "Knight" }
                     Surface(onClick = { onPick(move) }, shape = RoundedCornerShape(8.dp),
-                        color = Color(0xFFF2E7CF), modifier = Modifier.size(56.dp).semantics { contentDescription = name }) {
+                        color = if (LocalPalette.current.eink) Color.White else Color(0xFFF2E7CF),
+                        border = if (LocalPalette.current.eink) androidx.compose.foundation.BorderStroke(1.5.dp, Color.Black) else null,
+                        modifier = Modifier.size(56.dp).semantics { contentDescription = name }) {
                         Image(painterResource(pieceDrawable(Piece.make(if (white) Side.WHITE else Side.BLACK, type))), null, Modifier.padding(4.dp))
                     }
                 }

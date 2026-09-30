@@ -25,6 +25,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.border
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -74,10 +78,7 @@ import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
-private val Ink=Color(0xFF171D1C)
-private val Sand=Color(0xFFDCC399)
-private val LightSquare=Color(0xFFF2E7CF)
-private val DarkSquare=Color(0xFF526D62)
+private val CoordinateInk=Color(0xFF171D1C)
 private val CoordinateStyle=TextStyle(
     fontSize=9.sp,lineHeight=10.sp,fontWeight=FontWeight.SemiBold,
     platformStyle=PlatformTextStyle(includeFontPadding=false)
@@ -100,6 +101,8 @@ class MainActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         settings=settingsStore.load()
+        // The dark window background would flash on e-paper before the first frame.
+        if(settings.eink) window.decorView.setBackgroundColor(android.graphics.Color.WHITE)
         enableEdgeToEdge()
         window.attributes = window.attributes.apply {
             layoutInDisplayCutoutMode = if (Build.VERSION.SDK_INT >= 30)
@@ -108,22 +111,8 @@ class MainActivity: ComponentActivity() {
         }
         hideSystemBars()
         setContent {
-            MaterialTheme(colorScheme=darkColorScheme(
-                primary=Sand,onPrimary=Ink,
-                // Tonal buttons, dialogs and menus otherwise fall back to Material's purple.
-                secondary=Color(0xFFB9CBBF),onSecondary=Ink,
-                secondaryContainer=Color(0xFF3B4A43),onSecondaryContainer=Color(0xFFF3EEDF),
-                tertiary=Sand,onTertiary=Ink,
-                primaryContainer=Color(0xFF4A5A52),onPrimaryContainer=Color(0xFFF3EEDF),
-                background=Ink,onBackground=Color(0xFFF3EEDF),
-                surface=Color(0xFF222B28),onSurface=Color(0xFFF3EEDF),
-                surfaceVariant=Color(0xFF2E3833),onSurfaceVariant=Color(0xFFAFBCB4),
-                surfaceTint=Color(0xFF3B4A43),
-                surfaceContainerLowest=Color(0xFF151A19),surfaceContainerLow=Color(0xFF1D2422),
-                surfaceContainer=Color(0xFF222B28),surfaceContainerHigh=Color(0xFF28322E),
-                surfaceContainerHighest=Color(0xFF2E3833),
-                outline=Color(0xFF6F7F77),outlineVariant=Color(0xFF3B4A43)
-            )) {
+            SquareChessTheme(eink=settings.eink) {
+                val palette=LocalPalette.current
                 val s by vm.state.collectAsState()
                 val prefs=settings
                 val haptics=LocalHapticFeedback.current
@@ -221,7 +210,7 @@ class MainActivity: ComponentActivity() {
                 gameVisible=screen=="game"; reviewing=reviewPly!=null
                 modalVisible=dialog.isNotEmpty() || resultDialog!=null || entryPromotions.isNotEmpty()
                 BackHandler(draft.text.isNotEmpty()) { draft=NotationDraft() }
-                Surface(Modifier.fillMaxSize(),color=Ink) {
+                Surface(Modifier.fillMaxSize(),color=palette.background) {
                     // Home/history keep a conventional cutout inset. The game header
                     // handles the actual camera rectangle, using the space beside it.
                     Box(
@@ -245,13 +234,13 @@ class MainActivity: ComponentActivity() {
                                     Image(painterResource(R.drawable.ic_square_chess),contentDescription=null,
                                         modifier=Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)))
                                     Spacer(Modifier.width(12.dp))
-                                    Text("Square Chess",color=Color(0xFFF3EEDF),fontSize=24.sp,fontWeight=FontWeight.Medium)
+                                    Text("Square Chess",color=palette.text,fontSize=24.sp,fontWeight=FontWeight.Medium)
                                 }
                                 if(s.game!=null) Button(
                                     onClick={ flip=defaultFlipFor(s.game); reviewPly=null; screen="game"; vm.foreground() },
                                     modifier=Modifier.fillMaxWidth().heightIn(min=56.dp),
                                     shape=RoundedCornerShape(12.dp),
-                                    colors=ButtonDefaults.buttonColors(containerColor=Sand,contentColor=Ink)
+                                    colors=ButtonDefaults.buttonColors(containerColor=palette.accent,contentColor=palette.onAccent)
                                 ) { Text(if(s.game?.result=="*") "Continue game" else "View last game",fontSize=17.sp) }
                                 LandingOption(stringResource(R.string.play_against_computer)) { openNewGame(GameMode.COMPUTER) }
                                 LandingOption(stringResource(R.string.over_the_board)) { openNewGame(GameMode.LOCAL_TWO_PLAYER) }
@@ -279,7 +268,7 @@ class MainActivity: ComponentActivity() {
                                 }
                                 Text("Your games",fontFamily=FontFamily.Serif,fontSize=30.sp)
                                 if(history.isEmpty()) Text("Your first game starts here.")
-                                else Text("Long-press a game to delete it.",fontSize=12.sp,color=Color(0xFFAFBCB4),modifier=Modifier.padding(bottom=8.dp))
+                                else Text("Long-press a game to delete it.",fontSize=12.sp,color=LocalPalette.current.muted,modifier=Modifier.padding(bottom=8.dp))
                                 Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
                                     history.forEach { g -> HistoryRow(g,
                                         onOpen={ flip=defaultFlipFor(g); reviewPly=null; vm.resume(g); screen="game" },
@@ -396,10 +385,11 @@ class MainActivity: ComponentActivity() {
                             val shownLevel=level.coerceIn(1,ENGINE_LEVELS.size)
                             Text("${difficultyLabel(shownLevel)} · ${engineLevel(shownLevel).description}")
                             Slider(value=shownLevel.toFloat(),onValueChange={level=it.roundToInt()},valueRange=1f..10f,steps=8,
+                                colors=SliderDefaults.colors(inactiveTrackColor=palette.inactiveTrack),
                                 modifier=Modifier.semantics { contentDescription="Difficulty" })
                             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
-                                Text("Easier",fontSize=12.sp,color=Color(0xFFAFBCB4))
-                                Text("Stronger",fontSize=12.sp,color=Color(0xFFAFBCB4))
+                                Text("Easier",fontSize=12.sp,color=LocalPalette.current.muted)
+                                Text("Stronger",fontSize=12.sp,color=LocalPalette.current.muted)
                             }
                             Text("Choose your side",fontWeight=FontWeight.SemiBold)
                             SideSelectionButtons(
@@ -416,7 +406,7 @@ class MainActivity: ComponentActivity() {
                                 Spacer(Modifier.width(8.dp))
                                 Column {
                                     Text("Allow hints")
-                                    Text("Show a Hint button during your turns.",fontSize=12.sp,color=Color(0xFFAFBCB4))
+                                    Text("Show a Hint button during your turns.",fontSize=12.sp,color=LocalPalette.current.muted)
                                 }
                             }
                         } else Text(if(selectedMode==GameMode.PHYSICAL_BOARD_RECORDING) "Enter moves from your board. No hints or engine analysis during recording. A casual companion, not tournament-approved equipment." else "Share this board with a friend. Choose a time control or play untimed.")
@@ -764,23 +754,28 @@ class MainActivity: ComponentActivity() {
 }
 
 @Composable private fun LandingOption(title: String, subtitle: String? = null, onClick: () -> Unit) {
+    val palette=LocalPalette.current
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF26302C)).clickable(role=Role.Button,onClick=onClick)
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).card(palette)
+            .clickable(role=Role.Button,onClick=onClick)
             .heightIn(min=64.dp).padding(horizontal=20.dp,vertical=14.dp),
         verticalAlignment=Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
             Text(title,fontSize=18.sp,fontWeight=FontWeight.Medium)
-            subtitle?.let { Text(it,fontSize=13.sp,color=Color(0xFFAFBCB4)) }
+            subtitle?.let { Text(it,fontSize=13.sp,color=LocalPalette.current.muted) }
         }
         Spacer(Modifier.width(12.dp))
-        Text("›",color=Sand,fontSize=24.sp)
+        Text("›",color=palette.accent,fontSize=24.sp)
     }
 }
 
+/** A card: filled in the standard colours, outlined on e-ink where fills disappear. */
+private fun Modifier.card(palette: Palette): Modifier =
+    background(palette.card).then(if(palette.eink) border(1.5.dp,palette.text,RoundedCornerShape(12.dp)) else Modifier)
+
 @Composable private fun MenuSection(title: String) {
-    Text(title.uppercase(),fontSize=11.sp,letterSpacing=1.sp,color=Color(0xFFAFBCB4),
+    Text(title.uppercase(),fontSize=11.sp,letterSpacing=1.sp,color=LocalPalette.current.muted,
         modifier=Modifier.padding(start=12.dp,top=10.dp,bottom=2.dp).semantics { heading() })
 }
 
@@ -798,15 +793,16 @@ internal fun historyDate(millis: Long): String =
         GameMode.PHYSICAL_BOARD_RECORDING.name -> "Recorded game"
         else -> game.mode.lowercase().replace('_',' ')
     }
-    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFF26302C))
+    val palette=LocalPalette.current
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).card(palette)
         .combinedClickable(onClick=onOpen,onLongClick=onDelete,onLongClickLabel="Delete game")
         .padding(14.dp),verticalAlignment=Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text("${game.white} · ${game.black}",fontSize=17.sp,fontWeight=FontWeight.Medium)
-            Text("$mode · ${historyDate(game.updated)} · $fullMoves move${if(fullMoves==1) "" else "s"}",fontSize=12.sp,color=Color(0xFFAFBCB4))
+            Text("$mode · ${historyDate(game.updated)} · $fullMoves move${if(fullMoves==1) "" else "s"}",fontSize=12.sp,color=LocalPalette.current.muted)
         }
-        Text(result,color=Sand,fontSize=13.sp,modifier=Modifier.padding(horizontal=8.dp))
-        Text("›",color=Sand,fontSize=24.sp)
+        Text(result,color=palette.accent,fontSize=13.sp,modifier=Modifier.padding(horizontal=8.dp))
+        Text("›",color=palette.accent,fontSize=24.sp)
     }
 }
 
@@ -822,6 +818,8 @@ internal fun historyDate(millis: Long): String =
     val humanTurn=game==null || game.mode!=GameMode.COMPUTER.name || ((s.position.board.sideToMove==Side.WHITE)==game.humanWhite)
     val canInteract=!s.busy && game?.result=="*" && humanTurn &&
         (s.clock==null || s.clock.phase==ClockPhase.RUNNING)
+    val palette=LocalPalette.current
+    val eink=palette.eink
     val lightSquare=prefs.boardTheme.light; val darkSquare=prefs.boardTheme.dark
     fun squareAt(offset: Offset, boardPx: Float): Square? {
         val cell=boardPx/8f
@@ -862,17 +860,37 @@ internal fun historyDate(millis: Long): String =
                 val file=square.file.ordinal; val rank=square.rank.ordinal
                 val piece=s.position.board.getPiece(square)
                 val targets=if(canInteract) legal.filter{it.from==selected && it.to==square} else emptyList()
-                val last=s.highlightMove.orEmpty()
+                // E-ink keeps the last-move marks until the next move: a timed fade would cost a screen refresh.
+                val last=(if(eink) s.position.moves.lastOrNull() else s.highlightMove).orEmpty()
                 val recent=last.startsWith(square.name.lowercase()) || last.drop(2).startsWith(square.name.lowercase())
                 val check=piece!=Piece.NONE && piece.pieceType.name=="KING" && piece.pieceSide==s.position.board.sideToMove && s.position.board.isKingAttacked
-                val color=when { selected==square->Color(0xFFC8B56E);check->Color(0xFFBF7669);recent->Color(0xFFA7AC78);(rank+file)%2==1->lightSquare;else->darkSquare }
-                Box(Modifier.weight(1f).fillMaxHeight().background(color).semantics { contentDescription="${square.name.lowercase()}, ${if(piece==Piece.NONE) "empty" else piece.name.lowercase().replace('_',' ')}${if(targets.isNotEmpty()) ", legal destination" else ""}${if(check) ", check" else ""}" }.clickable(enabled=canInteract,role=Role.Button) {
+                val lightCell=(rank+file)%2==1
+                val color=when { eink->Color.White;selected==square->palette.selectedSquare;check->palette.checkSquare;recent->palette.recentSquare;lightCell->lightSquare;else->darkSquare }
+                Box(Modifier.weight(1f).fillMaxHeight().background(color).then(if(eink) Modifier.drawBehind {
+                    if(!lightCell) hatch()
+                    if(recent) cornerMarks()
+                    if(check) drawCircle(Color.Black,size.minDimension*0.44f,style=Stroke(size.minDimension*0.08f))
+                    if(selected==square) {
+                        // Inset by half the stroke: drawBehind is not clipped to the square.
+                        val stroke=size.minDimension*0.12f
+                        drawRect(Color.Black,topLeft=Offset(stroke/2,stroke/2),
+                            size=androidx.compose.ui.geometry.Size(size.width-stroke,size.height-stroke),style=Stroke(stroke))
+                    }
+                } else Modifier).semantics { contentDescription="${square.name.lowercase()}, ${if(piece==Piece.NONE) "empty" else piece.name.lowercase().replace('_',' ')}${if(targets.isNotEmpty()) ", legal destination" else ""}${if(check) ", check" else ""}" }.clickable(enabled=canInteract,role=Role.Button) {
                     if(cancelDraft()) selected=null
                     else if(targets.size>1) promotion=targets.map{it.toString()}
                     else if(targets.size==1) {onMove(targets[0].toString());selected=null}
                     else selected=if(piece!=Piece.NONE && piece.pieceSide==s.position.board.sideToMove && selected!=square) square else null
                 },contentAlignment=Alignment.Center) {
                     if(piece!=Piece.NONE) {
+                        // On hatched squares a white halo keeps the piece outline apart from the lines.
+                        if(eink && !lightCell) Image(
+                            painter = painterResource(pieceDrawable(piece)),
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(Color.White),
+                            modifier = Modifier.fillMaxSize().padding(3.dp).graphicsLayer(scaleX=1.14f,scaleY=1.14f)
+                                .alpha(if(dragFrom==square) 0.3f else 1f)
+                        )
                         // Chessnut uses simple silhouettes and contrasting internal lines.
                         Image(
                             painter = painterResource(pieceDrawable(piece)),
@@ -882,23 +900,32 @@ internal fun historyDate(millis: Long): String =
                     }
                     // Drawn over the piece: a dot for a quiet move, a ring for a capture.
                     if(targets.isNotEmpty() && prefs.legalMoves) Canvas(Modifier.fillMaxSize()) {
-                        val marker=Color(0x8C171D1C)
-                        if(piece==Piece.NONE) drawCircle(marker,radius=size.minDimension*0.17f)
-                        else drawCircle(marker,radius=size.minDimension*0.44f,style=Stroke(width=size.minDimension*0.09f))
+                        if(eink) {
+                            // Black on a white rim, so the marks read on hatching and on pieces.
+                            if(piece==Piece.NONE) { drawCircle(Color.White,radius=size.minDimension*0.21f); drawCircle(Color.Black,radius=size.minDimension*0.15f) }
+                            else { drawCircle(Color.White,radius=size.minDimension*0.44f,style=Stroke(width=size.minDimension*0.14f))
+                                drawCircle(Color.Black,radius=size.minDimension*0.44f,style=Stroke(width=size.minDimension*0.08f)) }
+                        } else {
+                            val marker=Color(0x8C171D1C)
+                            if(piece==Piece.NONE) drawCircle(marker,radius=size.minDimension*0.17f)
+                            else drawCircle(marker,radius=size.minDimension*0.44f,style=Stroke(width=size.minDimension*0.09f))
+                        }
                     }
                     // Use the displayed colour, including move/check highlights, so
                     // coordinates stay legible. Square semantics already name them.
                     val backgroundLuminance=color.luminance()+0.05f
-                    val darkContrast=backgroundLuminance/(Ink.luminance()+0.05f)
+                    val darkContrast=backgroundLuminance/(CoordinateInk.luminance()+0.05f)
                     val lightContrast=(lightSquare.luminance()+0.05f)/backgroundLuminance
-                    val coordinateColor=if(darkContrast>=lightContrast) Ink else lightSquare
+                    val coordinateColor=if(eink) Color.Black else if(darkContrast>=lightContrast) CoordinateInk else lightSquare
+                    // On e-ink a white patch keeps the label off the hatching.
+                    val label=if(eink) Modifier.background(Color.White).padding(horizontal=1.dp) else Modifier
                     if(prefs.coordinates && row==7) Text(('a'+file).toString(),
                         modifier=(if(col==0) Modifier.align(Alignment.BottomEnd).padding(end=8.dp,bottom=2.dp)
                         else if(col==7) Modifier.align(Alignment.BottomStart).padding(start=8.dp,bottom=2.dp)
-                        else Modifier.align(Alignment.BottomStart).padding(start=2.dp,bottom=2.dp)).clearAndSetSemantics {},
+                        else Modifier.align(Alignment.BottomStart).padding(start=2.dp,bottom=2.dp)).then(label).clearAndSetSemantics {},
                         style=CoordinateStyle,color=coordinateColor)
                     if(prefs.coordinates && col==7) Text((rank+1).toString(),
-                        modifier=Modifier.align(Alignment.TopEnd).padding(2.dp).clearAndSetSemantics {},
+                        modifier=Modifier.align(Alignment.TopEnd).padding(2.dp).then(label).clearAndSetSemantics {},
                         style=CoordinateStyle,color=coordinateColor)
                 }
             }
