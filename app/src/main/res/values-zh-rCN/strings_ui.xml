@@ -349,4 +349,50 @@
     <string name="lead_checkmate">将杀</string>
     <string name="mistakes_white">白方：不精确 %1$d，错误 %2$d，严重错误 %3$d</string>
     <string name="mistakes_black">黑方：不精确 %1$d，错误 %2$d，严重错误 %3$d</string>
+    <!-- Puzzles -->
+    <string name="puzzles">谜题</string>
+    <string name="puzzles_subtitle">离线战术训练</string>
+    <string name="puzzles_count">%1$d 道离线谜题 · 训练等级 %2$d</string>
+    <string name="puzzle_loading">正在加载谜题…</string>
+    <string name="puzzle_continue">继续训练</string>
+    <string name="puzzle_continue_help">接近你训练等级的新谜题</string>
+    <string name="puzzle_quick">快速 5 题</string>
+    <string name="puzzle_quick_help">五道谜题，然后是简短总结</string>
+    <string name="puzzle_review">复习错题</string>
+    <plurals name="puzzle_review_due"><item quantity="other">%d 道谜题待复习</item></plurals>
+    <string name="puzzle_review_none">现在没有待复习的谜题</string>
+    <string name="puzzle_theme">选择主题</string>
+    <string name="puzzle_theme_help">练习一种战术</string>
+    <string name="theme_checkmate">将杀</string>
+    <string name="theme_forks">捉双与双重攻击</string>
+    <string name="theme_pins">牵制与串击</string>
+    <string name="theme_motifs">战术主题</string>
+    <string name="theme_endgames">残局与升变</string>
+    <string name="puzzle_progress">进度</string>
+    <string name="puzzle_progress_attempted">已尝试的谜题：%1$d</string>
+    <string name="puzzle_progress_first">首次即解出：%1$d</string>
+    <string name="puzzle_progress_help">借助帮助解出：%1$d</string>
+    <string name="puzzle_level_note">训练等级决定接下来谜题的难度。它不是国际象棋等级分。</string>
+    <string name="note_no_review_due">没有待复习的谜题。你出错或使用提示后解出的谜题会回到这里。</string>
+    <string name="note_review_done">复习完成。现在没有更多待复习的谜题。</string>
+    <string name="note_no_puzzle">没有符合的谜题。请尝试其他主题。</string>
+    <string name="note_pack_missing">无法加载谜题。</string>
+    <string name="puzzle_white_to_move">谜题 · 白方走棋</string>
+    <string name="puzzle_black_to_move">谜题 · 黑方走棋</string>
+    <string name="puzzle_correct">正确</string>
+    <string name="puzzle_correct_continue">正确 · 找出下一步</string>
+    <string name="puzzle_wrong">不太对 · 再试一次</string>
+    <string name="puzzle_solved_detail">已解出 · 谜题等级分 %1$d</string>
+    <string name="puzzle_mode_training">训练等级 %1$d</string>
+    <string name="puzzle_mode_quick">快速 5 题 · 第 %1$d 题，共 %2$d 题</string>
+    <string name="puzzle_next">下一题</string>
+    <string name="puzzle_results">结果</string>
+    <string name="puzzle_exit">退出</string>
+    <string name="quick_done_title">快速 5 题完成</string>
+    <plurals name="quick_puzzles"><item quantity="other">%d 道谜题</item></plurals>
+    <string name="quick_first_try">首次即解出：%1$d</string>
+    <string name="quick_after_mistake">出错后解出：%1$d</string>
+    <string name="quick_hints">使用的提示：%1$d</string>
+    <string name="quick_another">再来 5 题</string>
+    <string name="quick_done">完成</string>
 </resources>

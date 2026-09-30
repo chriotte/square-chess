@@ -356,4 +356,50 @@
     <string name="lead_checkmate">Sjakkmatt</string>
     <string name="mistakes_white">Hvit: unøyaktigheter %1$d, feil %2$d, bukker %3$d</string>
     <string name="mistakes_black">Svart: unøyaktigheter %1$d, feil %2$d, bukker %3$d</string>
+    <!-- Puzzles -->
+    <string name="puzzles">Oppgaver</string>
+    <string name="puzzles_subtitle">Taktikktrening uten nett</string>
+    <string name="puzzles_count">%1$d oppgaver uten nett · Treningsnivå %2$d</string>
+    <string name="puzzle_loading">Laster oppgaver…</string>
+    <string name="puzzle_continue">Fortsett treningen</string>
+    <string name="puzzle_continue_help">Nye oppgaver nær treningsnivået ditt</string>
+    <string name="puzzle_quick">Rask 5</string>
+    <string name="puzzle_quick_help">Fem oppgaver, så en kort oppsummering</string>
+    <string name="puzzle_review">Repeter feil</string>
+    <plurals name="puzzle_review_due"><item quantity="one">%d oppgave skal repeteres</item><item quantity="other">%d oppgaver skal repeteres</item></plurals>
+    <string name="puzzle_review_none">Ingenting å repetere nå</string>
+    <string name="puzzle_theme">Velg et tema</string>
+    <string name="puzzle_theme_help">Tren én type taktikk</string>
+    <string name="theme_checkmate">Matt</string>
+    <string name="theme_forks">Gafler og dobbeltangrep</string>
+    <string name="theme_pins">Bindinger og spyd</string>
+    <string name="theme_motifs">Taktiske motiver</string>
+    <string name="theme_endgames">Sluttspill og forvandling</string>
+    <string name="puzzle_progress">Fremgang</string>
+    <string name="puzzle_progress_attempted">Oppgaver prøvd: %1$d</string>
+    <string name="puzzle_progress_first">Løst på første forsøk: %1$d</string>
+    <string name="puzzle_progress_help">Løst med hjelp: %1$d</string>
+    <string name="puzzle_level_note">Treningsnivået bestemmer hvor vanskelige de neste oppgavene er. Det er ikke en sjakkrating.</string>
+    <string name="note_no_review_due">Ingen oppgaver skal repeteres. Oppgaver som du løser med en feil eller et tips, kommer tilbake hit.</string>
+    <string name="note_review_done">Repetisjonen er ferdig. Ingen flere oppgaver skal repeteres nå.</string>
+    <string name="note_no_puzzle">Ingen oppgave passer. Prøv et annet tema.</string>
+    <string name="note_pack_missing">Oppgavene kunne ikke lastes inn.</string>
+    <string name="puzzle_white_to_move">Oppgave · Hvit i trekket</string>
+    <string name="puzzle_black_to_move">Oppgave · Svart i trekket</string>
+    <string name="puzzle_correct">Riktig</string>
+    <string name="puzzle_correct_continue">Riktig · finn neste trekk</string>
+    <string name="puzzle_wrong">Ikke helt · prøv igjen</string>
+    <string name="puzzle_solved_detail">Løst · oppgaverating %1$d</string>
+    <string name="puzzle_mode_training">Treningsnivå %1$d</string>
+    <string name="puzzle_mode_quick">Rask 5 · oppgave %1$d av %2$d</string>
+    <string name="puzzle_next">Neste</string>
+    <string name="puzzle_results">Resultat</string>
+    <string name="puzzle_exit">Avslutt</string>
+    <string name="quick_done_title">Rask 5 ferdig</string>
+    <plurals name="quick_puzzles"><item quantity="one">%d oppgave</item><item quantity="other">%d oppgaver</item></plurals>
+    <string name="quick_first_try">Løst på første forsøk: %1$d</string>
+    <string name="quick_after_mistake">Løst etter en feil: %1$d</string>
+    <string name="quick_hints">Tips brukt: %1$d</string>
+    <string name="quick_another">5 til</string>
+    <string name="quick_done">Ferdig</string>
 </resources>

@@ -363,4 +363,50 @@
     <string name="lead_checkmate">Jaque mate</string>
     <string name="mistakes_white">Blancas: imprecisiones %1$d, errores %2$d, errores graves %3$d</string>
     <string name="mistakes_black">Negras: imprecisiones %1$d, errores %2$d, errores graves %3$d</string>
+    <!-- Puzzles -->
+    <string name="puzzles">Problemas</string>
+    <string name="puzzles_subtitle">Entrenamiento táctico sin conexión</string>
+    <string name="puzzles_count">%1$d problemas sin conexión · Nivel de entrenamiento %2$d</string>
+    <string name="puzzle_loading">Cargando problemas…</string>
+    <string name="puzzle_continue">Seguir entrenando</string>
+    <string name="puzzle_continue_help">Problemas nuevos cerca de tu nivel de entrenamiento</string>
+    <string name="puzzle_quick">5 rápidos</string>
+    <string name="puzzle_quick_help">Cinco problemas y luego un breve resumen</string>
+    <string name="puzzle_review">Repasar errores</string>
+    <plurals name="puzzle_review_due"><item quantity="one">%d problema pendiente</item><item quantity="many">%d problemas pendientes</item><item quantity="other">%d problemas pendientes</item></plurals>
+    <string name="puzzle_review_none">No hay nada pendiente ahora</string>
+    <string name="puzzle_theme">Elegir un tema</string>
+    <string name="puzzle_theme_help">Entrena un tipo de táctica</string>
+    <string name="theme_checkmate">Mate</string>
+    <string name="theme_forks">Ataques dobles</string>
+    <string name="theme_pins">Clavadas y enfilada</string>
+    <string name="theme_motifs">Motivos tácticos</string>
+    <string name="theme_endgames">Finales y coronación</string>
+    <string name="puzzle_progress">Progreso</string>
+    <string name="puzzle_progress_attempted">Problemas intentados: %1$d</string>
+    <string name="puzzle_progress_first">Resueltos al primer intento: %1$d</string>
+    <string name="puzzle_progress_help">Resueltos con ayuda: %1$d</string>
+    <string name="puzzle_level_note">El nivel de entrenamiento decide la dificultad de los próximos problemas. No es un Elo de ajedrez.</string>
+    <string name="note_no_review_due">No hay problemas pendientes de repaso. Los problemas que resuelvas con un error o una pista vuelven aquí.</string>
+    <string name="note_review_done">Repaso terminado. No quedan problemas pendientes ahora.</string>
+    <string name="note_no_puzzle">Ningún problema coincide. Prueba otro tema.</string>
+    <string name="note_pack_missing">No se pudieron cargar los problemas.</string>
+    <string name="puzzle_white_to_move">Problema · juegan las blancas</string>
+    <string name="puzzle_black_to_move">Problema · juegan las negras</string>
+    <string name="puzzle_correct">Correcto</string>
+    <string name="puzzle_correct_continue">Correcto · busca la siguiente jugada</string>
+    <string name="puzzle_wrong">Casi · inténtalo de nuevo</string>
+    <string name="puzzle_solved_detail">Resuelto · valoración %1$d</string>
+    <string name="puzzle_mode_training">Nivel de entrenamiento %1$d</string>
+    <string name="puzzle_mode_quick">5 rápidos · problema %1$d de %2$d</string>
+    <string name="puzzle_next">Siguiente</string>
+    <string name="puzzle_results">Resultados</string>
+    <string name="puzzle_exit">Salir</string>
+    <string name="quick_done_title">5 rápidos terminados</string>
+    <plurals name="quick_puzzles"><item quantity="one">%d problema</item><item quantity="many">%d problemas</item><item quantity="other">%d problemas</item></plurals>
+    <string name="quick_first_try">Resueltos al primer intento: %1$d</string>
+    <string name="quick_after_mistake">Resueltos tras un error: %1$d</string>
+    <string name="quick_hints">Pistas usadas: %1$d</string>
+    <string name="quick_another">Otros 5</string>
+    <string name="quick_done">Listo</string>
 </resources>

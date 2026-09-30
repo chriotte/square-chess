@@ -356,4 +356,50 @@
     <string name="lead_checkmate">Schachmatt</string>
     <string name="mistakes_white">Weiß: Ungenauigkeiten %1$d, Fehler %2$d, grobe Fehler %3$d</string>
     <string name="mistakes_black">Schwarz: Ungenauigkeiten %1$d, Fehler %2$d, grobe Fehler %3$d</string>
+    <!-- Puzzles -->
+    <string name="puzzles">Aufgaben</string>
+    <string name="puzzles_subtitle">Taktiktraining offline</string>
+    <string name="puzzles_count">%1$d Offline-Aufgaben · Trainingsstufe %2$d</string>
+    <string name="puzzle_loading">Aufgaben werden geladen…</string>
+    <string name="puzzle_continue">Training fortsetzen</string>
+    <string name="puzzle_continue_help">Neue Aufgaben nahe deiner Trainingsstufe</string>
+    <string name="puzzle_quick">Schnelle 5</string>
+    <string name="puzzle_quick_help">Fünf Aufgaben, dann eine kurze Übersicht</string>
+    <string name="puzzle_review">Fehler wiederholen</string>
+    <plurals name="puzzle_review_due"><item quantity="one">%d Aufgabe ist fällig</item><item quantity="other">%d Aufgaben sind fällig</item></plurals>
+    <string name="puzzle_review_none">Zurzeit ist nichts fällig</string>
+    <string name="puzzle_theme">Thema wählen</string>
+    <string name="puzzle_theme_help">Eine Art von Taktik üben</string>
+    <string name="theme_checkmate">Matt</string>
+    <string name="theme_forks">Gabeln und Doppelangriffe</string>
+    <string name="theme_pins">Fesselungen und Spieße</string>
+    <string name="theme_motifs">Taktische Motive</string>
+    <string name="theme_endgames">Endspiele und Umwandlung</string>
+    <string name="puzzle_progress">Fortschritt</string>
+    <string name="puzzle_progress_attempted">Versuchte Aufgaben: %1$d</string>
+    <string name="puzzle_progress_first">Beim ersten Versuch gelöst: %1$d</string>
+    <string name="puzzle_progress_help">Mit Hilfe gelöst: %1$d</string>
+    <string name="puzzle_level_note">Die Trainingsstufe bestimmt, wie schwer die nächsten Aufgaben sind. Sie ist keine Schachwertung.</string>
+    <string name="note_no_review_due">Keine Aufgaben sind zur Wiederholung fällig. Aufgaben, die du mit einem Fehler oder einem Tipp löst, kommen hierher zurück.</string>
+    <string name="note_review_done">Wiederholung fertig. Zurzeit sind keine Aufgaben mehr fällig.</string>
+    <string name="note_no_puzzle">Keine Aufgabe passt. Wähle ein anderes Thema.</string>
+    <string name="note_pack_missing">Die Aufgaben konnten nicht geladen werden.</string>
+    <string name="puzzle_white_to_move">Aufgabe · Weiß am Zug</string>
+    <string name="puzzle_black_to_move">Aufgabe · Schwarz am Zug</string>
+    <string name="puzzle_correct">Richtig</string>
+    <string name="puzzle_correct_continue">Richtig · finde den nächsten Zug</string>
+    <string name="puzzle_wrong">Nicht ganz · versuche es noch einmal</string>
+    <string name="puzzle_solved_detail">Gelöst · Aufgabenwertung %1$d</string>
+    <string name="puzzle_mode_training">Trainingsstufe %1$d</string>
+    <string name="puzzle_mode_quick">Schnelle 5 · Aufgabe %1$d von %2$d</string>
+    <string name="puzzle_next">Weiter</string>
+    <string name="puzzle_results">Ergebnis</string>
+    <string name="puzzle_exit">Beenden</string>
+    <string name="quick_done_title">Schnelle 5 fertig</string>
+    <plurals name="quick_puzzles"><item quantity="one">%d Aufgabe</item><item quantity="other">%d Aufgaben</item></plurals>
+    <string name="quick_first_try">Beim ersten Versuch gelöst: %1$d</string>
+    <string name="quick_after_mistake">Nach einem Fehler gelöst: %1$d</string>
+    <string name="quick_hints">Genutzte Tipps: %1$d</string>
+    <string name="quick_another">Noch 5</string>
+    <string name="quick_done">Fertig</string>
 </resources>

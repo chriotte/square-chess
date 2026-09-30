@@ -83,7 +83,10 @@ import java.io.IOException
 @OptIn(ExperimentalLayoutApi::class)
 class MainActivity: ComponentActivity() {
     private val vm: GameViewModel by viewModels()
+    internal val puzzles: PuzzleViewModel by viewModels()
     private var gameVisible=false
+    /** A puzzle is on screen: typed moves go to it instead of the game. */
+    private var puzzleVisible=false
     private var modalVisible=false
     private var reviewing=false
     private var blockedNotation=false
@@ -112,6 +115,7 @@ class MainActivity: ComponentActivity() {
             SquareChessTheme(eink=settings.eink) {
                 val palette=LocalPalette.current
                 val s by vm.state.collectAsState()
+                val puzzleUi by puzzles.state.collectAsState()
                 val prefs=settings
                 val haptics=LocalHapticFeedback.current
                 // Sound and vibration only for a move just added to the same game, never on load or undo.
@@ -202,12 +206,22 @@ class MainActivity: ComponentActivity() {
                 LaunchedEffect(screen,s.game?.id) { if(screen=="game") flip=defaultFlipFor(s.game) }
                 LaunchedEffect(s.resultEvent) { s.resultEvent?.let { resultDialog=it } }
                 LaunchedEffect(screen, s.positionKey(), s.busy, dialog, resultDialog) {
+                    // The puzzle screen has its own draft rule below.
+                    if(screen=="puzzles") return@LaunchedEffect
                     if(screen!="game" || !s.canEnterMove() || dialog.isNotEmpty() || resultDialog!=null ||
                         (draft.positionKey!=null && draft.positionKey!=s.positionKey())) {
                         draft=NotationDraft(); entryPromotions=emptyList()
                     }
                 }
+                // A typed move belongs to one puzzle position: a new position (or no puzzle) clears it.
+                LaunchedEffect(screen, puzzleUi.entryKey(), puzzleUi.session?.state) {
+                    if(screen=="puzzles" && (puzzleUi.session?.state!=PuzzleState.SOLVING ||
+                        (draft.positionKey!=null && draft.positionKey!=puzzleUi.entryKey()))) {
+                        draft=NotationDraft(); entryPromotions=emptyList()
+                    }
+                }
                 gameVisible=screen=="game"; reviewing=reviewPly!=null
+                puzzleVisible=screen=="puzzles" && puzzleUi.session!=null
                 modalVisible=dialog.isNotEmpty() || resultDialog!=null || entryPromotions.isNotEmpty()
                 BackHandler(draft.text.isNotEmpty()) { draft=NotationDraft() }
                 Surface(Modifier.fillMaxSize(),color=palette.background) {
@@ -217,7 +231,7 @@ class MainActivity: ComponentActivity() {
                         Modifier
                             .fillMaxSize()
                             .windowInsetsPadding(WindowInsets.displayCutout.only(
-                                if (screen == "game") WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
+                                if (screen == "game" || puzzleVisible) WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
                                 else WindowInsetsSides.Horizontal + WindowInsetsSides.Vertical
                             ))
                             .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
@@ -245,6 +259,9 @@ class MainActivity: ComponentActivity() {
                                 LandingOption(stringResource(R.string.play_against_computer)) { openNewGame(GameMode.COMPUTER) }
                                 LandingOption(stringResource(R.string.over_the_board)) { openNewGame(GameMode.LOCAL_TWO_PLAYER) }
                                 LandingOption(stringResource(R.string.record_physical_game)) { openNewGame(GameMode.PHYSICAL_BOARD_RECORDING) }
+                                LandingOption(stringResource(R.string.puzzles),stringResource(R.string.puzzles_subtitle)) {
+                                    vm.pauseForNavigation(); puzzles.open(); screen="puzzles"
+                                }
                                 LandingOption(
                                     stringResource(R.string.chess_clock),
                                     stringResource(R.string.chess_clock_subtitle)
@@ -278,6 +295,27 @@ class MainActivity: ComponentActivity() {
                             "settings" -> SettingsScreen(settings,onChange={ settings=it; settingsStore.save(it) },onExit={screen="home"},
                                 language=remember { LanguageSetting.chosen(this@MainActivity) },
                                 onLanguage={ LanguageSetting.set(this@MainActivity,it) })
+                            "puzzles" -> when {
+                                puzzleUi.session!=null -> {
+                                    // Back clears a typed move first (the BackHandler above), then leaves the puzzle.
+                                    BackHandler(draft.text.isEmpty()) { puzzles.exit() }
+                                    PuzzleBoardScreen(puzzleUi,prefs,draft,
+                                        onMove={ move -> draft=NotationDraft(); puzzles.move(move) },
+                                        onHint={puzzles.showHint()},onHideHint={puzzles.hideHint()},onNext={puzzles.next()},
+                                        onExit={ draft=NotationDraft(); puzzles.exit() },
+                                        onClearDraft={draft=NotationDraft()},onPlayDraft={submitDraft()},
+                                        cancelDraft={ if(draft.text.isNotEmpty()) { draft=NotationDraft(); true } else false })
+                                }
+                                puzzleUi.quickFinished -> {
+                                    BackHandler { puzzles.exit() }
+                                    QuickSummary(puzzleUi,onAgain={puzzles.startQuick()},onDone={puzzles.exit()})
+                                }
+                                else -> {
+                                    BackHandler { screen="home" }
+                                    PuzzleLanding(puzzleUi,onHome={screen="home"},onTraining={puzzles.startTraining()},
+                                        onQuick={puzzles.startQuick()},onReview={puzzles.startReview()},onTheme={puzzles.startTheme(it)})
+                                }
+                            }
                             "help" -> HelpAboutScreen(s.game?.mode,onExit={screen="home"})
                             "standaloneClock" -> StandaloneClockScreen(
                                 clock=standaloneClock,
@@ -531,7 +569,8 @@ class MainActivity: ComponentActivity() {
                 if(dialog=="undo") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.undo_title))},text={Text(stringResource(R.string.undo_text))},confirmButton={TextButton(onClick={vm.undo();dialog=""}){Text(stringResource(R.string.take_back))}},dismissButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.keep_playing))}})
                 if(dialog=="end") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.end_title))},text={Column{ Text(stringResource(R.string.end_text)); listOf(R.string.white_wins to "1-0",R.string.black_wins to "0-1",R.string.draw to "1/2-1/2").forEach{(name,result)->TextButton(onClick={vm.end(result,"Result recorded by the players");dialog=""}){Text(stringResource(name))}} }},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.cancel))}})
                 if(dialog=="history") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.moves_title))},text={Column(Modifier.verticalScroll(rememberScrollState())){MoveListSummary(s); if(s.position.moves.isEmpty()) Text(stringResource(R.string.no_moves)) else s.position.san.chunked(2).forEachIndexed { i,pair-> Text("${i+1}.  ${pair.joinToString("    ")}",fontFamily=FontFamily.Monospace,modifier=Modifier.padding(4.dp)) }}},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.close))}})
-                if(entryPromotions.isNotEmpty()) PromotionDialog(entryPromotions,white=s.position.board.sideToMove==Side.WHITE,
+                if(entryPromotions.isNotEmpty()) PromotionDialog(entryPromotions,
+                    white=(if(puzzleVisible) puzzleUi.session?.position ?: s.position else s.position).board.sideToMove==Side.WHITE,
                     onPick={ move -> entryPromotions=emptyList();submitDraft(move) },onCancel={entryPromotions=emptyList()})
                 if(resultDialog!=null) {
                     val event=resultDialog!!
@@ -555,6 +594,17 @@ class MainActivity: ComponentActivity() {
             }
         }
     }
+    /** A board screen is shown: the game or a puzzle. */
+    private fun boardVisible()=gameVisible || puzzleVisible
+    /**
+     * Whether typed moves are taken now. The move-entry target is the puzzle while one is shown,
+     * otherwise the game; both use the same NotationDraft handling below.
+     */
+    private fun entryOpen(): Boolean =
+        if(puzzleVisible) puzzles.state.value.canEnterMove() else gameVisible && !reviewing && vm.state.value.canEnterMove()
+    /** The position a typed move belongs to, for the current move-entry target. */
+    private fun entryKey(): String =
+        (if(puzzleVisible) puzzles.state.value.entryKey() else null) ?: vm.state.value.positionKey()
     // Lint reports super.dispatchKeyEvent as restricted because androidx.core's
     // ComponentActivity marks its override @RestrictTo; calling the platform
     // Activity method through it is the documented way to intercept keys.
@@ -565,19 +615,19 @@ class MainActivity: ComponentActivity() {
         // Holding a key replaces the letter it typed with the key's Alt character, as phone
         // keyboards do for numbers (hold E for 2 on a Titan). Keyboard apps such as PhysiBoard
         // write that character into a text field, and a game has none; the key map decides it here.
-        if(gameVisible && !reviewing && !modalVisible && vm.state.value.canEnterMove() && !event.isCtrlPressed && !event.isMetaPressed) {
+        if(!modalVisible && entryOpen() && !event.isCtrlPressed && !event.isMetaPressed) {
             heldKeyCharacter(event)?.let { held ->
-                val changed=draft.hold(event.keyCharacterMap.get(event.keyCode,0).toChar(),held,vm.state.value.positionKey())
+                val changed=draft.hold(event.keyCharacterMap.get(event.keyCode,0).toChar(),held,entryKey())
                 if(changed!=draft) { draft=changed; return true }
             }
         }
         if(event.action==KeyEvent.ACTION_DOWN && event.repeatCount>0 && event.keyCode in consumedKeys) return true
-        if(!gameVisible || modalVisible) blockedNotation=false
-        if(gameVisible && !modalVisible && !event.isCtrlPressed && !event.isMetaPressed) {
+        if(!boardVisible() || modalVisible) blockedNotation=false
+        if(boardVisible() && !modalVisible && !event.isCtrlPressed && !event.isMetaPressed) {
             if(event.action==KeyEvent.ACTION_DOWN && event.keyCode in listOf(KeyEvent.KEYCODE_TAB,
                     KeyEvent.KEYCODE_DPAD_UP,KeyEvent.KEYCODE_DPAD_DOWN,KeyEvent.KEYCODE_DPAD_LEFT,
                     KeyEvent.KEYCODE_DPAD_RIGHT,KeyEvent.KEYCODE_ESCAPE)) blockedNotation=false
-            if(reviewing || !vm.state.value.canEnterMove()) {
+            if(!entryOpen()) {
                 val characters=if(event.action==KeyEvent.ACTION_MULTIPLE) event.characters.orEmpty()
                     else if(event.action==KeyEvent.ACTION_DOWN) event.unicodeChar.toChar().toString() else ""
                 if(characters.any { it.isLetterOrDigit() || it in "-+#=" }) {
@@ -593,10 +643,10 @@ class MainActivity: ComponentActivity() {
                 return consumeGameKey(event)
             }
         }
-        if(gameVisible && !reviewing && !modalVisible && vm.state.value.canEnterMove() && !event.isCtrlPressed && !event.isMetaPressed) {
+        if(!modalVisible && entryOpen() && !event.isCtrlPressed && !event.isMetaPressed) {
             blockedNotation=false
             if(event.action==KeyEvent.ACTION_MULTIPLE && !event.characters.isNullOrEmpty()) {
-                draft=draft.type(event.characters,vm.state.value.positionKey()); return consumeGameKey(event)
+                draft=draft.type(event.characters,entryKey()); return consumeGameKey(event)
             }
             if(event.action!=KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(event)
             if(event.repeatCount>0) return super.dispatchKeyEvent(event)
@@ -607,7 +657,7 @@ class MainActivity: ComponentActivity() {
                 // system no longer delivers KEYCODE_BACK here.
                 KeyEvent.KEYCODE_ESCAPE -> if(draft.text.isNotEmpty()) {draft=NotationDraft();return consumeGameKey(event)}
                 else -> { val c=event.unicodeChar.toChar(); if(c.isLetterOrDigit() || c in "-+#=") {
-                    draft=draft.type(c.toString(),vm.state.value.positionKey())
+                    draft=draft.type(c.toString(),entryKey())
                     return consumeGameKey(event)
                 } }
             }
@@ -663,6 +713,7 @@ class MainActivity: ComponentActivity() {
         normalizeFenContent(String(contents.toByteArray(),Charsets.UTF_8))
     }
     private fun submitDraft(overrideMove: String? = null) {
+        if(puzzleVisible) { submitPuzzleDraft(overrideMove); return }
         val s=vm.state.value
         if(!gameVisible || reviewing || !s.canEnterMove() || draft.submitting || draft.text.isBlank()) return
         if(draft.positionKey!=s.positionKey()) { draft=NotationDraft(); return }
@@ -674,6 +725,22 @@ class MainActivity: ComponentActivity() {
         vm.enter(overrideMove ?: pending.text,pending.positionKey!!) { error ->
             if(draft.positionKey==pending.positionKey) draft=if(error==null) NotationDraft() else pending.rejected(getString(entryErrorText(error)))
         }
+    }
+    /**
+     * A typed puzzle move. A legal move is judged by the puzzle (a wrong one is reported on the
+     * screen and clears the draft); text that is not a legal move stays with an error.
+     */
+    private fun submitPuzzleDraft(overrideMove: String?) {
+        val ui=puzzles.state.value
+        val session=ui.session ?: return
+        if(!ui.canEnterMove() || draft.submitting || draft.text.isBlank()) return
+        val key=ui.entryKey()
+        if(draft.positionKey!=key) { draft=NotationDraft(); return }
+        if(overrideMove==null && draft.text.matches(Regex("[a-hA-H][1-8][a-hA-H][1-8]"))) {
+            val choices=session.position.legal.map { it.toString() }.filter { it.length==5 && it.startsWith(draft.text.lowercase()) }
+            if(choices.isNotEmpty()) { entryPromotions=choices; return }
+        }
+        draft=if(puzzles.move(overrideMove ?: draft.text,key)) NotationDraft() else draft.rejected(getString(R.string.entry_illegal))
     }
     /** Reads a user-chosen text document; UTF-8 first, then Latin-1 (the PGN standard's encoding). */
     private suspend fun readTextDocument(uri: Uri, maxBytes: Int): String = withContext(Dispatchers.IO) {

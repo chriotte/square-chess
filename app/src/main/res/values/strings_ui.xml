@@ -364,6 +364,52 @@
     <string name="lead_with_score" translatable="false">%2$s · %1$s</string>
     <string name="mistakes_white">White: inaccuracies %1$d, mistakes %2$d, blunders %3$d</string>
     <string name="mistakes_black">Black: inaccuracies %1$d, mistakes %2$d, blunders %3$d</string>
+    <!-- Puzzles -->
+    <string name="puzzles">Puzzles</string>
+    <string name="puzzles_subtitle">Offline tactical training</string>
+    <string name="puzzles_count">%1$d offline puzzles · Training level %2$d</string>
+    <string name="puzzle_loading">Loading puzzles…</string>
+    <string name="puzzle_continue">Continue training</string>
+    <string name="puzzle_continue_help">New puzzles near your training level</string>
+    <string name="puzzle_quick">Quick 5</string>
+    <string name="puzzle_quick_help">Five puzzles, then a short summary</string>
+    <string name="puzzle_review">Review mistakes</string>
+    <plurals name="puzzle_review_due"><item quantity="one">%d puzzle is due</item><item quantity="other">%d puzzles are due</item></plurals>
+    <string name="puzzle_review_none">Nothing is due now</string>
+    <string name="puzzle_theme">Choose a theme</string>
+    <string name="puzzle_theme_help">Train one kind of tactic</string>
+    <string name="theme_checkmate">Checkmate</string>
+    <string name="theme_forks">Forks and double attacks</string>
+    <string name="theme_pins">Pins and skewers</string>
+    <string name="theme_motifs">Tactical motifs</string>
+    <string name="theme_endgames">Endgames and promotion</string>
+    <string name="puzzle_progress">Progress</string>
+    <string name="puzzle_progress_attempted">Puzzles tried: %1$d</string>
+    <string name="puzzle_progress_first">Solved first try: %1$d</string>
+    <string name="puzzle_progress_help">Solved with help: %1$d</string>
+    <string name="puzzle_level_note">The training level sets how hard the next puzzles are. It is not a chess rating.</string>
+    <string name="note_no_review_due">No puzzles are due for review. Puzzles that you solve with a mistake or a hint come back here.</string>
+    <string name="note_review_done">Review done. No more puzzles are due now.</string>
+    <string name="note_no_puzzle">No puzzle matches. Try another theme.</string>
+    <string name="note_pack_missing">The puzzles could not be loaded.</string>
+    <string name="puzzle_white_to_move">Puzzle · White to move</string>
+    <string name="puzzle_black_to_move">Puzzle · Black to move</string>
+    <string name="puzzle_correct">Correct</string>
+    <string name="puzzle_correct_continue">Correct · find the next move</string>
+    <string name="puzzle_wrong">Not quite · try again</string>
+    <string name="puzzle_solved_detail">Solved · puzzle rating %1$d</string>
+    <string name="puzzle_mode_training">Training level %1$d</string>
+    <string name="puzzle_mode_quick">Quick 5 · puzzle %1$d of %2$d</string>
+    <string name="puzzle_next">Next</string>
+    <string name="puzzle_results">Results</string>
+    <string name="puzzle_exit">Exit</string>
+    <string name="quick_done_title">Quick 5 done</string>
+    <plurals name="quick_puzzles"><item quantity="one">%d puzzle</item><item quantity="other">%d puzzles</item></plurals>
+    <string name="quick_first_try">Solved first try: %1$d</string>
+    <string name="quick_after_mistake">Solved after a mistake: %1$d</string>
+    <string name="quick_hints">Hints used: %1$d</string>
+    <string name="quick_another">Another 5</string>
+    <string name="quick_done">Done</string>
     <!-- ECO code and the opening's name, which stays in English, for example "C60 Ruy Lopez". -->
     <string name="opening_line" translatable="false">%1$s %2$s</string>
 </resources>
