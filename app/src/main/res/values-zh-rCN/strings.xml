@@ -1,0 +1,9 @@
+<resources>
+    <string name="play_against_computer">人机对战</string>
+    <string name="over_the_board">面对面</string>
+    <string name="chess_clock">棋钟</string>
+    <string name="chess_clock_subtitle">用于在实体棋盘上下的对局</string>
+    <string name="import_position">导入局面</string>
+    <string name="replace_position">更换局面</string>
+    <string name="import_position_help">从其他国际象棋应用保存的局面开始。请选择一个 .fen 文件：它包含棋子位置和轮到哪一方走，但不包含整盘对局的着法。保持不变即可开始普通对局。</string>
+</resources>

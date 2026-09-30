@@ -18,11 +18,14 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.selection.selectable
+import androidx.annotation.StringRes
 
-enum class BoardTheme(val label: String, val light: Color, val dark: Color) {
-    GREEN("Green", Color(0xFFF2E7CF), Color(0xFF526D62)),
-    WALNUT("Walnut", Color(0xFFF0D9B5), Color(0xFFB58863)),
-    SLATE("Slate", Color(0xFFDEE3E6), Color(0xFF788A94))
+enum class BoardTheme(@StringRes val label: Int, val light: Color, val dark: Color) {
+    GREEN(R.string.theme_green, Color(0xFFF2E7CF), Color(0xFF526D62)),
+    WALNUT(R.string.theme_walnut, Color(0xFFF0D9B5), Color(0xFFB58863)),
+    SLATE(R.string.theme_slate, Color(0xFFDEE3E6), Color(0xFF788A94))
 }
 
 data class AppSettings(
@@ -57,26 +60,42 @@ class SettingsStore(context: Context) {
     }
 }
 
-@Composable fun SettingsScreen(settings: AppSettings, onChange: (AppSettings) -> Unit, onExit: () -> Unit) {
+@Composable fun SettingsScreen(settings: AppSettings, onChange: (AppSettings) -> Unit, onExit: () -> Unit,
+                               language: AppLanguage? = null, onLanguage: (String) -> Unit = {}) {
+    var languageDialog by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-        TextButton(onClick = onExit) { Text("‹ Home") }
-        Text("Settings", fontFamily = FontFamily.Serif, fontSize = 30.sp)
+        TextButton(onClick = onExit) { Text(stringResource(R.string.home_back)) }
+        Text(stringResource(R.string.settings_title), fontFamily = FontFamily.Serif, fontSize = 30.sp)
         Spacer(Modifier.height(12.dp))
-        SettingSwitch("Move sounds", "Sound for moves, captures and check", settings.sound) { onChange(settings.copy(sound = it)) }
-        SettingSwitch("Vibration", "Short vibration when a move is played", settings.haptics) { onChange(settings.copy(haptics = it)) }
-        SettingSwitch("Show legal moves", "Dots and rings on the squares a selected piece can move to", settings.legalMoves) { onChange(settings.copy(legalMoves = it)) }
-        SettingSwitch("Show coordinates", "Files and ranks on the board edge", settings.coordinates) { onChange(settings.copy(coordinates = it)) }
-        SettingSwitch("E-ink mode", "Black and white only, no animations. For e-paper screens such as Boox.", settings.eink) { onChange(settings.copy(eink = it)) }
+        SettingSwitch(stringResource(R.string.move_sounds), stringResource(R.string.move_sounds_help), settings.sound) { onChange(settings.copy(sound = it)) }
+        SettingSwitch(stringResource(R.string.vibration), stringResource(R.string.vibration_help), settings.haptics) { onChange(settings.copy(haptics = it)) }
+        SettingSwitch(stringResource(R.string.legal_moves), stringResource(R.string.legal_moves_help), settings.legalMoves) { onChange(settings.copy(legalMoves = it)) }
+        SettingSwitch(stringResource(R.string.coordinates), stringResource(R.string.coordinates_help), settings.coordinates) { onChange(settings.copy(coordinates = it)) }
+        SettingSwitch(stringResource(R.string.eink_mode), stringResource(R.string.eink_mode_help), settings.eink) { onChange(settings.copy(eink = it)) }
+        // Language names are written in their own language, so a player can always find theirs.
+        Row(
+            Modifier.fillMaxWidth().clickable(role = Role.Button) { languageDialog = true }.padding(vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.language), fontSize = 16.sp)
+                Text(language?.name ?: stringResource(R.string.language_system), fontSize = 12.sp, color = LocalPalette.current.muted)
+            }
+            Text("›", fontSize = 24.sp)
+        }
         Spacer(Modifier.height(12.dp))
-        Text("Board colours", fontSize = 16.sp)
-        if (settings.eink) Text("E-ink mode uses a black-and-white board with hatched dark squares.",
+        Text(stringResource(R.string.board_colours), fontSize = 16.sp)
+        if (settings.eink) Text(stringResource(R.string.eink_board_note),
             fontSize = 12.sp, color = LocalPalette.current.muted, modifier = Modifier.padding(vertical = 8.dp))
         else Row(Modifier.padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             BoardTheme.entries.forEach { theme ->
                 val selected = settings.boardTheme == theme
+                val label = stringResource(theme.label)
+                val description = stringResource(R.string.board_theme_description, label) +
+                    if (selected) stringResource(R.string.selected_suffix) else ""
                 Column(
                     Modifier.clickable(role = Role.RadioButton) { onChange(settings.copy(boardTheme = theme)) }
-                        .semantics { contentDescription = "${theme.label} board${if (selected) ", selected" else ""}" }
+                        .semantics { contentDescription = description }
                         .padding(4.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -92,13 +111,34 @@ class SettingsStore(context: Context) {
                             Box(Modifier.weight(1f).fillMaxWidth().background(theme.light))
                         }
                     }
-                    Text(theme.label, fontSize = 13.sp)
+                    Text(label, fontSize = 13.sp)
                 }
             }
         }
     }
+    if (languageDialog) AlertDialog(onDismissRequest = { languageDialog = false },
+        title = { Text(stringResource(R.string.language)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                val options = listOf(null to stringResource(R.string.language_system)) + APP_LANGUAGES.map { it to it.name }
+                options.forEach { (option, name) ->
+                    Row(
+                        Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            .selectable(selected = option == language, role = Role.RadioButton) {
+                                languageDialog = false
+                                if (option != language) onLanguage(option?.tag.orEmpty())
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = option == language, onClick = null)
+                        Spacer(Modifier.width(12.dp))
+                        Text(name)
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { languageDialog = false }) { Text(stringResource(R.string.cancel)) } })
 }
-
 @Composable private fun SettingSwitch(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(
         Modifier.fillMaxWidth().clickable(role = Role.Switch) { onChange(!checked) }.padding(vertical = 10.dp),

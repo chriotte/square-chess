@@ -1,6 +1,7 @@
 package com.dataespresso.squarechess
 
 import android.content.Intent
+import androidx.annotation.StringRes
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -62,14 +63,14 @@ fun SavedGame.toPgn(): String {
 }
 
 /** Filters for exporting the game library. */
-enum class ExportModeFilter(val label: String, val mode: GameMode?) {
-    ALL("All games", null),
-    COMPUTER("Against computer", GameMode.COMPUTER),
-    OVER_THE_BOARD("Over the board", GameMode.LOCAL_TWO_PLAYER),
-    RECORDED("Recorded games", GameMode.PHYSICAL_BOARD_RECORDING)
+enum class ExportModeFilter(@StringRes val label: Int, val mode: GameMode?) {
+    ALL(R.string.filter_all, null),
+    COMPUTER(R.string.filter_computer, GameMode.COMPUTER),
+    OVER_THE_BOARD(R.string.filter_over_board, GameMode.LOCAL_TWO_PLAYER),
+    RECORDED(R.string.filter_recorded, GameMode.PHYSICAL_BOARD_RECORDING)
 }
-enum class ExportPeriod(val label: String, val days: Int?) {
-    ALL_TIME("All time", null), LAST_30_DAYS("Last 30 days", 30), LAST_YEAR("Last 12 months", 365)
+enum class ExportPeriod(@StringRes val label: Int, val days: Int?) {
+    ALL_TIME(R.string.period_all, null), LAST_30_DAYS(R.string.period_30_days, 30), LAST_YEAR(R.string.period_12_months, 365)
 }
 
 fun selectForExport(games: List<SavedGame>, mode: ExportModeFilter, period: ExportPeriod, now: Long = System.currentTimeMillis()) =

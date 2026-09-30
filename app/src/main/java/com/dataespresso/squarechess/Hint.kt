@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.github.bhlangonijr.chesslib.Piece
+import com.github.bhlangonijr.chesslib.PieceType
 import com.github.bhlangonijr.chesslib.Square
 import com.github.bhlangonijr.chesslib.move.MoveList
 import kotlin.math.atan2
@@ -26,33 +27,23 @@ fun GameUi.visibleHint(): Hint? = hint?.takeIf { it.positionKey==positionKey() &
 
 fun GameUi.hintsAvailable(): Boolean = game?.let { it.hintsEnabled && it.mode==GameMode.COMPUTER.name } ?: false
 
-/** Written forms of a hint: "Nf3", "Knight g1 → f3" and a sentence for TalkBack. */
+/** Written forms of a hint: "Nf3", "Knight g1 → f3" and a sentence for TalkBack. See hintText in Texts.kt. */
 data class HintText(val san: String, val detail: String, val spoken: String)
 
-fun hintText(position: ChessPosition, uci: String): HintText? {
+enum class Castle { KINGSIDE, QUEENSIDE }
+
+/** A hinted move as data; the screen turns it into text in the player's language. */
+data class HintMove(val san: String, val from: String, val to: String, val piece: PieceType,
+                    val castle: Castle? = null, val promotion: PieceType? = null)
+
+fun hintMove(position: ChessPosition, uci: String): HintMove? {
     val move=position.resolve(uci) ?: return null
     val san=runCatching { MoveList(position.board.fen).apply { add(move) }.toSanArray().first() }.getOrNull() ?: uci
-    val from=move.from.name.lowercase(); val to=move.to.name.lowercase()
-    val piece=position.board.getPiece(move.from)
-    val name=pieceName(piece)
-    val castle=piece.pieceType?.name=="KING" && kotlin.math.abs(move.from.file.ordinal-move.to.file.ordinal)==2
-    val promotion=move.promotion.takeIf { it!=Piece.NONE }?.let { pieceName(it) }
-    val detail=when {
-        castle -> "Castle ${if(move.to.file.ordinal>move.from.file.ordinal) "kingside" else "queenside"} · $from → $to"
-        promotion!=null -> "Pawn $from → $to, promote to $promotion"
-        else -> "$name $from → $to"
-    }
-    val spoken=when {
-        castle -> "Hint: castle ${if(move.to.file.ordinal>move.from.file.ordinal) "kingside" else "queenside"}, $san"
-        promotion!=null -> "Hint: pawn from $from to $to, promote to $promotion, $san"
-        else -> "Hint: $name from $from to $to, $san"
-    }
-    return HintText(san,detail,spoken)
-}
-
-private fun pieceName(piece: Piece): String = when(piece.pieceType?.name) {
-    "KING" -> "King"; "QUEEN" -> "Queen"; "ROOK" -> "Rook"
-    "BISHOP" -> "Bishop"; "KNIGHT" -> "Knight"; else -> "Pawn"
+    val piece=position.board.getPiece(move.from).pieceType ?: PieceType.PAWN
+    val step=move.to.file.ordinal-move.from.file.ordinal
+    val castle=if(piece==PieceType.KING && kotlin.math.abs(step)==2) { if(step>0) Castle.KINGSIDE else Castle.QUEENSIDE } else null
+    return HintMove(san,move.from.name.lowercase(),move.to.name.lowercase(),piece,castle,
+        move.promotion.takeIf { it!=Piece.NONE }?.pieceType)
 }
 
 /** Displayed column and row (0..7, top-left origin) of [square]; the inverse of [squareAtCell]. */

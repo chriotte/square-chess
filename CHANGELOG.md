@@ -2,6 +2,8 @@
 
 ## Unreleased
 - Optional hints against the computer: tick "Allow hints" when you start the game. During your turn, Hint shows one suggested move from Fairy-Stockfish at full strength, as an arrow with a framed start square and a ring on the target square, plus the move in text ("Hint: Nf3 · Knight g1 → f3"). The shapes do not depend on colour. The hint never plays the move, does not stop the clock and is not saved in the PGN. It goes away when the position changes. Off by default; the choice is saved with the game (database version 5).
+- E-ink mode (Settings): black and white only, without animations, for e-paper screens such as Boox. Dark squares are hatched as in printed chess diagrams, and the selected square, the last move and check are shown by shapes. On by default on Boox devices.
+- Languages: Simplified Chinese, Norwegian Bokmål, German, Spanish and French, in addition to English. The app follows the phone's language; Settings → Language chooses another one.
 
 ## 1.0.6 — 29 September 2026
 - Reproducible on any day and computer: the engine no longer embeds its compile date, and packaged assets keep LF line endings on every OS. No changes to the app itself.

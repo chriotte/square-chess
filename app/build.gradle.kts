@@ -55,6 +55,8 @@ android {
     kotlinOptions { jvmTarget = "17" }
     externalNativeBuild { cmake { path = file("../native/CMakeLists.txt"); version = "3.22.1" } }
     packaging { resources.excludes += setOf("META-INF/LICENSE*", "META-INF/NOTICE*") }
+    // Settings → Language can pick any translation, so Play must install all of them, not only the phone's languages.
+    bundle { language { enableSplit = false } }
     testOptions { unitTests.isReturnDefaultValues = true }
 }
 dependencies {

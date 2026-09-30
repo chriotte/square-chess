@@ -1,0 +1,9 @@
+<resources>
+    <string name="play_against_computer">Spill mot datamaskinen</string>
+    <string name="over_the_board">Over brettet</string>
+    <string name="chess_clock">Sjakklokke</string>
+    <string name="chess_clock_subtitle">For partier på et fysisk brett</string>
+    <string name="import_position">Importer stilling</string>
+    <string name="replace_position">Bytt stilling</string>
+    <string name="import_position_help">Start fra en brettstilling lagret av en annen sjakkapp. Velg en .fen-fil: den inneholder brikkene og hvem som er i trekket, men ikke trekkene i et helt parti. La dette stå urørt for å starte et vanlig parti.</string>
+</resources>

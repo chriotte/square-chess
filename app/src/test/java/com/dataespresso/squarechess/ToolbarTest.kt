@@ -17,9 +17,10 @@ class ToolbarTest {
     @Test fun statusAccountsForModeThinkingAndResults() {
         val game=SavedGame("test",GameMode.COMPUTER.name)
         val state=GameUi(game=game)
-        assertEquals("Your move",gameStatus(state))
-        assertEquals("Computer thinking",gameStatus(state.copy(busy=true)))
-        assertEquals("Game over",gameStatus(state.copy(game=game.copy(result="1-0"))))
-        assertEquals("White to move",gameStatus(state.copy(game=game.copy(mode=GameMode.PHYSICAL_BOARD_RECORDING.name))))
+        assertEquals(GameStatus.YOUR_MOVE,gameStatus(state))
+        assertEquals(GameStatus.COMPUTER_THINKING,gameStatus(state.copy(busy=true)))
+        assertEquals(GameStatus.GAME_OVER,gameStatus(state.copy(game=game.copy(result="1-0"))))
+        assertEquals(GameStatus.WHITE_TO_MOVE,gameStatus(state.copy(game=game.copy(mode=GameMode.PHYSICAL_BOARD_RECORDING.name))))
+        assertEquals(GameStatus.COMPUTER_TO_MOVE,gameStatus(state.copy(game=game.copy(humanWhite=false))))
     }
 }

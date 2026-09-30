@@ -80,8 +80,5 @@ class PgnImportTest {
         assertEquals(1, withoutDuplicates(listOf(game, game.copy(id = "twin")), emptyList()).size)
     }
 
-    @Test fun summaryText() {
-        assertEquals("The file contains no games.", importSummaryText(0, 0, emptyList()))
-        assertEquals("Imported 2 games.\nSkipped 1 game already in your history.", importSummaryText(2, 1, emptyList()))
-    }
+    // importSummaryText needs Android resources: see LocalizationDeviceTest.
 }

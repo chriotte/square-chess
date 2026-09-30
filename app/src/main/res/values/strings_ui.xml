@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Screen text. Translations: values-zh-rCN, values-nb, values-de, values-es, values-fr.
+     Chess notation (e4, Nf3, O-O), PGN tags and saved result reasons stay English: they are data. -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name_title" translatable="false">Square Chess</string>
+
+    <!-- Home -->
+    <string name="continue_game">Continue game</string>
+    <string name="view_last_game">View last game</string>
+    <string name="record_physical_game">Record physical game</string>
+    <string name="game_history">Game history</string>
+    <string name="settings_title">Settings</string>
+    <string name="home_back">‹ Home</string>
+
+    <!-- Game history -->
+    <string name="importing">Importing…</string>
+    <string name="import_action">Import</string>
+    <string name="export_action">Export</string>
+    <string name="your_games">Your games</string>
+    <string name="first_game_hint">Your first game starts here.</string>
+    <string name="long_press_delete">Long-press a game to delete it.</string>
+    <string name="mode_computer">Against computer</string>
+    <string name="mode_over_board">Over the board</string>
+    <string name="mode_recorded">Recorded game</string>
+    <plurals name="history_moves">
+        <item quantity="one">%d move</item>
+        <item quantity="other">%d moves</item>
+    </plurals>
+    <string name="game_in_progress">In progress</string>
+    <string name="delete_game_action">Delete game</string>
+
+    <!-- Players, sides and levels -->
+    <string name="white">White</string>
+    <string name="black">Black</string>
+    <string name="name_computer">Computer (%1$s)</string>
+    <string name="level_label">Level %1$d</string>
+    <string name="level_desc_1">Beginner · often misses captures</string>
+    <string name="level_desc_2">Beginner · makes clear mistakes</string>
+    <string name="level_desc_3">Casual · takes free pieces</string>
+    <string name="level_desc_4">Casual · misses some tactics</string>
+    <string name="level_desc_5">Improving player</string>
+    <string name="level_desc_6">Intermediate</string>
+    <string name="level_desc_7">Club player</string>
+    <string name="level_desc_8">Strong</string>
+    <string name="level_desc_9">Very strong</string>
+    <string name="level_desc_10">Full strength</string>
+
+    <!-- Pieces -->
+    <string name="piece_king">King</string>
+    <string name="piece_queen">Queen</string>
+    <string name="piece_rook">Rook</string>
+    <string name="piece_bishop">Bishop</string>
+    <string name="piece_knight">Knight</string>
+    <string name="piece_pawn">Pawn</string>
+    <string name="square_white_king">white king</string>
+    <string name="square_white_queen">white queen</string>
+    <string name="square_white_rook">white rook</string>
+    <string name="square_white_bishop">white bishop</string>
+    <string name="square_white_knight">white knight</string>
+    <string name="square_white_pawn">white pawn</string>
+    <string name="square_black_king">black king</string>
+    <string name="square_black_queen">black queen</string>
+    <string name="square_black_rook">black rook</string>
+    <string name="square_black_bishop">black bishop</string>
+    <string name="square_black_knight">black knight</string>
+    <string name="square_black_pawn">black pawn</string>
+    <string name="square_empty">empty</string>
+    <string name="square_description">%1$s, %2$s</string>
+    <string name="square_legal_suffix">, legal destination</string>
+    <string name="square_check_suffix">, check</string>
+
+    <!-- Captured pieces (read by TalkBack) -->
+    <string name="captured_description">%1$s captured: %2$s</string>
+    <string name="no_captures">No captures</string>
+    <string name="ahead_by">, ahead by %1$d</string>
+    <plurals name="count_pawns"><item quantity="one">%d pawn</item><item quantity="other">%d pawns</item></plurals>
+    <plurals name="count_knights"><item quantity="one">%d knight</item><item quantity="other">%d knights</item></plurals>
+    <plurals name="count_bishops"><item quantity="one">%d bishop</item><item quantity="other">%d bishops</item></plurals>
+    <plurals name="count_rooks"><item quantity="one">%d rook</item><item quantity="other">%d rooks</item></plurals>
+    <plurals name="count_queens"><item quantity="one">%d queen</item><item quantity="other">%d queens</item></plurals>
+
+    <!-- Game header -->
+    <string name="status_review">Review · %1$d/%2$d</string>
+    <string name="status_game_over">Game over</string>
+    <string name="status_thinking">Computer thinking</string>
+    <string name="status_time_expired">Time expired</string>
+    <string name="status_check">Check</string>
+    <string name="status_unavailable">Computer unavailable</string>
+    <string name="status_your_move">Your move</string>
+    <string name="status_computer_to_move">Computer to move</string>
+    <string name="status_white_to_move">White to move</string>
+    <string name="status_black_to_move">Black to move</string>
+    <string name="clock_paused_interrupted">Clock paused · App was interrupted</string>
+    <string name="clock_paused">Clock paused · Resume when ready</string>
+    <string name="white_ran_out">White ran out of time</string>
+    <string name="black_ran_out">Black ran out of time</string>
+    <string name="clock_white_short">W</string>
+    <string name="clock_black_short">B</string>
+    <string name="clock_description_white">white %1$s</string>
+    <string name="clock_description_black">black %1$s</string>
+    <string name="clock_running_suffix">, running</string>
+    <string name="review">Review</string>
+    <string name="return_action">Return</string>
+    <string name="return_to_game">Return to game</string>
+    <string name="undo">Undo</string>
+    <string name="undo_description">Undo last turn</string>
+    <string name="menu">Menu</string>
+    <string name="menu_description">Game menu</string>
+    <string name="hint">Hint</string>
+    <string name="hide">Hide</string>
+    <string name="show_hint">Show hint</string>
+    <string name="hide_hint">Hide hint</string>
+    <string name="first_position">First position</string>
+    <string name="previous_move">Previous move</string>
+    <string name="next_move">Next move</string>
+    <string name="last_position">Last position</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="pause_clock">Pause clock</string>
+    <string name="resume_clock">Resume clock</string>
+
+    <!-- Hints -->
+    <string name="finding_hint">Finding hint…</string>
+    <string name="hint_unavailable">Hint unavailable · Try again</string>
+    <string name="hint_line">Hint: %1$s · %2$s</string>
+    <string name="hint_move">%1$s %2$s → %3$s</string>
+    <string name="hint_castle_kingside">Castle kingside · %1$s → %2$s</string>
+    <string name="hint_castle_queenside">Castle queenside · %1$s → %2$s</string>
+    <string name="hint_promotion">Pawn %1$s → %2$s, promote to %3$s</string>
+    <string name="hint_spoken_move">Hint: %1$s from %2$s to %3$s, %4$s</string>
+    <string name="hint_spoken_castle_kingside">Hint: castle kingside, %1$s</string>
+    <string name="hint_spoken_castle_queenside">Hint: castle queenside, %1$s</string>
+    <string name="hint_spoken_promotion">Hint: pawn from %1$s to %2$s, promote to %3$s, %4$s</string>
+
+    <!-- Move entry with a keyboard -->
+    <string name="move_entry">Move: %1$s</string>
+    <string name="move_entry_description">Move entry %1$s</string>
+    <string name="clear">Clear</string>
+    <string name="play">Play</string>
+    <string name="entry_position_changed">Position changed — enter your move again</string>
+    <string name="entry_illegal">Illegal or incomplete move</string>
+    <string name="entry_clock_paused">Clock is paused</string>
+    <string name="entry_time_expired">Time expired</string>
+
+    <!-- New game -->
+    <string name="difficulty">Difficulty</string>
+    <string name="easier">Easier</string>
+    <string name="stronger">Stronger</string>
+    <string name="choose_side">Choose your side</string>
+    <string name="play_as_white">Play as White</string>
+    <string name="play_as_black">Play as Black</string>
+    <string name="allow_hints">Allow hints</string>
+    <string name="allow_hints_help">Show a Hint button during your turns.</string>
+    <string name="recording_help">Enter moves from your board. No hints or engine analysis during recording. A casual companion, not tournament-approved equipment.</string>
+    <string name="over_board_help">Share this board with a friend. Choose a time control or play untimed.</string>
+    <string name="time_control">Time control · %1$s</string>
+    <string name="time_control_description">Time control: %1$s</string>
+    <string name="untimed">Untimed</string>
+    <string name="more_options">More options</string>
+    <string name="fewer_options">Fewer options</string>
+    <string name="importing_position">Importing position…</string>
+    <string name="starting_from_imported">Starting from imported position</string>
+    <string name="use_standard_position">Use standard position</string>
+    <string name="file_read_failed">Could not read the selected file: %1$s</string>
+    <string name="io_error">I/O error</string>
+    <string name="file_permission_denied">Permission to read the selected file was denied.</string>
+    <string name="fen_invalid">The selected file is not a valid FEN position.</string>
+    <string name="fen_wrong_file">Choose a position file ending in .fen. Whole-game files (.pgn) are not supported here.</string>
+    <string name="start_game">Start game</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Game menu -->
+    <string name="at_the_board">At the board</string>
+    <string name="section_game">Game</string>
+    <string name="undo_take_back">Undo / take back</string>
+    <string name="claim_draw">Claim draw</string>
+    <string name="resign">Resign</string>
+    <string name="end_game">End game</string>
+    <string name="retry_engine">Retry engine</string>
+    <string name="section_view">View</string>
+    <string name="review_game">Review game</string>
+    <string name="move_list">Move list</string>
+    <string name="flip_board">Flip board</string>
+    <string name="section_share">Share</string>
+    <string name="share_fen">Share FEN</string>
+    <string name="share_pgn">Share PGN</string>
+    <string name="share_fen_chooser">Share position FEN</string>
+    <string name="share_pgn_chooser">Share game PGN</string>
+    <string name="save_home">Save &amp; home</string>
+    <string name="back_to_board">Back to board</string>
+    <string name="resign_title">Resign this game?</string>
+    <string name="resign_text">The computer wins. The game stays in your history.</string>
+    <string name="keep_playing">Keep playing</string>
+    <string name="delete_title">Delete this game?</string>
+    <string name="delete_text">%1$s · %2$s, %3$s. This cannot be undone. Export your games first if you want a copy.</string>
+    <string name="delete">Delete</string>
+    <string name="undo_title">Take back the last turn?</string>
+    <string name="undo_text">The removed move can be played again. Against the computer, both moves are removed when possible.</string>
+    <string name="take_back">Take back</string>
+    <string name="end_title">Finish this game</string>
+    <string name="end_text">Choose the agreed result.</string>
+    <string name="white_wins">White wins</string>
+    <string name="black_wins">Black wins</string>
+    <string name="draw">Draw</string>
+    <string name="moves_title">Moves</string>
+    <string name="no_moves">No moves yet.</string>
+    <string name="close">Close</string>
+
+    <!-- Result -->
+    <string name="review_board">Review board</string>
+    <string name="play_again">Play again</string>
+    <string name="you_won">You won</string>
+    <string name="you_lost">You lost</string>
+    <string name="score_white">White · 1–0</string>
+    <string name="score_black">Black · 0–1</string>
+    <string name="score_draw">Draw · ½–½</string>
+    <string name="reason_checkmate">Checkmate</string>
+    <string name="reason_stalemate">Stalemate</string>
+    <string name="reason_insufficient">Draw by insufficient material</string>
+    <string name="reason_fivefold">Draw by fivefold repetition</string>
+    <string name="reason_75_moves">Draw by the 75-move rule</string>
+    <string name="reason_resigned">You resigned</string>
+    <string name="reason_draw_claimed">Draw claimed</string>
+    <string name="reason_players">Result recorded by the players</string>
+    <string name="reason_game_finished">Game finished</string>
+    <string name="reason_imported">Imported result</string>
+
+    <!-- Export and import -->
+    <string name="export_title">Export games</string>
+    <string name="export_text">One PGN file with every selected game. Other chess apps, such as Lichess and ChessBase, can import it.</string>
+    <string name="section_games">Games</string>
+    <string name="section_period">Period</string>
+    <string name="counting_games">Counting games…</string>
+    <string name="no_games_match">No games match.</string>
+    <plurals name="games_selected">
+        <item quantity="one">%d game selected.</item>
+        <item quantity="other">%d games selected.</item>
+    </plurals>
+    <string name="save_file">Save file</string>
+    <string name="share">Share</string>
+    <string name="share_games_chooser">Share games</string>
+    <plurals name="export_saved">
+        <item quantity="one">Saved %d game.</item>
+        <item quantity="other">Saved %d games.</item>
+    </plurals>
+    <string name="export_failed">Export failed: %1$s</string>
+    <string name="filter_all">All games</string>
+    <string name="filter_computer">Against computer</string>
+    <string name="filter_over_board">Over the board</string>
+    <string name="filter_recorded">Recorded games</string>
+    <string name="period_all">All time</string>
+    <string name="period_30_days">Last 30 days</string>
+    <string name="period_12_months">Last 12 months</string>
+    <string name="import_title">Import games</string>
+    <string name="ok">OK</string>
+    <string name="import_failed">Import failed: %1$s</string>
+    <string name="import_no_games">The file contains no games.</string>
+    <plurals name="import_imported">
+        <item quantity="one">Imported %d game.</item>
+        <item quantity="other">Imported %d games.</item>
+    </plurals>
+    <plurals name="import_skipped">
+        <item quantity="one">Skipped %d game already in your history.</item>
+        <item quantity="other">Skipped %d games already in your history.</item>
+    </plurals>
+    <plurals name="import_unreadable">
+        <item quantity="one">Could not read %d game:</item>
+        <item quantity="other">Could not read %d games:</item>
+    </plurals>
+    <!-- Always more than one: at most five failures are listed before this line. -->
+    <string name="import_more" tools:ignore="PluralsCandidate">and %1$d more</string>
+
+    <!-- Board extras -->
+    <string name="move_strip_empty">No moves yet</string>
+    <plurals name="move_strip_description">
+        <item quantity="one">Move list, %d move</item>
+        <item quantity="other">Move list, %d moves</item>
+    </plurals>
+    <string name="moves_button">Moves</string>
+    <string name="promote_title">Promote pawn</string>
+
+    <!-- Settings -->
+    <string name="move_sounds">Move sounds</string>
+    <string name="move_sounds_help">Sound for moves, captures and check</string>
+    <string name="vibration">Vibration</string>
+    <string name="vibration_help">Short vibration when a move is played</string>
+    <string name="legal_moves">Show legal moves</string>
+    <string name="legal_moves_help">Dots and rings on the squares a selected piece can move to</string>
+    <string name="coordinates">Show coordinates</string>
+    <string name="coordinates_help">Files and ranks on the board edge</string>
+    <string name="eink_mode">E-ink mode</string>
+    <string name="eink_mode_help">Black and white only, no animations. For e-paper screens such as Boox.</string>
+    <string name="board_colours">Board colours</string>
+    <string name="eink_board_note">E-ink mode uses a black-and-white board with hatched dark squares.</string>
+    <string name="theme_green">Green</string>
+    <string name="theme_walnut">Walnut</string>
+    <string name="theme_slate">Slate</string>
+    <string name="board_theme_description">%1$s board</string>
+    <string name="selected_suffix">, selected</string>
+    <string name="language">Language</string>
+    <string name="language_system">System default</string>
+
+    <!-- Chess clock for a real board -->
+    <string name="rotate_0">Rotate 0°</string>
+    <string name="rotate_180">Rotate 180°</string>
+    <string name="start_clock">Start clock</string>
+    <string name="white_flagged">White flagged</string>
+    <string name="black_flagged">Black flagged</string>
+    <string name="clock_finished">Clock finished</string>
+    <string name="reset">Reset</string>
+    <string name="setup">Setup</string>
+    <string name="setup_title">Set up clock</string>
+    <string name="preset">Preset · %1$s</string>
+    <string name="custom">Custom</string>
+    <string name="custom_time">Custom time</string>
+    <string name="minutes">Minutes</string>
+    <string name="seconds">Seconds</string>
+    <string name="increment_seconds">Increment (s)</string>
+    <string name="delay_seconds">Delay (s)</string>
+    <string name="starting_side">Starting side</string>
+    <string name="start_with_white">Start with White</string>
+    <string name="start_with_black">Start with Black</string>
+    <string name="error_minutes">Minutes must be between 0 and 1440.</string>
+    <string name="error_seconds">Seconds must be between 0 and 59.</string>
+    <string name="error_zero_time">The starting time must be greater than zero.</string>
+    <string name="error_max_time">The starting time cannot exceed 24 hours.</string>
+    <string name="error_increment">Increment must be between 0 and 3600 seconds.</string>
+    <string name="error_delay">Delay must be between 0 and 3600 seconds.</string>
+    <string name="apply_time_control">Apply time control</string>
+    <string name="reset_title">Reset clock?</string>
+    <string name="reset_text">Both clocks will return to %1$s.</string>
+    <string name="keep_clock">Keep clock</string>
+    <string name="change_title">Change time control?</string>
+    <string name="change_text">The running clock will be stopped and replaced.</string>
+    <string name="change">Change</string>
+    <string name="clock_panel_white">White clock</string>
+    <string name="clock_panel_black">Black clock</string>
+    <string name="active_suffix">, active</string>
+    <string name="delay_value">Delay %1$s</string>
+    <string name="flag_fallen">Flag fallen</string>
+    <string name="tap_after_move">Tap after your move</string>
+    <string name="ready_to_start">Ready to start</string>
+    <string name="paused">Paused</string>
+</resources>

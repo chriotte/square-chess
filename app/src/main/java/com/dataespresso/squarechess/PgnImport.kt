@@ -26,15 +26,15 @@ fun parsePgnLibrary(text: String, now: Long = System.currentTimeMillis()): PgnIm
     return PgnImportResult(games, failures)
 }
 
-/** The message shown after an import. */
-fun importSummaryText(imported: Int, duplicates: Int, failures: List<String>): String = buildString {
-    fun games(n: Int) = "$n game${if (n == 1) "" else "s"}"
-    append(if (imported == 0 && duplicates == 0 && failures.isEmpty()) "The file contains no games." else "Imported ${games(imported)}.")
-    if (duplicates > 0) append("\nSkipped ${games(duplicates)} already in your history.")
+/** The message shown after an import. The details of an unreadable game stay English (they quote PGN). */
+fun importSummaryText(res: android.content.res.Resources, imported: Int, duplicates: Int, failures: List<String>): String = buildString {
+    append(if (imported == 0 && duplicates == 0 && failures.isEmpty()) res.getString(R.string.import_no_games)
+        else res.getQuantityString(R.plurals.import_imported, imported, imported))
+    if (duplicates > 0) append("\n").append(res.getQuantityString(R.plurals.import_skipped, duplicates, duplicates))
     if (failures.isNotEmpty()) {
-        append("\nCould not read ${games(failures.size)}:")
+        append("\n").append(res.getQuantityString(R.plurals.import_unreadable, failures.size, failures.size))
         failures.take(5).forEach { append("\n• ").append(it) }
-        if (failures.size > 5) append("\n• and ${failures.size - 5} more")
+        if (failures.size > 5) append("\n• ").append(res.getString(R.string.import_more, failures.size - 5))
     }
 }
 

@@ -1,5 +1,7 @@
 package com.dataespresso.squarechess
 
+import androidx.annotation.StringRes
+
 /**
  * Fairy-Stockfish options for one difficulty level. The engine makes every
  * move choice itself; the app only sets its Skill Level and MultiPV options.
@@ -9,20 +11,20 @@ package com.dataespresso.squarechess
  * stronger; below -4 it prefers worse lines (the rejected A-D profiles).
  * Skill -3 and higher reliably take free material in the tactical probes.
  */
-data class EngineLevel(val level: Int, val skill: Int, val multiPv: Int, val description: String)
+data class EngineLevel(val level: Int, val skill: Int, val multiPv: Int, @StringRes val description: Int)
 
 val ENGINE_LEVELS=listOf(
-    EngineLevel(1,-4,8,"Beginner · often misses captures"),
-    EngineLevel(2,-4,4,"Beginner · makes clear mistakes"),
-    EngineLevel(3,-3,8,"Casual · takes free pieces"),
-    EngineLevel(4,-1,8,"Casual · misses some tactics"),
-    EngineLevel(5,0,8,"Improving player"),
-    EngineLevel(6,3,8,"Intermediate"),
-    EngineLevel(7,6,8,"Club player"),
-    EngineLevel(8,10,8,"Strong"),
-    EngineLevel(9,15,8,"Very strong"),
+    EngineLevel(1,-4,8,R.string.level_desc_1),
+    EngineLevel(2,-4,4,R.string.level_desc_2),
+    EngineLevel(3,-3,8,R.string.level_desc_3),
+    EngineLevel(4,-1,8,R.string.level_desc_4),
+    EngineLevel(5,0,8,R.string.level_desc_5),
+    EngineLevel(6,3,8,R.string.level_desc_6),
+    EngineLevel(7,6,8,R.string.level_desc_7),
+    EngineLevel(8,10,8,R.string.level_desc_8),
+    EngineLevel(9,15,8,R.string.level_desc_9),
     // Skill 20 disables the handicap; one line gives the engine its full search.
-    EngineLevel(10,20,1,"Full strength")
+    EngineLevel(10,20,1,R.string.level_desc_10)
 )
 const val DEFAULT_LEVEL=3
 const val ENGINE_MOVE_TIME_MS=500
@@ -30,4 +32,5 @@ const val ENGINE_MOVE_TIME_MS=500
 val HINT_LEVEL=ENGINE_LEVELS.size
 
 fun engineLevel(level: Int)=ENGINE_LEVELS[level.coerceIn(1,ENGINE_LEVELS.size)-1]
+/** English label for saved data (player names, PGN); screens use R.string.level_label. */
 fun difficultyLabel(level: Int)="Level ${level.coerceIn(1,ENGINE_LEVELS.size)}"

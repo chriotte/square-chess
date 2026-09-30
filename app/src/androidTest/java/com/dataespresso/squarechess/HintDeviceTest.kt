@@ -120,16 +120,16 @@ class HintDeviceTest {
         vm.newGame(GameMode.COMPUTER,1,true,hintsEnabled=true).join()
         vm.requestHint()
         engine.hints.receive().completeExceptionally(IllegalStateException("engine down"))
-        until("error shown") { vm.state.value.hintError!=null }
+        until("error shown") { vm.state.value.hintFailed }
         assertTrue(vm.state.value.canEnterMove())
         vm.requestHint()
         engine.hints.receive().complete("e2e5") // not legal
         until("illegal result rejected") { !vm.state.value.hintBusy }
         assertNull(vm.state.value.hint)
-        assertNotNull(vm.state.value.hintError)
+        assertTrue(vm.state.value.hintFailed)
         vm.enter("e2e4").join()
         assertEquals(listOf("e2e4"),vm.state.value.position.moves)
-        assertNull(vm.state.value.hintError)
+        assertFalse(vm.state.value.hintFailed)
     }
 
     @Test fun hintsOnlyForComputerGamesThatAllowThem() = withViewModel { vm, _, db ->

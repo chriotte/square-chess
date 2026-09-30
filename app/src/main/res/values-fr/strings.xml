@@ -1,0 +1,9 @@
+<resources>
+    <string name="play_against_computer">Jouer contre l’ordinateur</string>
+    <string name="over_the_board">Sur l’échiquier</string>
+    <string name="chess_clock">Pendule d’échecs</string>
+    <string name="chess_clock_subtitle">Pour les parties sur un vrai échiquier</string>
+    <string name="import_position">Importer une position</string>
+    <string name="replace_position">Remplacer la position</string>
+    <string name="import_position_help">Démarrez depuis une position enregistrée par une autre app d’échecs. Choisissez un fichier .fen : il contient les pièces et le joueur au trait, mais pas les coups d’une partie entière. Laissez ce réglage tel quel pour commencer une partie normale.</string>
+</resources>

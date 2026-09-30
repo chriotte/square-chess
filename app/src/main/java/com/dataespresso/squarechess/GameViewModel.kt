@@ -24,8 +24,10 @@ data class GameUi(
     val ready: Boolean = false,
     val hint: Hint? = null,
     val hintBusy: Boolean = false,
-    val hintError: String? = null
+    val hintFailed: Boolean = false
 )
+/** Why a typed move was not played; the screen shows it in the player's language. */
+enum class EntryError { POSITION_CHANGED, ILLEGAL, CLOCK_PAUSED, TIME_EXPIRED }
 data class ResultEvent(val result: String, val reason: String)
 class GameViewModel private constructor(
     app: Application,
@@ -115,15 +117,15 @@ class GameViewModel private constructor(
         ensureClockCheckpointing()
         maybeEngine()
     }
-    fun enter(text: String, expectedPosition: String = state.value.positionKey(), onResult: (String?) -> Unit = {}) = viewModelScope.launch {
+    fun enter(text: String, expectedPosition: String = state.value.positionKey(), onResult: (EntryError?) -> Unit = {}) = viewModelScope.launch {
         commitLock.withLock {
             val s=state.value
-            if(s.positionKey()!=expectedPosition || !s.canEnterMove()) { onResult("Position changed — enter your move again"); return@withLock }
+            if(s.positionKey()!=expectedPosition || !s.canEnterMove()) { onResult(EntryError.POSITION_CHANGED); return@withLock }
             val move=s.position.resolve(text)
-            if(move==null) { state.value=s.copy(message="Not a legal move: $text"); onResult("Illegal or incomplete move") }
+            if(move==null) { state.value=s.copy(message="Not a legal move: $text"); onResult(EntryError.ILLEGAL) }
             else {
                 if (commit(move.toString())) onResult(null)
-                else onResult(if (state.value.clock?.phase == ClockPhase.PAUSED) "Clock is paused" else "Time expired")
+                else onResult(if (state.value.clock?.phase == ClockPhase.PAUSED) EntryError.CLOCK_PAUSED else EntryError.TIME_EXPIRED)
             }
         }
         maybeEngine()
@@ -158,7 +160,7 @@ class GameViewModel private constructor(
             engineError=null,
             hint=null,
             hintBusy=false,
-            hintError=null,
+            hintFailed=false,
             clock=clock,
             highlightMove=uci,
             resultEvent=if(result!="*") ResultEvent(result,p.automaticResultReason() ?: "Game finished") else null,
@@ -202,7 +204,7 @@ class GameViewModel private constructor(
         if(!foreground || !s.hintsAvailable() || !s.canEnterMove() || s.hintBusy) return
         val key=s.positionKey()
         val token=revision
-        state.value=s.copy(hint=null,hintBusy=true,hintError=null)
+        state.value=s.copy(hint=null,hintBusy=true,hintFailed=false)
         hintJob=viewModelScope.launch {
             val best=try { engine.hint(g.initialFen,s.position.moves) }
                 catch(e: CancellationException) { throw e }
@@ -213,14 +215,14 @@ class GameViewModel private constructor(
                 val move=best?.let { now.position.resolve(it) }
                 if(best!=null && move==null) Log.e("SquareChess","Engine hint is not legal here: $best")
                 state.value=if(move!=null) now.copy(hint=Hint(move.toString(),key),hintBusy=false)
-                    else now.copy(hintBusy=false,hintError="Hint unavailable · Try again")
+                    else now.copy(hintBusy=false,hintFailed=true)
             }
         }
     }
     fun clearHint() {
         if(state.value.hintBusy) { hintJob?.cancel(); engine.stop() }
         hintJob=null
-        state.value=state.value.copy(hint=null,hintBusy=false,hintError=null)
+        state.value=state.value.copy(hint=null,hintBusy=false,hintFailed=false)
     }
     fun undo() = viewModelScope.launch { commitLock.withLock {
         val s=state.value; val g=s.game ?: return@withLock
@@ -384,7 +386,7 @@ class GameViewModel private constructor(
         val reason = "${flagged.name.lowercase().replaceFirstChar(Char::titlecase)} ran out of time"
         val saved = game.copy(result=result,resultReason=reason,updated=System.currentTimeMillis()).withClock(clock,SystemClock.elapsedRealtime())
         db.games().save(saved)
-        state.value=s.copy(game=saved,clock=clock,busy=false,engineError=null,hint=null,hintBusy=false,hintError=null,
+        state.value=s.copy(game=saved,clock=clock,busy=false,engineError=null,hint=null,hintBusy=false,hintFailed=false,
             resultEvent=ResultEvent(result,reason),message="Time expired · $result")
     }
     override fun onCleared() { engine.stop(); db.close(); super.onCleared() }

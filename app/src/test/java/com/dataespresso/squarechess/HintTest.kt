@@ -1,43 +1,35 @@
 package com.dataespresso.squarechess
 
+import com.github.bhlangonijr.chesslib.PieceType
 import com.github.bhlangonijr.chesslib.Square
 import org.junit.Assert.*
 import org.junit.Test
 
 class HintTest {
     @Test fun normalMoveNamesPieceSquaresAndSan() {
-        val text=requireNotNull(hintText(ChessPosition(),"g1f3"))
-        assertEquals("Nf3",text.san)
-        assertEquals("Knight g1 → f3",text.detail)
-        assertEquals("Hint: Knight from g1 to f3, Nf3",text.spoken)
-        assertEquals("Pawn e2 → e4",hintText(ChessPosition(),"e2e4")!!.detail)
+        assertEquals(HintMove("Nf3","g1","f3",PieceType.KNIGHT),hintMove(ChessPosition(),"g1f3"))
+        assertEquals(HintMove("e4","e2","e4",PieceType.PAWN),hintMove(ChessPosition(),"e2e4"))
     }
     @Test fun captureAndCheckAppearInSan() {
         // 1.e4 e5 2.Bc4 Nc6: Bxf7+ is a capture with check.
         val p=ChessPosition(moves=listOf("e2e4","e7e5","f1c4","b8c6"))
-        val text=requireNotNull(hintText(p,"c4f7"))
-        assertEquals("Bxf7+",text.san)
-        assertEquals("Bishop c4 → f7",text.detail)
+        assertEquals(HintMove("Bxf7+","c4","f7",PieceType.BISHOP),hintMove(p,"c4f7"))
     }
     @Test fun castlingIsDescribedAsCastling() {
         val p=ChessPosition("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1")
-        val kingside=requireNotNull(hintText(p,"e1g1"))
-        assertEquals("O-O",kingside.san)
-        assertEquals("Castle kingside · e1 → g1",kingside.detail)
-        assertEquals("Castle queenside · e1 → c1",hintText(p,"e1c1")!!.detail)
+        assertEquals(HintMove("O-O","e1","g1",PieceType.KING,Castle.KINGSIDE),hintMove(p,"e1g1"))
+        assertEquals(Castle.QUEENSIDE,hintMove(p,"e1c1")!!.castle)
+        assertNull("A one-square king move is not castling",hintMove(p,"e1f1")!!.castle)
     }
     @Test fun promotionNamesTheNewPiece() {
         val p=ChessPosition("7k/4P3/8/8/8/8/8/K7 w - - 0 1")
-        val text=requireNotNull(hintText(p,"e7e8q"))
-        assertEquals("e8=Q+",text.san)
-        assertEquals("Pawn e7 → e8, promote to Queen",text.detail)
-        assertEquals("Pawn e7 → e8, promote to Knight",hintText(p,"e7e8n")!!.detail)
+        assertEquals(HintMove("e8=Q+","e7","e8",PieceType.PAWN,promotion=PieceType.QUEEN),hintMove(p,"e7e8q"))
+        assertEquals(PieceType.KNIGHT,hintMove(p,"e7e8n")!!.promotion)
     }
     @Test fun illegalOrMissingMoveGivesNoText() {
-        assertNull(hintText(ChessPosition(),"e2e5"))
-        assertNull(hintText(ChessPosition(),"(none)"))
-    }
-    @Test fun boardMappingMatchesBothOrientations() {
+        assertNull(hintMove(ChessPosition(),"e2e5"))
+        assertNull(hintMove(ChessPosition(),"(none)"))
+    }    @Test fun boardMappingMatchesBothOrientations() {
         assertEquals(0 to 7,cellOf(Square.A1,false))
         assertEquals(7 to 0,cellOf(Square.A1,true))
         assertEquals(6 to 7,cellOf(Square.G1,false))

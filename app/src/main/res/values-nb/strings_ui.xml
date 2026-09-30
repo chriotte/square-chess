@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Home -->
+    <string name="continue_game">Fortsett partiet</string>
+    <string name="view_last_game">Se siste parti</string>
+    <string name="record_physical_game">Noter parti på brett</string>
+    <string name="game_history">Partihistorikk</string>
+    <string name="settings_title">Innstillinger</string>
+    <string name="home_back">‹ Hjem</string>
+
+    <!-- Game history -->
+    <string name="importing">Importerer …</string>
+    <string name="import_action">Importer</string>
+    <string name="export_action">Eksporter</string>
+    <string name="your_games">Dine partier</string>
+    <string name="first_game_hint">Ditt første parti starter her.</string>
+    <string name="long_press_delete">Trykk lenge på et parti for å slette det.</string>
+    <string name="mode_computer">Mot datamaskinen</string>
+    <string name="mode_over_board">Over brettet</string>
+    <string name="mode_recorded">Notert parti</string>
+    <plurals name="history_moves">
+        <item quantity="one">%d trekk</item>
+        <item quantity="other">%d trekk</item>
+    </plurals>
+    <string name="game_in_progress">Pågår</string>
+    <string name="delete_game_action">Slett partiet</string>
+
+    <!-- Players, sides and levels -->
+    <string name="white">Hvit</string>
+    <string name="black">Svart</string>
+    <string name="name_computer">Datamaskin (%1$s)</string>
+    <string name="level_label">Nivå %1$d</string>
+    <string name="level_desc_1">Nybegynner · overser ofte slag</string>
+    <string name="level_desc_2">Nybegynner · gjør tydelige feil</string>
+    <string name="level_desc_3">Uformell · tar gratis brikker</string>
+    <string name="level_desc_4">Uformell · overser noen taktikker</string>
+    <string name="level_desc_5">Spiller i utvikling</string>
+    <string name="level_desc_6">Middels</string>
+    <string name="level_desc_7">Klubbspiller</string>
+    <string name="level_desc_8">Sterk</string>
+    <string name="level_desc_9">Svært sterk</string>
+    <string name="level_desc_10">Full styrke</string>
+
+    <!-- Pieces -->
+    <string name="piece_king">Konge</string>
+    <string name="piece_queen">Dronning</string>
+    <string name="piece_rook">Tårn</string>
+    <string name="piece_bishop">Løper</string>
+    <string name="piece_knight">Springer</string>
+    <string name="piece_pawn">Bonde</string>
+    <string name="square_white_king">hvit konge</string>
+    <string name="square_white_queen">hvit dronning</string>
+    <string name="square_white_rook">hvitt tårn</string>
+    <string name="square_white_bishop">hvit løper</string>
+    <string name="square_white_knight">hvit springer</string>
+    <string name="square_white_pawn">hvit bonde</string>
+    <string name="square_black_king">svart konge</string>
+    <string name="square_black_queen">svart dronning</string>
+    <string name="square_black_rook">svart tårn</string>
+    <string name="square_black_bishop">svart løper</string>
+    <string name="square_black_knight">svart springer</string>
+    <string name="square_black_pawn">svart bonde</string>
+    <string name="square_empty">tom</string>
+    <string name="square_description">%1$s, %2$s</string>
+    <string name="square_legal_suffix">, lovlig felt</string>
+    <string name="square_check_suffix">, sjakk</string>
+
+    <!-- Captured pieces -->
+    <string name="captured_description">%1$s har slått: %2$s</string>
+    <string name="no_captures">Ingen slag</string>
+    <string name="ahead_by">, fører med %1$d</string>
+    <plurals name="count_pawns"><item quantity="one">%d bonde</item><item quantity="other">%d bønder</item></plurals>
+    <plurals name="count_knights"><item quantity="one">%d springer</item><item quantity="other">%d springere</item></plurals>
+    <plurals name="count_bishops"><item quantity="one">%d løper</item><item quantity="other">%d løpere</item></plurals>
+    <plurals name="count_rooks"><item quantity="one">%d tårn</item><item quantity="other">%d tårn</item></plurals>
+    <plurals name="count_queens"><item quantity="one">%d dronning</item><item quantity="other">%d dronninger</item></plurals>
+
+    <!-- Game header -->
+    <string name="status_review">Gjennomgang · %1$d/%2$d</string>
+    <string name="status_game_over">Partiet er slutt</string>
+    <string name="status_thinking">Datamaskinen tenker</string>
+    <string name="status_time_expired">Tiden er ute</string>
+    <string name="status_check">Sjakk</string>
+    <string name="status_unavailable">Datamaskinen er utilgjengelig</string>
+    <string name="status_your_move">Ditt trekk</string>
+    <string name="status_computer_to_move">Datamaskinen skal trekke</string>
+    <string name="status_white_to_move">Hvit i trekket</string>
+    <string name="status_black_to_move">Svart i trekket</string>
+    <string name="clock_paused_interrupted">Klokken er stoppet · Appen ble avbrutt</string>
+    <string name="clock_paused">Klokken er stoppet · Fortsett når du er klar</string>
+    <string name="white_ran_out">Hvit gikk tom for tid</string>
+    <string name="black_ran_out">Svart gikk tom for tid</string>
+    <string name="clock_white_short">H</string>
+    <string name="clock_black_short">S</string>
+    <string name="clock_description_white">hvit %1$s</string>
+    <string name="clock_description_black">svart %1$s</string>
+    <string name="clock_running_suffix">, går</string>
+    <string name="review">Gjennomgå</string>
+    <string name="return_action">Tilbake</string>
+    <string name="return_to_game">Tilbake til partiet</string>
+    <string name="undo">Angre</string>
+    <string name="undo_description">Angre siste tur</string>
+    <string name="menu">Meny</string>
+    <string name="menu_description">Partimeny</string>
+    <string name="hint">Tips</string>
+    <string name="hide">Skjul</string>
+    <string name="show_hint">Vis tips</string>
+    <string name="hide_hint">Skjul tips</string>
+    <string name="first_position">Første stilling</string>
+    <string name="previous_move">Forrige trekk</string>
+    <string name="next_move">Neste trekk</string>
+    <string name="last_position">Siste stilling</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Fortsett</string>
+    <string name="pause_clock">Stopp klokken</string>
+    <string name="resume_clock">Start klokken igjen</string>
+
+    <!-- Hints -->
+    <string name="finding_hint">Finner tips …</string>
+    <string name="hint_unavailable">Tips utilgjengelig · Prøv igjen</string>
+    <string name="hint_line">Tips: %1$s · %2$s</string>
+    <string name="hint_move">%1$s %2$s → %3$s</string>
+    <string name="hint_castle_kingside">Kort rokade · %1$s → %2$s</string>
+    <string name="hint_castle_queenside">Lang rokade · %1$s → %2$s</string>
+    <string name="hint_promotion">Bonde %1$s → %2$s, forvandles til %3$s</string>
+    <string name="hint_spoken_move">Tips: %1$s fra %2$s til %3$s, %4$s</string>
+    <string name="hint_spoken_castle_kingside">Tips: kort rokade, %1$s</string>
+    <string name="hint_spoken_castle_queenside">Tips: lang rokade, %1$s</string>
+    <string name="hint_spoken_promotion">Tips: bonde fra %1$s til %2$s, forvandles til %3$s, %4$s</string>
+
+    <!-- Move entry -->
+    <string name="move_entry">Trekk: %1$s</string>
+    <string name="move_entry_description">Trekkinntasting %1$s</string>
+    <string name="clear">Tøm</string>
+    <string name="play">Spill</string>
+    <string name="entry_position_changed">Stillingen er endret – skriv trekket på nytt</string>
+    <string name="entry_illegal">Ulovlig eller ufullstendig trekk</string>
+    <string name="entry_clock_paused">Klokken er stoppet</string>
+    <string name="entry_time_expired">Tiden er ute</string>
+
+    <!-- New game -->
+    <string name="difficulty">Vanskelighetsgrad</string>
+    <string name="easier">Lettere</string>
+    <string name="stronger">Sterkere</string>
+    <string name="choose_side">Velg farge</string>
+    <string name="play_as_white">Spill som hvit</string>
+    <string name="play_as_black">Spill som svart</string>
+    <string name="allow_hints">Tillat tips</string>
+    <string name="allow_hints_help">Vis en tipsknapp når det er din tur.</string>
+    <string name="recording_help">Skriv inn trekkene fra brettet ditt. Ingen tips eller motoranalyse under noteringen. En uformell hjelper, ikke godkjent utstyr for turneringer.</string>
+    <string name="over_board_help">Del brettet med en venn. Velg en tidskontroll eller spill uten klokke.</string>
+    <string name="time_control">Tidskontroll · %1$s</string>
+    <string name="time_control_description">Tidskontroll: %1$s</string>
+    <string name="untimed">Uten klokke</string>
+    <string name="more_options">Flere valg</string>
+    <string name="fewer_options">Færre valg</string>
+    <string name="importing_position">Importerer stilling …</string>
+    <string name="starting_from_imported">Starter fra importert stilling</string>
+    <string name="use_standard_position">Bruk vanlig startstilling</string>
+    <string name="file_read_failed">Kunne ikke lese den valgte filen: %1$s</string>
+    <string name="io_error">I/U-feil</string>
+    <string name="file_permission_denied">Tilgang til å lese den valgte filen ble nektet.</string>
+    <string name="fen_invalid">Den valgte filen er ikke en gyldig FEN-stilling.</string>
+    <string name="fen_wrong_file">Velg en stillingsfil som slutter på .fen. Filer med hele partier (.pgn) støttes ikke her.</string>
+    <string name="start_game">Start partiet</string>
+    <string name="cancel">Avbryt</string>
+
+    <!-- Game menu -->
+    <string name="at_the_board">Ved brettet</string>
+    <string name="section_game">Parti</string>
+    <string name="undo_take_back">Angre / ta tilbake</string>
+    <string name="claim_draw">Krev remis</string>
+    <string name="resign">Gi opp</string>
+    <string name="end_game">Avslutt partiet</string>
+    <string name="retry_engine">Prøv motoren igjen</string>
+    <string name="section_view">Visning</string>
+    <string name="review_game">Gå gjennom partiet</string>
+    <string name="move_list">Trekkliste</string>
+    <string name="flip_board">Snu brettet</string>
+    <string name="section_share">Del</string>
+    <string name="share_fen">Del FEN</string>
+    <string name="share_pgn">Del PGN</string>
+    <string name="share_fen_chooser">Del stillingen som FEN</string>
+    <string name="share_pgn_chooser">Del partiet som PGN</string>
+    <string name="save_home">Lagre og gå hjem</string>
+    <string name="back_to_board">Tilbake til brettet</string>
+    <string name="resign_title">Gi opp dette partiet?</string>
+    <string name="resign_text">Datamaskinen vinner. Partiet blir liggende i historikken.</string>
+    <string name="keep_playing">Spill videre</string>
+    <string name="delete_title">Slette dette partiet?</string>
+    <string name="delete_text">%1$s · %2$s, %3$s. Dette kan ikke angres. Eksporter partiene først hvis du vil ha en kopi.</string>
+    <string name="delete">Slett</string>
+    <string name="undo_title">Ta tilbake siste tur?</string>
+    <string name="undo_text">Trekket som fjernes, kan spilles på nytt. Mot datamaskinen fjernes begge trekkene når det er mulig.</string>
+    <string name="take_back">Ta tilbake</string>
+    <string name="end_title">Avslutt partiet</string>
+    <string name="end_text">Velg resultatet dere er enige om.</string>
+    <string name="white_wins">Hvit vinner</string>
+    <string name="black_wins">Svart vinner</string>
+    <string name="draw">Remis</string>
+    <string name="moves_title">Trekk</string>
+    <string name="no_moves">Ingen trekk ennå.</string>
+    <string name="close">Lukk</string>
+
+    <!-- Result -->
+    <string name="review_board">Se på brettet</string>
+    <string name="play_again">Spill igjen</string>
+    <string name="you_won">Du vant</string>
+    <string name="you_lost">Du tapte</string>
+    <string name="score_white">Hvit · 1–0</string>
+    <string name="score_black">Svart · 0–1</string>
+    <string name="score_draw">Remis · ½–½</string>
+    <string name="reason_checkmate">Sjakkmatt</string>
+    <string name="reason_stalemate">Patt</string>
+    <string name="reason_insufficient">Remis på grunn av utilstrekkelig materiell</string>
+    <string name="reason_fivefold">Remis ved femdobbel gjentakelse</string>
+    <string name="reason_75_moves">Remis etter 75-trekksregelen</string>
+    <string name="reason_resigned">Du ga opp</string>
+    <string name="reason_draw_claimed">Remis krevd</string>
+    <string name="reason_players">Resultat registrert av spillerne</string>
+    <string name="reason_game_finished">Partiet er slutt</string>
+    <string name="reason_imported">Importert resultat</string>
+
+    <!-- Export and import -->
+    <string name="export_title">Eksporter partier</string>
+    <string name="export_text">Én PGN-fil med alle valgte partier. Andre sjakkapper, som Lichess og ChessBase, kan importere den.</string>
+    <string name="section_games">Partier</string>
+    <string name="section_period">Periode</string>
+    <string name="counting_games">Teller partier …</string>
+    <string name="no_games_match">Ingen partier passer.</string>
+    <plurals name="games_selected">
+        <item quantity="one">%d parti valgt.</item>
+        <item quantity="other">%d partier valgt.</item>
+    </plurals>
+    <string name="save_file">Lagre fil</string>
+    <string name="share">Del</string>
+    <string name="share_games_chooser">Del partier</string>
+    <plurals name="export_saved">
+        <item quantity="one">Lagret %d parti.</item>
+        <item quantity="other">Lagret %d partier.</item>
+    </plurals>
+    <string name="export_failed">Eksporten mislyktes: %1$s</string>
+    <string name="filter_all">Alle partier</string>
+    <string name="filter_computer">Mot datamaskinen</string>
+    <string name="filter_over_board">Over brettet</string>
+    <string name="filter_recorded">Noterte partier</string>
+    <string name="period_all">Hele tiden</string>
+    <string name="period_30_days">Siste 30 dager</string>
+    <string name="period_12_months">Siste 12 måneder</string>
+    <string name="import_title">Importer partier</string>
+    <string name="ok">OK</string>
+    <string name="import_failed">Importen mislyktes: %1$s</string>
+    <string name="import_no_games">Filen inneholder ingen partier.</string>
+    <plurals name="import_imported">
+        <item quantity="one">Importerte %d parti.</item>
+        <item quantity="other">Importerte %d partier.</item>
+    </plurals>
+    <plurals name="import_skipped">
+        <item quantity="one">Hoppet over %d parti som allerede er i historikken.</item>
+        <item quantity="other">Hoppet over %d partier som allerede er i historikken.</item>
+    </plurals>
+    <plurals name="import_unreadable">
+        <item quantity="one">Kunne ikke lese %d parti:</item>
+        <item quantity="other">Kunne ikke lese %d partier:</item>
+    </plurals>
+    <string name="import_more">og %1$d til</string>
+
+    <!-- Board extras -->
+    <string name="move_strip_empty">Ingen trekk ennå</string>
+    <plurals name="move_strip_description">
+        <item quantity="one">Trekkliste, %d trekk</item>
+        <item quantity="other">Trekkliste, %d trekk</item>
+    </plurals>
+    <string name="moves_button">Trekk</string>
+    <string name="promote_title">Forvandle bonden</string>
+
+    <!-- Settings -->
+    <string name="move_sounds">Trekklyder</string>
+    <string name="move_sounds_help">Lyd for trekk, slag og sjakk</string>
+    <string name="vibration">Vibrering</string>
+    <string name="vibration_help">Kort vibrering når et trekk spilles</string>
+    <string name="legal_moves">Vis lovlige trekk</string>
+    <string name="legal_moves_help">Prikker og ringer på feltene en valgt brikke kan flytte til</string>
+    <string name="coordinates">Vis koordinater</string>
+    <string name="coordinates_help">Linjer og rader langs kanten av brettet</string>
+    <string name="eink_mode">E-blekk-modus</string>
+    <string name="eink_mode_help">Bare svart og hvitt, ingen animasjoner. For e-papirskjermer som Boox.</string>
+    <string name="board_colours">Brettfarger</string>
+    <string name="eink_board_note">E-blekk-modus bruker et svart-hvitt brett med skraverte mørke felt.</string>
+    <string name="theme_green">Grønn</string>
+    <string name="theme_walnut">Valnøtt</string>
+    <string name="theme_slate">Skifer</string>
+    <string name="board_theme_description">Brett: %1$s</string>
+    <string name="selected_suffix">, valgt</string>
+    <string name="language">Språk</string>
+    <string name="language_system">Systemstandard</string>
+
+    <!-- Chess clock -->
+    <string name="rotate_0">Roter 0°</string>
+    <string name="rotate_180">Roter 180°</string>
+    <string name="start_clock">Start klokken</string>
+    <string name="white_flagged">Hvit har overskredet tiden</string>
+    <string name="black_flagged">Svart har overskredet tiden</string>
+    <string name="clock_finished">Klokken er ferdig</string>
+    <string name="reset">Nullstill</string>
+    <string name="setup">Oppsett</string>
+    <string name="setup_title">Still inn klokken</string>
+    <string name="preset">Forhåndsvalg · %1$s</string>
+    <string name="custom">Egendefinert</string>
+    <string name="custom_time">Egendefinert tid</string>
+    <string name="minutes">Minutter</string>
+    <string name="seconds">Sekunder</string>
+    <string name="increment_seconds">Tillegg (s)</string>
+    <string name="delay_seconds">Forsinkelse (s)</string>
+    <string name="starting_side">Hvem starter</string>
+    <string name="start_with_white">Start med hvit</string>
+    <string name="start_with_black">Start med svart</string>
+    <string name="error_minutes">Minutter må være mellom 0 og 1440.</string>
+    <string name="error_seconds">Sekunder må være mellom 0 og 59.</string>
+    <string name="error_zero_time">Starttiden må være større enn null.</string>
+    <string name="error_max_time">Starttiden kan ikke være mer enn 24 timer.</string>
+    <string name="error_increment">Tillegget må være mellom 0 og 3600 sekunder.</string>
+    <string name="error_delay">Forsinkelsen må være mellom 0 og 3600 sekunder.</string>
+    <string name="apply_time_control">Bruk tidskontrollen</string>
+    <string name="reset_title">Nullstille klokken?</string>
+    <string name="reset_text">Begge klokkene går tilbake til %1$s.</string>
+    <string name="keep_clock">Behold klokken</string>
+    <string name="change_title">Endre tidskontroll?</string>
+    <string name="change_text">Klokken som går, stoppes og erstattes.</string>
+    <string name="change">Endre</string>
+    <string name="clock_panel_white">Hvits klokke</string>
+    <string name="clock_panel_black">Svarts klokke</string>
+    <string name="active_suffix">, aktiv</string>
+    <string name="delay_value">Forsinkelse %1$s</string>
+    <string name="flag_fallen">Flagget har falt</string>
+    <string name="tap_after_move">Trykk etter trekket ditt</string>
+    <string name="ready_to_start">Klar til start</string>
+    <string name="paused">Stoppet</string>
+</resources>

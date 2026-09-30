@@ -66,6 +66,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import android.content.Context
 import com.github.bhlangonijr.chesslib.Piece
 import com.github.bhlangonijr.chesslib.Side
 import androidx.core.view.WindowCompat
@@ -98,6 +100,8 @@ class MainActivity: ComponentActivity() {
     private val settingsStore by lazy { SettingsStore(this) }
     private var settings by mutableStateOf(AppSettings())
     private val sounds by lazy { MoveSounds() }
+    // Android 10–12: apply the language chosen in Settings (Android 13+ does this itself).
+    override fun attachBaseContext(newBase: Context) { super.attachBaseContext(LanguageSetting.wrap(newBase)) }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         settings=settingsStore.load()
@@ -154,11 +158,11 @@ class MainActivity: ComponentActivity() {
                             try {
                                 importedFen=loadFenDocument(uri)
                             } catch(e: IOException) {
-                                fenImportError="Could not read the selected file: ${e.message ?: "I/O error"}"
+                                fenImportError=getString(R.string.file_read_failed,e.message ?: getString(R.string.io_error))
                             } catch(e: SecurityException) {
-                                fenImportError="Permission to read the selected file was denied."
+                                fenImportError=getString(R.string.file_permission_denied)
                             } catch(e: IllegalArgumentException) {
-                                fenImportError=e.message ?: "The selected file is not a valid FEN position."
+                                fenImportError=e.message?.let { "${getString(R.string.fen_invalid)}\n$it" } ?: getString(R.string.fen_invalid)
                             } finally {
                                 fenImporting=false
                             }
@@ -175,8 +179,8 @@ class MainActivity: ComponentActivity() {
                     if(uri!=null) coroutineScope.launch {
                         exportMessage=try {
                             val count=writeExport(uri,exportMode,exportPeriod)
-                            "Saved $count game${if(count==1) "" else "s"}."
-                        } catch(e: Exception) { "Export failed: ${e.message ?: "I/O error"}" }
+                            resources.getQuantityString(R.plurals.export_saved,count,count)
+                        } catch(e: Exception) { getString(R.string.export_failed,e.message ?: getString(R.string.io_error)) }
                     }
                 }
                 var importMessage by remember { mutableStateOf<String?>(null) }
@@ -185,8 +189,8 @@ class MainActivity: ComponentActivity() {
                     if(uri!=null) coroutineScope.launch {
                         importing=true
                         importMessage=try {
-                            vm.importGames(readTextDocument(uri,MAX_PGN_IMPORT_BYTES)).let { importSummaryText(it.imported,it.duplicates,it.failures) }
-                        } catch(e: Exception) { "Import failed: ${e.message ?: "I/O error"}" }
+                            vm.importGames(readTextDocument(uri,MAX_PGN_IMPORT_BYTES)).let { importSummaryText(resources,it.imported,it.duplicates,it.failures) }
+                        } catch(e: Exception) { getString(R.string.import_failed,e.message ?: getString(R.string.io_error)) }
                         finally { importing=false }
                     }
                 }
@@ -234,17 +238,17 @@ class MainActivity: ComponentActivity() {
                                     Image(painterResource(R.drawable.ic_square_chess),contentDescription=null,
                                         modifier=Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)))
                                     Spacer(Modifier.width(12.dp))
-                                    Text("Square Chess",color=palette.text,fontSize=24.sp,fontWeight=FontWeight.Medium)
+                                    Text(stringResource(R.string.app_name_title),color=palette.text,fontSize=24.sp,fontWeight=FontWeight.Medium)
                                 }
                                 if(s.game!=null) Button(
                                     onClick={ flip=defaultFlipFor(s.game); reviewPly=null; screen="game"; vm.foreground() },
                                     modifier=Modifier.fillMaxWidth().heightIn(min=56.dp),
                                     shape=RoundedCornerShape(12.dp),
                                     colors=ButtonDefaults.buttonColors(containerColor=palette.accent,contentColor=palette.onAccent)
-                                ) { Text(if(s.game?.result=="*") "Continue game" else "View last game",fontSize=17.sp) }
+                                ) { Text(stringResource(if(s.game?.result=="*") R.string.continue_game else R.string.view_last_game),fontSize=17.sp) }
                                 LandingOption(stringResource(R.string.play_against_computer)) { openNewGame(GameMode.COMPUTER) }
                                 LandingOption(stringResource(R.string.over_the_board)) { openNewGame(GameMode.LOCAL_TWO_PLAYER) }
-                                LandingOption("Record physical game") { openNewGame(GameMode.PHYSICAL_BOARD_RECORDING) }
+                                LandingOption(stringResource(R.string.record_physical_game)) { openNewGame(GameMode.PHYSICAL_BOARD_RECORDING) }
                                 LandingOption(
                                     stringResource(R.string.chess_clock),
                                     stringResource(R.string.chess_clock_subtitle)
@@ -253,29 +257,31 @@ class MainActivity: ComponentActivity() {
                                 }
                               }
                                 Row(Modifier.fillMaxWidth().padding(top=4.dp,bottom=16.dp),horizontalArrangement=Arrangement.SpaceBetween) {
-                                    TextButton(onClick={screen="history"}) { Text("Game history") }
-                                    TextButton(onClick={screen="settings"}) { Text("Settings") }
+                                    TextButton(onClick={screen="history"}) { Text(stringResource(R.string.game_history)) }
+                                    TextButton(onClick={screen="settings"}) { Text(stringResource(R.string.settings_title)) }
                                     TextButton(onClick={screen="help";vm.pauseForNavigation()}) { Text(stringResource(R.string.help_title)) }
                                 }
                             }
                             "history" -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
                                 val history by vm.history.collectAsState(initial=emptyList())
                                 Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-                                    TextButton(onClick={screen="home"}) { Text("‹ Home") }
+                                    TextButton(onClick={screen="home"}) { Text(stringResource(R.string.home_back)) }
                                     Spacer(Modifier.weight(1f))
-                                    TextButton(enabled=!importing,onClick={importPicker.launch(arrayOf("*/*"))}) { Text(if(importing) "Importing…" else "Import") }
-                                    if(history.isNotEmpty()) TextButton(onClick={dialog="export"}) { Text("Export") }
+                                    TextButton(enabled=!importing,onClick={importPicker.launch(arrayOf("*/*"))}) { Text(stringResource(if(importing) R.string.importing else R.string.import_action)) }
+                                    if(history.isNotEmpty()) TextButton(onClick={dialog="export"}) { Text(stringResource(R.string.export_action)) }
                                 }
-                                Text("Your games",fontFamily=FontFamily.Serif,fontSize=30.sp)
-                                if(history.isEmpty()) Text("Your first game starts here.")
-                                else Text("Long-press a game to delete it.",fontSize=12.sp,color=LocalPalette.current.muted,modifier=Modifier.padding(bottom=8.dp))
+                                Text(stringResource(R.string.your_games),fontFamily=FontFamily.Serif,fontSize=30.sp)
+                                if(history.isEmpty()) Text(stringResource(R.string.first_game_hint))
+                                else Text(stringResource(R.string.long_press_delete),fontSize=12.sp,color=LocalPalette.current.muted,modifier=Modifier.padding(bottom=8.dp))
                                 Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
                                     history.forEach { g -> HistoryRow(g,
                                         onOpen={ flip=defaultFlipFor(g); reviewPly=null; vm.resume(g); screen="game" },
                                         onDelete={ pendingDelete=g }) }
                                 }
                             }
-                            "settings" -> SettingsScreen(settings,onChange={ settings=it; settingsStore.save(it) },onExit={screen="home"})
+                            "settings" -> SettingsScreen(settings,onChange={ settings=it; settingsStore.save(it) },onExit={screen="home"},
+                                language=remember { LanguageSetting.chosen(this@MainActivity) },
+                                onLanguage={ LanguageSetting.set(this@MainActivity,it) })
                             "help" -> HelpAboutScreen(s.game?.mode,onExit={screen="home"})
                             "standaloneClock" -> StandaloneClockScreen(
                                 clock=standaloneClock,
@@ -286,7 +292,8 @@ class MainActivity: ComponentActivity() {
                                     standaloneStartSide=side
                                     standaloneClock=ClockState(config,active=side)
                                 },
-                                onBack={screen="home"}
+                                onBack={screen="home"},
+                                latestClock={standaloneClock}
                             )
                             else -> Column(Modifier.fillMaxSize()) {
                                 val san=remember(s.position) { s.position.san }
@@ -329,13 +336,13 @@ class MainActivity: ComponentActivity() {
                                     fun takenBy(white: Boolean)=if(white) taken.byWhite else taken.byBlack
                                     fun leadOf(white: Boolean)=if(white) taken.whiteLead else -taken.whiteLead
                                     if(capturesInGutters) {
-                                        CapturedColumn(takenBy(topWhite),leadOf(topWhite),if(topWhite) "White" else "Black",gutter,fromBottom=false,
+                                        CapturedColumn(takenBy(topWhite),leadOf(topWhite),stringResource(if(topWhite) R.string.white else R.string.black),gutter,fromBottom=false,
                                             modifier=Modifier.align(Alignment.TopStart).height(side))
-                                        CapturedColumn(takenBy(!topWhite),leadOf(!topWhite),if(topWhite) "Black" else "White",gutter,fromBottom=true,
+                                        CapturedColumn(takenBy(!topWhite),leadOf(!topWhite),stringResource(if(topWhite) R.string.black else R.string.white),gutter,fromBottom=true,
                                             modifier=Modifier.align(Alignment.TopEnd).height(side))
                                     }
                                     Column(horizontalAlignment=Alignment.CenterHorizontally) {
-                                    if(capturesBelow) CapturedRow(takenBy(topWhite),leadOf(topWhite),if(topWhite) "White" else "Black",Modifier.width(side))
+                                    if(capturesBelow) CapturedRow(takenBy(topWhite),leadOf(topWhite),stringResource(if(topWhite) R.string.white else R.string.black),Modifier.width(side))
                                     Box(Modifier.size(side).then(if(reviewPly!=null) Modifier.pointerInput(s.position.moves.size) {
                                         // Swipe the board to step through the game while reviewing.
                                         var travelled=0f
@@ -358,16 +365,17 @@ class MainActivity: ComponentActivity() {
                                     ) {
                                         Row(Modifier.padding(horizontal=8.dp),verticalAlignment=Alignment.CenterVertically) {
                                             Column(Modifier.weight(1f).padding(8.dp)) {
-                                                Text("Move: ${draft.text}",fontFamily=FontFamily.Monospace,
-                                                    modifier=Modifier.semantics { contentDescription="Move entry ${draft.text}" })
+                                                val entryDescription=stringResource(R.string.move_entry_description,draft.text)
+                                                Text(stringResource(R.string.move_entry,draft.text),fontFamily=FontFamily.Monospace,
+                                                    modifier=Modifier.semantics { contentDescription=entryDescription })
                                                 draft.error?.let { Text(it,color=MaterialTheme.colorScheme.error,fontSize=12.sp) }
                                             }
-                                            TextButton(onClick={draft=NotationDraft()}) { Text("Clear") }
-                                            TextButton(enabled=!draft.submitting,onClick={submitDraft()}) { Text("Play") }
+                                            TextButton(onClick={draft=NotationDraft()}) { Text(stringResource(R.string.clear)) }
+                                            TextButton(enabled=!draft.submitting,onClick={submitDraft()}) { Text(stringResource(R.string.play)) }
                                         }
                                     }
                                     }
-                                    if(capturesBelow) CapturedRow(takenBy(!topWhite),leadOf(!topWhite),if(topWhite) "Black" else "White",Modifier.width(side))
+                                    if(capturesBelow) CapturedRow(takenBy(!topWhite),leadOf(!topWhite),stringResource(if(topWhite) R.string.black else R.string.white),Modifier.width(side))
                                     if(reviewPly!=null && barBelow) ReviewBar(reviewPly!!,s.position.moves.size,
                                         onFirst={stepReview(0)},onPrevious={stepReview(reviewPly!!-1)},onMoves={dialog="history"},
                                         onNext={stepReview(reviewPly!!+1)},onLast={stepReview(s.position.moves.size)},modifier=Modifier.width(side))
@@ -379,23 +387,24 @@ class MainActivity: ComponentActivity() {
                         }
                     }
                 }
-                if(dialog=="new") AlertDialog(onDismissRequest={dialog=""},title={Text(when(selectedMode){GameMode.COMPUTER->stringResource(R.string.play_against_computer); GameMode.LOCAL_TWO_PLAYER->stringResource(R.string.over_the_board); else->"Record physical game"})},text={
+                if(dialog=="new") AlertDialog(onDismissRequest={dialog=""},title={Text(when(selectedMode){GameMode.COMPUTER->stringResource(R.string.play_against_computer); GameMode.LOCAL_TWO_PLAYER->stringResource(R.string.over_the_board); else->stringResource(R.string.record_physical_game)})},text={
                     Column(Modifier.verticalScroll(rememberScrollState())) {
                         if(selectedMode==GameMode.COMPUTER) {
                             val shownLevel=level.coerceIn(1,ENGINE_LEVELS.size)
-                            Text("${difficultyLabel(shownLevel)} · ${engineLevel(shownLevel).description}")
+                            val difficultyDescription=stringResource(R.string.difficulty)
+                            Text("${levelLabel(shownLevel)} · ${stringResource(engineLevel(shownLevel).description)}")
                             Slider(value=shownLevel.toFloat(),onValueChange={level=it.roundToInt()},valueRange=1f..10f,steps=8,
                                 colors=SliderDefaults.colors(inactiveTrackColor=palette.inactiveTrack),
-                                modifier=Modifier.semantics { contentDescription="Difficulty" })
+                                modifier=Modifier.semantics { contentDescription=difficultyDescription })
                             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
-                                Text("Easier",fontSize=12.sp,color=LocalPalette.current.muted)
-                                Text("Stronger",fontSize=12.sp,color=LocalPalette.current.muted)
+                                Text(stringResource(R.string.easier),fontSize=12.sp,color=LocalPalette.current.muted)
+                                Text(stringResource(R.string.stronger),fontSize=12.sp,color=LocalPalette.current.muted)
                             }
-                            Text("Choose your side",fontWeight=FontWeight.SemiBold)
+                            Text(stringResource(R.string.choose_side),fontWeight=FontWeight.SemiBold)
                             SideSelectionButtons(
                                 selectedWhite=white,
-                                whiteDescription="Play as White",
-                                blackDescription="Play as Black",
+                                whiteDescription=stringResource(R.string.play_as_white),
+                                blackDescription=stringResource(R.string.play_as_black),
                                 onWhiteSelected={white=true},
                                 onBlackSelected={white=false}
                             )
@@ -405,27 +414,29 @@ class MainActivity: ComponentActivity() {
                                 Checkbox(checked=allowHints,onCheckedChange=null)
                                 Spacer(Modifier.width(8.dp))
                                 Column {
-                                    Text("Allow hints")
-                                    Text("Show a Hint button during your turns.",fontSize=12.sp,color=LocalPalette.current.muted)
+                                    Text(stringResource(R.string.allow_hints))
+                                    Text(stringResource(R.string.allow_hints_help),fontSize=12.sp,color=LocalPalette.current.muted)
                                 }
                             }
-                        } else Text(if(selectedMode==GameMode.PHYSICAL_BOARD_RECORDING) "Enter moves from your board. No hints or engine analysis during recording. A casual companion, not tournament-approved equipment." else "Share this board with a friend. Choose a time control or play untimed.")
+                        } else Text(stringResource(if(selectedMode==GameMode.PHYSICAL_BOARD_RECORDING) R.string.recording_help else R.string.over_board_help))
                         Spacer(Modifier.height(8.dp))
                         if(selectedMode!=GameMode.PHYSICAL_BOARD_RECORDING) Box {
-                            TextButton(onClick={clockPresetMenu=true},modifier=Modifier.semantics { contentDescription="Time control: $clockPreset" }) {
-                                Text("Time control · $clockPreset")
+                            val presetName=presetText(clockPreset)
+                            val presetDescription=stringResource(R.string.time_control_description,presetName)
+                            TextButton(onClick={clockPresetMenu=true},modifier=Modifier.semantics { contentDescription=presetDescription }) {
+                                Text(stringResource(R.string.time_control,presetName))
                             }
                             DropdownMenu(expanded=clockPresetMenu,onDismissRequest={clockPresetMenu=false}) {
                                 CLOCK_PRESETS.forEach { preset ->
                                     DropdownMenuItem(
-                                        text={Text(preset.label)},
+                                        text={Text(presetText(preset.label))},
                                         onClick={clockPreset=preset.label;clockPresetMenu=false}
                                     )
                                 }
                             }
                         }
                         TextButton(onClick={moreSetupOptions=!moreSetupOptions}) {
-                            Text(if(moreSetupOptions) "Fewer options" else "More options")
+                            Text(stringResource(if(moreSetupOptions) R.string.fewer_options else R.string.more_options))
                         }
                         if(moreSetupOptions) {
                             TextButton(onClick={fenPicker.launch(arrayOf("*/*"))},enabled=!fenImporting) {
@@ -433,11 +444,11 @@ class MainActivity: ComponentActivity() {
                             }
                             Text(stringResource(R.string.import_position_help),fontSize=13.sp)
                         }
-                        if(fenImporting) Text("Importing position…")
-                        if(importedFen!=null) Text("Starting from imported position",fontSize=13.sp,fontWeight=FontWeight.Medium)
+                        if(fenImporting) Text(stringResource(R.string.importing_position))
+                        if(importedFen!=null) Text(stringResource(R.string.starting_from_imported),fontSize=13.sp,fontWeight=FontWeight.Medium)
                         fenImportError?.let { Text(it,color=MaterialTheme.colorScheme.error,fontSize=12.sp) }
                         if(importedFen!=null || fenImportError!=null) {
-                            TextButton(onClick={importedFen=null;fenImportError=null}) { Text("Use standard position") }
+                            TextButton(onClick={importedFen=null;fenImportError=null}) { Text(stringResource(R.string.use_standard_position)) }
                         }
                     }
                 },confirmButton={TextButton(enabled=!fenImporting && fenImportError==null,onClick={
@@ -449,115 +460,115 @@ class MainActivity: ComponentActivity() {
                         hintsEnabled=selectedMode==GameMode.COMPUTER && allowHints)
                     importedFen=null;fenImportError=null
                     screen="game";draft=NotationDraft();dialog=""
-                }) {Text("Start game")}},dismissButton={TextButton(onClick={dialog=""}){Text("Cancel")}})
-                if(dialog=="menu") AlertDialog(onDismissRequest={dialog=""},title={Text("At the board")},text={Column(Modifier.verticalScroll(rememberScrollState())){
+                }) {Text(stringResource(R.string.start_game))}},dismissButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.cancel))}})
+                if(dialog=="menu") AlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.at_the_board))},text={Column(Modifier.verticalScroll(rememberScrollState())){
                     val computerGame=s.game?.mode==GameMode.COMPUTER.name
                     if(s.game?.result=="*" && reviewPly==null) {
-                        MenuSection("Game")
+                        MenuSection(stringResource(R.string.section_game))
                         if(s.hintsAvailable()) {
-                            if(s.visibleHint()!=null) TextButton(onClick={vm.clearHint();dialog=""}){Text("Hide hint")}
-                            else TextButton(enabled=s.canEnterMove() && !s.hintBusy,onClick={vm.requestHint();dialog=""}){Text("Show hint")}
+                            if(s.visibleHint()!=null) TextButton(onClick={vm.clearHint();dialog=""}){Text(stringResource(R.string.hide_hint))}
+                            else TextButton(enabled=s.canEnterMove() && !s.hintBusy,onClick={vm.requestHint();dialog=""}){Text(stringResource(R.string.show_hint))}
                         }
-                        if(s.position.moves.isNotEmpty()) TextButton(enabled=!s.busy,onClick={dialog="undo"}){Text("Undo / take back")}
-                        if(s.position.canClaimDraw()) TextButton(onClick={vm.end("1/2-1/2","Draw claimed");dialog=""}){Text("Claim draw")}
-                        if(computerGame) TextButton(onClick={dialog="resign"}){Text("Resign")}
-                        else TextButton(onClick={dialog="end"}){Text("End game")}
-                        if(computerGame && s.engineError!=null) TextButton(onClick={vm.maybeEngine();dialog=""}){Text("Retry engine")}
+                        if(s.position.moves.isNotEmpty()) TextButton(enabled=!s.busy,onClick={dialog="undo"}){Text(stringResource(R.string.undo_take_back))}
+                        if(s.position.canClaimDraw()) TextButton(onClick={vm.end("1/2-1/2","Draw claimed");dialog=""}){Text(stringResource(R.string.claim_draw))}
+                        if(computerGame) TextButton(onClick={dialog="resign"}){Text(stringResource(R.string.resign))}
+                        else TextButton(onClick={dialog="end"}){Text(stringResource(R.string.end_game))}
+                        if(computerGame && s.engineError!=null) TextButton(onClick={vm.maybeEngine();dialog=""}){Text(stringResource(R.string.retry_engine))}
                     }
-                    MenuSection("View")
-                    if(reviewPly==null) TextButton(enabled=!s.busy,onClick={beginReview();draft=NotationDraft();reviewPly=s.position.moves.size;vm.pauseForNavigation();dialog=""}) { Text("Review game") }
-                    else TextButton(onClick={endReview();reviewPly=null;vm.foreground();dialog=""}) { Text("Return to game") }
-                    TextButton(onClick={dialog="history"}){Text("Move list")}
-                    TextButton(onClick={flip=!flip;vm.setOrientation(flip);dialog=""}){Text("Flip board")}
+                    MenuSection(stringResource(R.string.section_view))
+                    if(reviewPly==null) TextButton(enabled=!s.busy,onClick={beginReview();draft=NotationDraft();reviewPly=s.position.moves.size;vm.pauseForNavigation();dialog=""}) { Text(stringResource(R.string.review_game)) }
+                    else TextButton(onClick={endReview();reviewPly=null;vm.foreground();dialog=""}) { Text(stringResource(R.string.return_to_game)) }
+                    TextButton(onClick={dialog="history"}){Text(stringResource(R.string.move_list))}
+                    TextButton(onClick={flip=!flip;vm.setOrientation(flip);dialog=""}){Text(stringResource(R.string.flip_board))}
                     s.game?.let { game ->
-                        MenuSection("Share")
+                        MenuSection(stringResource(R.string.section_share))
                         TextButton(onClick={
                             val shown=reviewPly?.let { ChessPosition(s.position.initialFen,s.position.moves.take(it)) } ?: s.position
-                            startActivity(Intent.createChooser(fenShareIntent(shown),"Share position FEN"))
+                            startActivity(Intent.createChooser(fenShareIntent(shown),getString(R.string.share_fen_chooser)))
                             dialog=""
-                        }) { Text("Share FEN") }
+                        }) { Text(stringResource(R.string.share_fen)) }
                         TextButton(onClick={
-                            startActivity(Intent.createChooser(pgnShareIntent(game),"Share game PGN"))
+                            startActivity(Intent.createChooser(pgnShareIntent(game),getString(R.string.share_pgn_chooser)))
                             dialog=""
-                        }) { Text("Share PGN") }
+                        }) { Text(stringResource(R.string.share_pgn)) }
                     }
                     HorizontalDivider(Modifier.padding(vertical=4.dp))
-                    TextButton(onClick={screen="home";dialog="";vm.pauseForNavigation()}){Text("Save & home")}
-                }},confirmButton={TextButton(onClick={dialog=""}){Text("Back to board")}})
-                if(dialog=="resign") AlertDialog(onDismissRequest={dialog=""},title={Text("Resign this game?")},
-                    text={Text("The computer wins. The game stays in your history.")},
+                    TextButton(onClick={screen="home";dialog="";vm.pauseForNavigation()}){Text(stringResource(R.string.save_home))}
+                }},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.back_to_board))}})
+                if(dialog=="resign") AlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.resign_title))},
+                    text={Text(stringResource(R.string.resign_text))},
                     confirmButton={TextButton(onClick={
                         vm.end(if(s.game?.humanWhite==true) "0-1" else "1-0","You resigned");dialog=""
-                    }){Text("Resign")}},
-                    dismissButton={TextButton(onClick={dialog=""}){Text("Keep playing")}})
+                    }){Text(stringResource(R.string.resign))}},
+                    dismissButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.keep_playing))}})
                 pendingDelete?.let { game ->
-                    AlertDialog(onDismissRequest={pendingDelete=null},title={Text("Delete this game?")},
-                        text={Text("${game.white} · ${game.black}, ${historyDate(game.updated)}. This cannot be undone. Export your games first if you want a copy.")},
-                        confirmButton={TextButton(onClick={vm.delete(game);pendingDelete=null}){Text("Delete")}},
-                        dismissButton={TextButton(onClick={pendingDelete=null}){Text("Cancel")}})
+                    AlertDialog(onDismissRequest={pendingDelete=null},title={Text(stringResource(R.string.delete_title))},
+                        text={Text(stringResource(R.string.delete_text,displayName(resources,game.white),displayName(resources,game.black),historyDate(game.updated)))},
+                        confirmButton={TextButton(onClick={vm.delete(game);pendingDelete=null}){Text(stringResource(R.string.delete))}},
+                        dismissButton={TextButton(onClick={pendingDelete=null}){Text(stringResource(R.string.cancel))}})
                 }
                 if(dialog=="export") {
                     var count by remember { mutableStateOf<Int?>(null) }
                     LaunchedEffect(exportMode,exportPeriod) { count=vm.gamesForExport(exportMode,exportPeriod).size }
-                    AlertDialog(onDismissRequest={dialog=""},title={Text("Export games")},text={Column(Modifier.verticalScroll(rememberScrollState())) {
-                        Text("One PGN file with every selected game. Other chess apps, such as Lichess and ChessBase, can import it.",fontSize=13.sp)
-                        MenuSection("Games")
+                    AlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.export_title))},text={Column(Modifier.verticalScroll(rememberScrollState())) {
+                        Text(stringResource(R.string.export_text),fontSize=13.sp)
+                        MenuSection(stringResource(R.string.section_games))
                         FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                             ExportModeFilter.entries.forEach { option ->
-                                FilterChip(selected=exportMode==option,onClick={exportMode=option},label={Text(option.label)})
+                                FilterChip(selected=exportMode==option,onClick={exportMode=option},label={Text(stringResource(option.label))})
                             }
                         }
-                        MenuSection("Period")
+                        MenuSection(stringResource(R.string.section_period))
                         FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                             ExportPeriod.entries.forEach { option ->
-                                FilterChip(selected=exportPeriod==option,onClick={exportPeriod=option},label={Text(option.label)})
+                                FilterChip(selected=exportPeriod==option,onClick={exportPeriod=option},label={Text(stringResource(option.label))})
                             }
                         }
-                        Text(when(count) { null -> "Counting games…"; 0 -> "No games match."; 1 -> "1 game selected."; else -> "$count games selected." },
+                        Text(when(val n=count) { null -> stringResource(R.string.counting_games); 0 -> stringResource(R.string.no_games_match); else -> pluralStringResource(R.plurals.games_selected,n,n) },
                             fontWeight=FontWeight.Medium,modifier=Modifier.padding(top=8.dp))
-                    }},confirmButton={TextButton(enabled=(count ?: 0)>0,onClick={dialog="";exportSaver.launch(exportFileName())}){Text("Save file")}},
+                    }},confirmButton={TextButton(enabled=(count ?: 0)>0,onClick={dialog="";exportSaver.launch(exportFileName())}){Text(stringResource(R.string.save_file))}},
                     dismissButton={Row {
                         TextButton(enabled=(count ?: 0)>0,onClick={
                             dialog=""
                             coroutineScope.launch {
                                 try { shareExport(exportMode,exportPeriod) }
-                                catch(e: Exception) { exportMessage="Export failed: ${e.message ?: "I/O error"}" }
+                                catch(e: Exception) { exportMessage=getString(R.string.export_failed,e.message ?: getString(R.string.io_error)) }
                             }
-                        }){Text("Share")}
-                        TextButton(onClick={dialog=""}){Text("Cancel")}
+                        }){Text(stringResource(R.string.share))}
+                        TextButton(onClick={dialog=""}){Text(stringResource(R.string.cancel))}
                     }})
                 }
                 importMessage?.let { message ->
-                    AlertDialog(onDismissRequest={importMessage=null},title={Text("Import games")},
+                    AlertDialog(onDismissRequest={importMessage=null},title={Text(stringResource(R.string.import_title))},
                         text={Text(message,modifier=Modifier.verticalScroll(rememberScrollState()))},
-                        confirmButton={TextButton(onClick={importMessage=null}){Text("OK")}})
+                        confirmButton={TextButton(onClick={importMessage=null}){Text(stringResource(R.string.ok))}})
                 }
                 exportMessage?.let { message ->
-                    AlertDialog(onDismissRequest={exportMessage=null},title={Text("Export")},text={Text(message)},
-                        confirmButton={TextButton(onClick={exportMessage=null}){Text("OK")}})
+                    AlertDialog(onDismissRequest={exportMessage=null},title={Text(stringResource(R.string.export_action))},text={Text(message)},
+                        confirmButton={TextButton(onClick={exportMessage=null}){Text(stringResource(R.string.ok))}})
                 }
-                if(dialog=="undo") AlertDialog(onDismissRequest={dialog=""},title={Text("Take back the last turn?")},text={Text("The removed move can be played again. Against the computer, both moves are removed when possible.")},confirmButton={TextButton(onClick={vm.undo();dialog=""}){Text("Take back")}},dismissButton={TextButton(onClick={dialog=""}){Text("Keep playing")}})
-                if(dialog=="end") AlertDialog(onDismissRequest={dialog=""},title={Text("Finish this game")},text={Column{ Text("Choose the agreed result."); listOf("White wins" to "1-0","Black wins" to "0-1","Draw" to "1/2-1/2").forEach{(name,result)->TextButton(onClick={vm.end(result,"Result recorded by the players");dialog=""}){Text(name)}} }},confirmButton={TextButton(onClick={dialog=""}){Text("Cancel")}})
-                if(dialog=="history") AlertDialog(onDismissRequest={dialog=""},title={Text("Moves")},text={Column(Modifier.verticalScroll(rememberScrollState())){if(s.position.moves.isEmpty()) Text("No moves yet.") else s.position.san.chunked(2).forEachIndexed { i,pair-> Text("${i+1}.  ${pair.joinToString("    ")}",fontFamily=FontFamily.Monospace,modifier=Modifier.padding(4.dp)) }}},confirmButton={TextButton(onClick={dialog=""}){Text("Close")}})
+                if(dialog=="undo") AlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.undo_title))},text={Text(stringResource(R.string.undo_text))},confirmButton={TextButton(onClick={vm.undo();dialog=""}){Text(stringResource(R.string.take_back))}},dismissButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.keep_playing))}})
+                if(dialog=="end") AlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.end_title))},text={Column{ Text(stringResource(R.string.end_text)); listOf(R.string.white_wins to "1-0",R.string.black_wins to "0-1",R.string.draw to "1/2-1/2").forEach{(name,result)->TextButton(onClick={vm.end(result,"Result recorded by the players");dialog=""}){Text(stringResource(name))}} }},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.cancel))}})
+                if(dialog=="history") AlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.moves_title))},text={Column(Modifier.verticalScroll(rememberScrollState())){if(s.position.moves.isEmpty()) Text(stringResource(R.string.no_moves)) else s.position.san.chunked(2).forEachIndexed { i,pair-> Text("${i+1}.  ${pair.joinToString("    ")}",fontFamily=FontFamily.Monospace,modifier=Modifier.padding(4.dp)) }}},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.close))}})
                 if(entryPromotions.isNotEmpty()) PromotionDialog(entryPromotions,white=s.position.board.sideToMove==Side.WHITE,
                     onPick={ move -> entryPromotions=emptyList();submitDraft(move) },onCancel={entryPromotions=emptyList()})
                 if(resultDialog!=null) {
                     val event=resultDialog!!
                     AlertDialog(
                         onDismissRequest={resultDialog=null;vm.acknowledgeResult()},
-                        title={Text(resultHeadline(event,s.game))},
+                        title={Text(stringResource(resultHeadline(event,s.game)))},
                         text={Column {
-                            Text(event.reason)
-                            Text(resultScore(event.result),modifier=Modifier.padding(top=8.dp),fontWeight=FontWeight.Medium)
-                            TextButton(onClick={resultDialog=null;vm.acknowledgeResult()}) { Text("Review board") }
+                            Text(reasonText(resources,event.reason))
+                            Text(stringResource(resultScore(event.result)),modifier=Modifier.padding(top=8.dp),fontWeight=FontWeight.Medium)
+                            TextButton(onClick={resultDialog=null;vm.acknowledgeResult()}) { Text(stringResource(R.string.review_board)) }
                         }},
                         confirmButton={TextButton(onClick={
                             val g=s.game
                             resultDialog=null;vm.acknowledgeResult()
                             if(g!=null) { selectedMode=runCatching { GameMode.valueOf(g.mode) }.getOrDefault(selectedMode); level=g.level; white=g.humanWhite; allowHints=g.hintsEnabled }
                             dialog="new"
-                        }) { Text("Play again") }},
-                        dismissButton={TextButton(onClick={resultDialog=null;vm.acknowledgeResult();screen="home";vm.pauseForNavigation()}) { Text("Save & home") }}
+                        }) { Text(stringResource(R.string.play_again)) }},
+                        dismissButton={TextButton(onClick={resultDialog=null;vm.acknowledgeResult();screen="home";vm.pauseForNavigation()}) { Text(stringResource(R.string.save_home)) }}
                     )
                 }
             }
@@ -632,7 +643,7 @@ class MainActivity: ComponentActivity() {
             if(cursor.moveToFirst()) cursor.getString(0) else null
         } ?: throw IOException("The selected document has no file name.")
         require(displayName.endsWith(".fen",ignoreCase=true)) {
-            "Choose a position file ending in .fen. Whole-game files (.pgn) are not supported here."
+            getString(R.string.fen_wrong_file)
         }
         val input=contentResolver.openInputStream(uri)
             ?: throw IOException("The selected document could not be opened.")
@@ -661,7 +672,7 @@ class MainActivity: ComponentActivity() {
         }
         val pending=draft.submit(s.positionKey()); draft=pending
         vm.enter(overrideMove ?: pending.text,pending.positionKey!!) { error ->
-            if(draft.positionKey==pending.positionKey) draft=if(error==null) NotationDraft() else pending.rejected(error)
+            if(draft.positionKey==pending.positionKey) draft=if(error==null) NotationDraft() else pending.rejected(getString(entryErrorText(error)))
         }
     }
     /** Reads a user-chosen text document; UTF-8 first, then Latin-1 (the PGN standard's encoding). */
@@ -704,10 +715,10 @@ class MainActivity: ComponentActivity() {
         val send=Intent(Intent.ACTION_SEND).apply {
             type="application/x-chess-pgn"
             putExtra(Intent.EXTRA_STREAM,uri)
-            putExtra(Intent.EXTRA_SUBJECT,"Square Chess games (${games.size})")
+            putExtra(Intent.EXTRA_SUBJECT,"Square Chess (${games.size})")
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        startActivity(Intent.createChooser(send,"Share games"))
+        startActivity(Intent.createChooser(send,getString(R.string.share_games_chooser)))
     }
     override fun onDestroy() { sounds.release(); super.onDestroy() }
     override fun onStart() { super.onStart(); if(gameVisible && !reviewing) vm.foreground() }
@@ -772,7 +783,7 @@ class MainActivity: ComponentActivity() {
 
 /** A card: filled in the standard colours, outlined on e-ink where fills disappear. */
 private fun Modifier.card(palette: Palette): Modifier =
-    background(palette.card).then(if(palette.eink) border(1.5.dp,palette.text,RoundedCornerShape(12.dp)) else Modifier)
+    background(palette.card).then(if(palette.eink) Modifier.border(1.5.dp,palette.text,RoundedCornerShape(12.dp)) else Modifier)
 
 @Composable private fun MenuSection(title: String) {
     Text(title.uppercase(),fontSize=11.sp,letterSpacing=1.sp,color=LocalPalette.current.muted,
@@ -786,20 +797,22 @@ internal fun historyDate(millis: Long): String =
 @Composable private fun HistoryRow(game: SavedGame, onOpen: ()->Unit, onDelete: ()->Unit) {
     val moveCount=game.moves.split(" ").count { it.isNotBlank() }
     val fullMoves=(moveCount+1)/2
-    val result=if(game.result=="*") "In progress" else game.result.replace("1/2","½")
+    val res=appResources()
+    val result=if(game.result=="*") stringResource(R.string.game_in_progress) else game.result.replace("1/2","½")
     val mode=when(game.mode) {
-        GameMode.COMPUTER.name -> "Against computer"
-        GameMode.LOCAL_TWO_PLAYER.name -> "Over the board"
-        GameMode.PHYSICAL_BOARD_RECORDING.name -> "Recorded game"
+        GameMode.COMPUTER.name -> stringResource(R.string.mode_computer)
+        GameMode.LOCAL_TWO_PLAYER.name -> stringResource(R.string.mode_over_board)
+        GameMode.PHYSICAL_BOARD_RECORDING.name -> stringResource(R.string.mode_recorded)
         else -> game.mode.lowercase().replace('_',' ')
     }
+    val deleteLabel=stringResource(R.string.delete_game_action)
     val palette=LocalPalette.current
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).card(palette)
-        .combinedClickable(onClick=onOpen,onLongClick=onDelete,onLongClickLabel="Delete game")
+        .combinedClickable(onClick=onOpen,onLongClick=onDelete,onLongClickLabel=deleteLabel)
         .padding(14.dp),verticalAlignment=Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text("${game.white} · ${game.black}",fontSize=17.sp,fontWeight=FontWeight.Medium)
-            Text("$mode · ${historyDate(game.updated)} · $fullMoves move${if(fullMoves==1) "" else "s"}",fontSize=12.sp,color=LocalPalette.current.muted)
+            Text("${displayName(res,game.white)} · ${displayName(res,game.black)}",fontSize=17.sp,fontWeight=FontWeight.Medium)
+            Text("$mode · ${historyDate(game.updated)} · ${pluralStringResource(R.plurals.history_moves,fullMoves,fullMoves)}",fontSize=12.sp,color=LocalPalette.current.muted)
         }
         Text(result,color=palette.accent,fontSize=13.sp,modifier=Modifier.padding(horizontal=8.dp))
         Text("›",color=palette.accent,fontSize=24.sp)
@@ -820,6 +833,7 @@ internal fun historyDate(millis: Long): String =
         (s.clock==null || s.clock.phase==ClockPhase.RUNNING)
     val palette=LocalPalette.current
     val eink=palette.eink
+    val res=appResources()
     val lightSquare=prefs.boardTheme.light; val darkSquare=prefs.boardTheme.dark
     fun squareAt(offset: Offset, boardPx: Float): Square? {
         val cell=boardPx/8f
@@ -876,7 +890,8 @@ internal fun historyDate(millis: Long): String =
                         drawRect(Color.Black,topLeft=Offset(stroke/2,stroke/2),
                             size=androidx.compose.ui.geometry.Size(size.width-stroke,size.height-stroke),style=Stroke(stroke))
                     }
-                } else Modifier).semantics { contentDescription="${square.name.lowercase()}, ${if(piece==Piece.NONE) "empty" else piece.name.lowercase().replace('_',' ')}${if(targets.isNotEmpty()) ", legal destination" else ""}${if(check) ", check" else ""}" }.clickable(enabled=canInteract,role=Role.Button) {
+                } else Modifier).semantics { contentDescription=res.getString(R.string.square_description,square.name.lowercase(),res.getString(squarePieceName(piece)))+
+                    (if(targets.isNotEmpty()) res.getString(R.string.square_legal_suffix) else "")+(if(check) res.getString(R.string.square_check_suffix) else "") }.clickable(enabled=canInteract,role=Role.Button) {
                     if(cancelDraft()) selected=null
                     else if(targets.size>1) promotion=targets.map{it.toString()}
                     else if(targets.size==1) {onMove(targets[0].toString());selected=null}
@@ -948,19 +963,30 @@ internal fun historyDate(millis: Long): String =
         onPick={ move -> onMove(move);promotion=emptyList();selected=null },onCancel={promotion=emptyList()})
 }
 
-private fun resultHeadline(event: ResultEvent, game: SavedGame?): String = when {
-    event.result=="1/2-1/2" -> "Draw"
-    game?.mode==GameMode.COMPUTER.name && ((event.result=="1-0")==game.humanWhite) -> "You won"
-    game?.mode==GameMode.COMPUTER.name -> "You lost"
-    event.result=="1-0" -> "White wins"
-    else -> "Black wins"
+@androidx.annotation.StringRes private fun resultHeadline(event: ResultEvent, game: SavedGame?): Int = when {
+    event.result=="1/2-1/2" -> R.string.draw
+    game?.mode==GameMode.COMPUTER.name && ((event.result=="1-0")==game.humanWhite) -> R.string.you_won
+    game?.mode==GameMode.COMPUTER.name -> R.string.you_lost
+    event.result=="1-0" -> R.string.white_wins
+    else -> R.string.black_wins
 }
 
-private fun resultScore(result: String): String = when(result) {
-    "1-0" -> "White · 1–0"
-    "0-1" -> "Black · 0–1"
-    else -> "Draw · ½–½"
+@androidx.annotation.StringRes private fun entryErrorText(error: EntryError): Int = when(error) {
+    EntryError.POSITION_CHANGED -> R.string.entry_position_changed
+    EntryError.ILLEGAL -> R.string.entry_illegal
+    EntryError.CLOCK_PAUSED -> R.string.entry_clock_paused
+    EntryError.TIME_EXPIRED -> R.string.entry_time_expired
 }
+
+@androidx.annotation.StringRes private fun resultScore(result: String): Int = when(result) {
+    "1-0" -> R.string.score_white
+    "0-1" -> R.string.score_black
+    else -> R.string.score_draw
+}
+
+/** Clock preset labels are data ("3+2"); only "Untimed" is a word. */
+@Composable private fun presetText(label: String): String =
+    if(label=="Untimed") stringResource(R.string.untimed) else label
 
 internal fun pieceDrawable(piece: Piece): Int = when (piece) {
     Piece.WHITE_KING -> R.drawable.piece_wk

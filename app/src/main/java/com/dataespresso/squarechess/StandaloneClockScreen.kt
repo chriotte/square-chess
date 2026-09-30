@@ -36,7 +36,12 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.delay
+
+
+/** Preset label for a time control that matches no preset; shown as R.string.custom. */
+private const val CUSTOM_PRESET = "Custom"
 
 internal val clockStateSaver: Saver<ClockState, Any> = listSaver(
     save = {
@@ -85,8 +90,8 @@ internal fun SideSelectionButtons(
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         listOf(
-            Triple("White", true, onWhiteSelected),
-            Triple("Black", false, onBlackSelected)
+            Triple(stringResource(R.string.white), true, onWhiteSelected),
+            Triple(stringResource(R.string.black), false, onBlackSelected)
         ).forEach { (label, isWhite, onSelect) ->
             val selected = selectedWhite == isWhite
             Box(
@@ -120,7 +125,9 @@ internal fun StandaloneClockScreen(
     onClockChange: (ClockState) -> Unit,
     onStartSideChange: (ClockSide) -> Unit,
     onConfigure: (ClockConfig, ClockSide) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    // The state holder's current value: after a tap, [clock] updates only at the next frame.
+    latestClock: () -> ClockState = { clock }
 ) {
     var showSetup by rememberSaveable { mutableStateOf(clock.phase == ClockPhase.READY) }
     var showResetConfirmation by remember { mutableStateOf(false) }
@@ -135,13 +142,15 @@ internal fun StandaloneClockScreen(
     var setupError by remember { mutableStateOf<String?>(null) }
     val view=LocalView.current
     val lifecycleOwner=LocalLifecycleOwner.current
-    val currentClock by rememberUpdatedState(clock)
+    val currentClock by rememberUpdatedState(latestClock)
     val changeClock by rememberUpdatedState(onClockChange)
 
     DisposableEffect(lifecycleOwner) {
         val observer=LifecycleEventObserver { _, event ->
-            if(event==Lifecycle.Event.ON_STOP && currentClock.phase==ClockPhase.RUNNING) {
-                changeClock(currentClock.pause(SystemClock.elapsedRealtime(),interrupted=true))
+            // Read the clock when the event arrives: leaving right after a tap on Resume must still pause it.
+            val latest=currentClock()
+            if(event==Lifecycle.Event.ON_STOP && latest.phase==ClockPhase.RUNNING) {
+                changeClock(latest.pause(SystemClock.elapsedRealtime(),interrupted=true))
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -168,7 +177,12 @@ internal fun StandaloneClockScreen(
                 clockTickDelayMs(remaining)
             }
             delay(untilDisplayChange.coerceAtLeast(1))
-            onClockChange(clock.settled(SystemClock.elapsedRealtime()))
+            // No frames are drawn while the app is stopped, so this effect may outlive a pause on
+            // ON_STOP. Tick only the clock this effect started with, or it would undo the pause.
+            val latest=latestClock()
+            if(latest.phase==ClockPhase.RUNNING && latest.anchorMs==clock.anchorMs) {
+                onClockChange(latest.settled(SystemClock.elapsedRealtime()))
+            }
         }
     }
 
@@ -178,7 +192,7 @@ internal fun StandaloneClockScreen(
         baseSeconds=((config.baseMs%60_000)/1_000).toString()
         incrementSeconds=(config.incrementMs/1_000).toString()
         delaySeconds=(config.delayMs/1_000).toString()
-        presetLabel=CLOCK_PRESETS.firstOrNull { it.config==config }?.label ?: "Custom"
+        presetLabel=CLOCK_PRESETS.firstOrNull { it.config==config }?.label ?: CUSTOM_PRESET
         setupError=null
     }
 
@@ -197,9 +211,9 @@ internal fun StandaloneClockScreen(
             verticalAlignment=Alignment.CenterVertically,
             horizontalArrangement=Arrangement.SpaceBetween
         ) {
-            TextButton(onClick=onBack) { Text("‹ Home") }
-            Text("Chess clock",fontSize=19.sp,fontWeight=FontWeight.SemiBold)
-            TextButton(onClick={rotated=!rotated}) { Text(if(rotated) "Rotate 0°" else "Rotate 180°") }
+            TextButton(onClick=onBack) { Text(stringResource(R.string.home_back)) }
+            Text(stringResource(R.string.chess_clock),fontSize=19.sp,fontWeight=FontWeight.SemiBold)
+            TextButton(onClick={rotated=!rotated}) { Text(stringResource(if(rotated) R.string.rotate_0 else R.string.rotate_180)) }
         }
         ClockSidePanel(
             side=ClockSide.WHITE,
@@ -238,44 +252,44 @@ internal fun StandaloneClockScreen(
                 ClockPhase.READY -> Button(
                     onClick={onClockChange(clock.start(SystemClock.elapsedRealtime()))},
                     modifier=Modifier.weight(1f).heightIn(min=52.dp)
-                ) { Text("Start clock") }
+                ) { Text(stringResource(R.string.start_clock)) }
                 ClockPhase.RUNNING -> Button(
                     onClick={onClockChange(clock.pause(SystemClock.elapsedRealtime()))},
                     modifier=Modifier.weight(1f).heightIn(min=52.dp)
-                ) { Text("Pause clock") }
+                ) { Text(stringResource(R.string.pause_clock)) }
                 ClockPhase.PAUSED -> Button(
                     onClick={onClockChange(clock.resume(SystemClock.elapsedRealtime()))},
                     modifier=Modifier.weight(1f).heightIn(min=52.dp)
-                ) { Text("Resume clock") }
+                ) { Text(stringResource(R.string.resume_clock)) }
                 ClockPhase.FLAGGED -> Text(
-                    "${if(clock.active==ClockSide.WHITE) "White" else "Black"} flagged",
+                    stringResource(if(clock.active==ClockSide.WHITE) R.string.white_flagged else R.string.black_flagged),
                     modifier=Modifier.weight(1f).padding(12.dp),
                     color=MaterialTheme.colorScheme.error,
                     fontWeight=FontWeight.Bold
                 )
-                ClockPhase.FINISHED -> Text("Clock finished",modifier=Modifier.weight(1f).padding(12.dp))
+                ClockPhase.FINISHED -> Text(stringResource(R.string.clock_finished),modifier=Modifier.weight(1f).padding(12.dp))
             }
             OutlinedButton(
                 onClick={showResetConfirmation=true},
                 modifier=Modifier.heightIn(min=52.dp)
-            ) { Text("Reset") }
+            ) { Text(stringResource(R.string.reset),maxLines=1) }
             OutlinedButton(
                 onClick={openSetup()},
                 modifier=Modifier.heightIn(min=52.dp)
-            ) { Text("Setup") }
+            ) { Text(stringResource(R.string.setup),maxLines=1) }
         }
     }
 
     if (showSetup) AlertDialog(
         onDismissRequest={showSetup=false},
-        title={Text("Set up clock")},
+        title={Text(stringResource(R.string.setup_title))},
         text={
             Column(
                 Modifier.fillMaxWidth().heightIn(max=480.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement=Arrangement.spacedBy(8.dp)
             ) {
                 Box {
-                    TextButton(onClick={presetMenu=true}) { Text("Preset · $presetLabel") }
+                    TextButton(onClick={presetMenu=true}) { Text(stringResource(R.string.preset,if(presetLabel==CUSTOM_PRESET) stringResource(R.string.custom) else presetLabel)) }
                     DropdownMenu(expanded=presetMenu,onDismissRequest={presetMenu=false}) {
                         CLOCK_PRESETS.filter { it.config != null }.forEach { preset ->
                             DropdownMenuItem(
@@ -294,38 +308,38 @@ internal fun StandaloneClockScreen(
                         }
                     }
                 }
-                Text("Custom time",fontWeight=FontWeight.SemiBold)
+                Text(stringResource(R.string.custom_time),fontWeight=FontWeight.SemiBold)
                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    ClockNumberField("Minutes",baseMinutes,{baseMinutes=it},Modifier.weight(1f))
-                    ClockNumberField("Seconds",baseSeconds,{baseSeconds=it},Modifier.weight(1f))
+                    ClockNumberField(stringResource(R.string.minutes),baseMinutes,{baseMinutes=it},Modifier.weight(1f))
+                    ClockNumberField(stringResource(R.string.seconds),baseSeconds,{baseSeconds=it},Modifier.weight(1f))
                 }
                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    ClockNumberField("Increment (s)",incrementSeconds,{incrementSeconds=it},Modifier.weight(1f))
-                    ClockNumberField("Delay (s)",delaySeconds,{delaySeconds=it},Modifier.weight(1f))
+                    ClockNumberField(stringResource(R.string.increment_seconds),incrementSeconds,{incrementSeconds=it},Modifier.weight(1f))
+                    ClockNumberField(stringResource(R.string.delay_seconds),delaySeconds,{delaySeconds=it},Modifier.weight(1f))
                 }
-                Text("Starting side",fontWeight=FontWeight.SemiBold)
+                Text(stringResource(R.string.starting_side),fontWeight=FontWeight.SemiBold)
                 SideSelectionButtons(
                     selectedWhite=startSide==ClockSide.WHITE,
-                    whiteDescription="Start with White",
-                    blackDescription="Start with Black",
+                    whiteDescription=stringResource(R.string.start_with_white),
+                    blackDescription=stringResource(R.string.start_with_black),
                     onWhiteSelected={onStartSideChange(ClockSide.WHITE)},
                     onBlackSelected={onStartSideChange(ClockSide.BLACK)}
                 )
                 setupError?.let { Text(it,color=MaterialTheme.colorScheme.error,fontSize=13.sp) }
             }
         },
-        confirmButton={TextButton(onClick={
+        confirmButton={val res=appResources(); TextButton(onClick={
             val minutes=baseMinutes.toLongOrNull()
             val seconds=baseSeconds.toLongOrNull()
             val increment=incrementSeconds.toLongOrNull()
             val delay=delaySeconds.toLongOrNull()
             val message=when {
-                minutes==null || minutes !in 0..1_440 -> "Minutes must be between 0 and 1440."
-                seconds==null || seconds !in 0..59 -> "Seconds must be between 0 and 59."
-                minutes*60+seconds==0L -> "The starting time must be greater than zero."
-                minutes*60+seconds>86_400 -> "The starting time cannot exceed 24 hours."
-                increment==null || increment !in 0..3_600 -> "Increment must be between 0 and 3600 seconds."
-                delay==null || delay !in 0..3_600 -> "Delay must be between 0 and 3600 seconds."
+                minutes==null || minutes !in 0..1_440 -> res.getString(R.string.error_minutes)
+                seconds==null || seconds !in 0..59 -> res.getString(R.string.error_seconds)
+                minutes*60+seconds==0L -> res.getString(R.string.error_zero_time)
+                minutes*60+seconds>86_400 -> res.getString(R.string.error_max_time)
+                increment==null || increment !in 0..3_600 -> res.getString(R.string.error_increment)
+                delay==null || delay !in 0..3_600 -> res.getString(R.string.error_delay)
                 else -> null
             }
             if(message!=null) {
@@ -340,32 +354,32 @@ internal fun StandaloneClockScreen(
                 showSetup=false
                 setupError=null
             }
-        }) { Text("Apply time control") }},
-        dismissButton={TextButton(onClick={showSetup=false}) { Text("Cancel") }}
+        }) { Text(stringResource(R.string.apply_time_control)) }},
+        dismissButton={TextButton(onClick={showSetup=false}) { Text(stringResource(R.string.cancel)) }}
     )
 
     if(showResetConfirmation) AlertDialog(
         onDismissRequest={showResetConfirmation=false},
-        title={Text("Reset clock?")},
-        text={Text("Both clocks will return to ${clockText(clock.config.baseMs)}.")},
+        title={Text(stringResource(R.string.reset_title))},
+        text={Text(stringResource(R.string.reset_text,clockText(clock.config.baseMs)))},
         confirmButton={TextButton(onClick={
             onClockChange(ClockState(clock.config,active=startSide))
             showResetConfirmation=false
-        }) { Text("Reset") }},
-        dismissButton={TextButton(onClick={showResetConfirmation=false}) { Text("Keep clock") }}
+        }) { Text(stringResource(R.string.reset)) }},
+        dismissButton={TextButton(onClick={showResetConfirmation=false}) { Text(stringResource(R.string.keep_clock)) }}
     )
 
     if(showSetupConfirmation) AlertDialog(
         onDismissRequest={showSetupConfirmation=false},
-        title={Text("Change time control?")},
-        text={Text("The running clock will be stopped and replaced.")},
+        title={Text(stringResource(R.string.change_title))},
+        text={Text(stringResource(R.string.change_text))},
         confirmButton={TextButton(onClick={
             onClockChange(clock.pause(SystemClock.elapsedRealtime()))
             showSetupConfirmation=false
             prepareSetup()
             showSetup=true
-        }) { Text("Change") }},
-        dismissButton={TextButton(onClick={showSetupConfirmation=false}) { Text("Keep clock") }}
+        }) { Text(stringResource(R.string.change)) }},
+        dismissButton={TextButton(onClick={showSetupConfirmation=false}) { Text(stringResource(R.string.keep_clock)) }}
     )
 }
 
@@ -387,6 +401,8 @@ private fun ClockSidePanel(
     val active=clock.active==side && clock.phase==ClockPhase.RUNNING
     val remaining=if(isWhite) clock.whiteMs else clock.blackMs
     val palette=LocalPalette.current
+    val description=stringResource(if(isWhite) R.string.clock_panel_white else R.string.clock_panel_black)+
+        if(active) stringResource(R.string.active_suffix) else ""
     // On e-ink the running clock is shown inverted: white text on black.
     CompositionLocalProvider(LocalContentColor provides if(palette.eink && active) Color.White else LocalContentColor.current) {
     Column(
@@ -395,7 +411,7 @@ private fun ClockSidePanel(
             .then(if(palette.eink) Modifier.border(2.dp,Color.Black,RoundedCornerShape(14.dp)) else Modifier)
             .clickable(enabled=active,onClick=onPress)
             .semantics {
-                contentDescription="${if(isWhite) "White" else "Black"} clock${if(active) ", active" else ""}"
+                contentDescription=description
             },
         horizontalAlignment=Alignment.CenterHorizontally,
         verticalArrangement=Arrangement.Center
@@ -404,16 +420,16 @@ private fun ClockSidePanel(
             horizontalAlignment=Alignment.CenterHorizontally,
             modifier=Modifier.graphicsLayer { rotationZ=if(rotated) 180f else 0f }
         ) {
-            Text(if(isWhite) "White" else "Black",fontSize=18.sp,color=if(palette.eink) LocalContentColor.current else palette.accent)
+            Text(stringResource(if(isWhite) R.string.white else R.string.black),fontSize=18.sp,color=if(palette.eink) LocalContentColor.current else palette.accent)
             Text(clockText(remaining),fontSize=48.sp,fontWeight=FontWeight.Bold,fontFamily=FontFamily.Monospace)
             if(active && clock.delayRemainingMs>0) {
-                Text("Delay ${clockText(clock.delayRemainingMs)}",fontSize=14.sp)
+                Text(stringResource(R.string.delay_value,clockText(clock.delayRemainingMs)),fontSize=14.sp)
             }
             when {
-                clock.phase==ClockPhase.FLAGGED && clock.active==side -> Text("Flag fallen",color=MaterialTheme.colorScheme.error)
-                active -> Text("Tap after your move",fontSize=13.sp)
-                clock.phase==ClockPhase.READY && clock.active==side -> Text("Ready to start",fontSize=13.sp)
-                clock.phase==ClockPhase.PAUSED && clock.active==side -> Text("Paused",fontSize=13.sp)
+                clock.phase==ClockPhase.FLAGGED && clock.active==side -> Text(stringResource(R.string.flag_fallen),color=MaterialTheme.colorScheme.error)
+                active -> Text(stringResource(R.string.tap_after_move),fontSize=13.sp)
+                clock.phase==ClockPhase.READY && clock.active==side -> Text(stringResource(R.string.ready_to_start),fontSize=13.sp)
+                clock.phase==ClockPhase.PAUSED && clock.active==side -> Text(stringResource(R.string.paused),fontSize=13.sp)
             }
         }
     }

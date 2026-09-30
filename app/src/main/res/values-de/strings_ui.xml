@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Home -->
+    <string name="continue_game">Partie fortsetzen</string>
+    <string name="view_last_game">Letzte Partie ansehen</string>
+    <string name="record_physical_game">Brettpartie notieren</string>
+    <string name="game_history">Partieverlauf</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="home_back">‹ Start</string>
+
+    <!-- Game history -->
+    <string name="importing">Importiere …</string>
+    <string name="import_action">Importieren</string>
+    <string name="export_action">Exportieren</string>
+    <string name="your_games">Deine Partien</string>
+    <string name="first_game_hint">Hier beginnt deine erste Partie.</string>
+    <string name="long_press_delete">Tippe lange auf eine Partie, um sie zu löschen.</string>
+    <string name="mode_computer">Gegen den Computer</string>
+    <string name="mode_over_board">Am Brett</string>
+    <string name="mode_recorded">Notierte Partie</string>
+    <plurals name="history_moves">
+        <item quantity="one">%d Zug</item>
+        <item quantity="other">%d Züge</item>
+    </plurals>
+    <string name="game_in_progress">Läuft</string>
+    <string name="delete_game_action">Partie löschen</string>
+
+    <!-- Players, sides and levels -->
+    <string name="white">Weiß</string>
+    <string name="black">Schwarz</string>
+    <string name="name_computer">Computer (%1$s)</string>
+    <string name="level_label">Stufe %1$d</string>
+    <string name="level_desc_1">Anfänger · übersieht oft Schlagzüge</string>
+    <string name="level_desc_2">Anfänger · macht deutliche Fehler</string>
+    <string name="level_desc_3">Gelegenheitsspieler · nimmt freie Figuren</string>
+    <string name="level_desc_4">Gelegenheitsspieler · übersieht manche Taktik</string>
+    <string name="level_desc_5">Fortgeschrittener Anfänger</string>
+    <string name="level_desc_6">Mittelstufe</string>
+    <string name="level_desc_7">Vereinsspieler</string>
+    <string name="level_desc_8">Stark</string>
+    <string name="level_desc_9">Sehr stark</string>
+    <string name="level_desc_10">Volle Stärke</string>
+
+    <!-- Pieces -->
+    <string name="piece_king">König</string>
+    <string name="piece_queen">Dame</string>
+    <string name="piece_rook">Turm</string>
+    <string name="piece_bishop">Läufer</string>
+    <string name="piece_knight">Springer</string>
+    <string name="piece_pawn">Bauer</string>
+    <string name="square_white_king">weißer König</string>
+    <string name="square_white_queen">weiße Dame</string>
+    <string name="square_white_rook">weißer Turm</string>
+    <string name="square_white_bishop">weißer Läufer</string>
+    <string name="square_white_knight">weißer Springer</string>
+    <string name="square_white_pawn">weißer Bauer</string>
+    <string name="square_black_king">schwarzer König</string>
+    <string name="square_black_queen">schwarze Dame</string>
+    <string name="square_black_rook">schwarzer Turm</string>
+    <string name="square_black_bishop">schwarzer Läufer</string>
+    <string name="square_black_knight">schwarzer Springer</string>
+    <string name="square_black_pawn">schwarzer Bauer</string>
+    <string name="square_empty">leer</string>
+    <string name="square_description">%1$s, %2$s</string>
+    <string name="square_legal_suffix">, erlaubtes Zielfeld</string>
+    <string name="square_check_suffix">, Schach</string>
+
+    <!-- Captured pieces -->
+    <string name="captured_description">Von %1$s geschlagen: %2$s</string>
+    <string name="no_captures">Keine geschlagenen Figuren</string>
+    <string name="ahead_by">, %1$d im Vorteil</string>
+    <plurals name="count_pawns"><item quantity="one">%d Bauer</item><item quantity="other">%d Bauern</item></plurals>
+    <plurals name="count_knights"><item quantity="one">%d Springer</item><item quantity="other">%d Springer</item></plurals>
+    <plurals name="count_bishops"><item quantity="one">%d Läufer</item><item quantity="other">%d Läufer</item></plurals>
+    <plurals name="count_rooks"><item quantity="one">%d Turm</item><item quantity="other">%d Türme</item></plurals>
+    <plurals name="count_queens"><item quantity="one">%d Dame</item><item quantity="other">%d Damen</item></plurals>
+
+    <!-- Game header -->
+    <string name="status_review">Rückblick · %1$d/%2$d</string>
+    <string name="status_game_over">Partie beendet</string>
+    <string name="status_thinking">Computer denkt nach</string>
+    <string name="status_time_expired">Zeit abgelaufen</string>
+    <string name="status_check">Schach</string>
+    <string name="status_unavailable">Computer nicht verfügbar</string>
+    <string name="status_your_move">Du bist am Zug</string>
+    <string name="status_computer_to_move">Computer am Zug</string>
+    <string name="status_white_to_move">Weiß am Zug</string>
+    <string name="status_black_to_move">Schwarz am Zug</string>
+    <string name="clock_paused_interrupted">Uhr angehalten · App wurde unterbrochen</string>
+    <string name="clock_paused">Uhr angehalten · Weiter, wenn du bereit bist</string>
+    <string name="white_ran_out">Weiß hat die Zeit überschritten</string>
+    <string name="black_ran_out">Schwarz hat die Zeit überschritten</string>
+    <string name="clock_white_short">W</string>
+    <string name="clock_black_short">S</string>
+    <string name="clock_description_white">Weiß %1$s</string>
+    <string name="clock_description_black">Schwarz %1$s</string>
+    <string name="clock_running_suffix">, läuft</string>
+    <string name="review">Rückblick</string>
+    <string name="return_action">Zurück</string>
+    <string name="return_to_game">Zurück zur Partie</string>
+    <string name="undo">Rückgängig</string>
+    <string name="undo_description">Letzten Zug zurücknehmen</string>
+    <string name="menu">Menü</string>
+    <string name="menu_description">Partiemenü</string>
+    <string name="hint">Tipp</string>
+    <string name="hide">Aus</string>
+    <string name="show_hint">Tipp zeigen</string>
+    <string name="hide_hint">Tipp ausblenden</string>
+    <string name="first_position">Erste Stellung</string>
+    <string name="previous_move">Vorheriger Zug</string>
+    <string name="next_move">Nächster Zug</string>
+    <string name="last_position">Letzte Stellung</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Weiter</string>
+    <string name="pause_clock">Uhr anhalten</string>
+    <string name="resume_clock">Uhr fortsetzen</string>
+
+    <!-- Hints -->
+    <string name="finding_hint">Suche Tipp …</string>
+    <string name="hint_unavailable">Tipp nicht verfügbar · Erneut versuchen</string>
+    <string name="hint_line">Tipp: %1$s · %2$s</string>
+    <string name="hint_move">%1$s %2$s → %3$s</string>
+    <string name="hint_castle_kingside">Kurze Rochade · %1$s → %2$s</string>
+    <string name="hint_castle_queenside">Lange Rochade · %1$s → %2$s</string>
+    <string name="hint_promotion">Bauer %1$s → %2$s, Umwandlung in %3$s</string>
+    <string name="hint_spoken_move">Tipp: %1$s von %2$s nach %3$s, %4$s</string>
+    <string name="hint_spoken_castle_kingside">Tipp: kurze Rochade, %1$s</string>
+    <string name="hint_spoken_castle_queenside">Tipp: lange Rochade, %1$s</string>
+    <string name="hint_spoken_promotion">Tipp: Bauer von %1$s nach %2$s, Umwandlung in %3$s, %4$s</string>
+
+    <!-- Move entry -->
+    <string name="move_entry">Zug: %1$s</string>
+    <string name="move_entry_description">Zugeingabe %1$s</string>
+    <string name="clear">Löschen</string>
+    <string name="play">Ziehen</string>
+    <string name="entry_position_changed">Stellung geändert – gib deinen Zug erneut ein</string>
+    <string name="entry_illegal">Unzulässiger oder unvollständiger Zug</string>
+    <string name="entry_clock_paused">Die Uhr ist angehalten</string>
+    <string name="entry_time_expired">Zeit abgelaufen</string>
+
+    <!-- New game -->
+    <string name="difficulty">Schwierigkeit</string>
+    <string name="easier">Leichter</string>
+    <string name="stronger">Stärker</string>
+    <string name="choose_side">Wähle deine Farbe</string>
+    <string name="play_as_white">Mit Weiß spielen</string>
+    <string name="play_as_black">Mit Schwarz spielen</string>
+    <string name="allow_hints">Tipps erlauben</string>
+    <string name="allow_hints_help">Zeigt eine Tipp-Taste, wenn du am Zug bist.</string>
+    <string name="recording_help">Gib die Züge von deinem Brett ein. Während der Notation gibt es keine Tipps und keine Engine-Analyse. Ein Hilfsmittel für Freizeitpartien, kein zugelassenes Turniergerät.</string>
+    <string name="over_board_help">Teile dieses Brett mit einer anderen Person. Wähle eine Bedenkzeit oder spiele ohne Uhr.</string>
+    <string name="time_control">Bedenkzeit · %1$s</string>
+    <string name="time_control_description">Bedenkzeit: %1$s</string>
+    <string name="untimed">Ohne Uhr</string>
+    <string name="more_options">Weitere Optionen</string>
+    <string name="fewer_options">Weniger Optionen</string>
+    <string name="importing_position">Importiere Stellung …</string>
+    <string name="starting_from_imported">Start aus importierter Stellung</string>
+    <string name="use_standard_position">Normale Anfangsstellung verwenden</string>
+    <string name="file_read_failed">Die gewählte Datei konnte nicht gelesen werden: %1$s</string>
+    <string name="io_error">E/A-Fehler</string>
+    <string name="file_permission_denied">Die Berechtigung zum Lesen der gewählten Datei wurde verweigert.</string>
+    <string name="fen_invalid">Die gewählte Datei ist keine gültige FEN-Stellung.</string>
+    <string name="fen_wrong_file">Wähle eine Stellungsdatei mit der Endung .fen. Dateien mit ganzen Partien (.pgn) werden hier nicht unterstützt.</string>
+    <string name="start_game">Partie starten</string>
+    <string name="cancel">Abbrechen</string>
+
+    <!-- Game menu -->
+    <string name="at_the_board">Am Brett</string>
+    <string name="section_game">Partie</string>
+    <string name="undo_take_back">Rückgängig / zurücknehmen</string>
+    <string name="claim_draw">Remis beanspruchen</string>
+    <string name="resign">Aufgeben</string>
+    <string name="end_game">Partie beenden</string>
+    <string name="retry_engine">Engine erneut versuchen</string>
+    <string name="section_view">Ansicht</string>
+    <string name="review_game">Partie durchsehen</string>
+    <string name="move_list">Zugliste</string>
+    <string name="flip_board">Brett drehen</string>
+    <string name="section_share">Teilen</string>
+    <string name="share_fen">FEN teilen</string>
+    <string name="share_pgn">PGN teilen</string>
+    <string name="share_fen_chooser">Stellung als FEN teilen</string>
+    <string name="share_pgn_chooser">Partie als PGN teilen</string>
+    <string name="save_home">Speichern und zum Start</string>
+    <string name="back_to_board">Zurück zum Brett</string>
+    <string name="resign_title">Diese Partie aufgeben?</string>
+    <string name="resign_text">Der Computer gewinnt. Die Partie bleibt in deinem Verlauf.</string>
+    <string name="keep_playing">Weiterspielen</string>
+    <string name="delete_title">Diese Partie löschen?</string>
+    <string name="delete_text">%1$s · %2$s, %3$s. Das kann nicht rückgängig gemacht werden. Exportiere deine Partien vorher, wenn du eine Kopie willst.</string>
+    <string name="delete">Löschen</string>
+    <string name="undo_title">Letzten Zug zurücknehmen?</string>
+    <string name="undo_text">Der entfernte Zug kann erneut gespielt werden. Gegen den Computer werden nach Möglichkeit beide Züge entfernt.</string>
+    <string name="take_back">Zurücknehmen</string>
+    <string name="end_title">Partie beenden</string>
+    <string name="end_text">Wähle das vereinbarte Ergebnis.</string>
+    <string name="white_wins">Weiß gewinnt</string>
+    <string name="black_wins">Schwarz gewinnt</string>
+    <string name="draw">Remis</string>
+    <string name="moves_title">Züge</string>
+    <string name="no_moves">Noch keine Züge.</string>
+    <string name="close">Schließen</string>
+
+    <!-- Result -->
+    <string name="review_board">Brett ansehen</string>
+    <string name="play_again">Nochmal spielen</string>
+    <string name="you_won">Du hast gewonnen</string>
+    <string name="you_lost">Du hast verloren</string>
+    <string name="score_white">Weiß · 1–0</string>
+    <string name="score_black">Schwarz · 0–1</string>
+    <string name="score_draw">Remis · ½–½</string>
+    <string name="reason_checkmate">Schachmatt</string>
+    <string name="reason_stalemate">Patt</string>
+    <string name="reason_insufficient">Remis wegen ungenügenden Materials</string>
+    <string name="reason_fivefold">Remis durch fünffache Wiederholung</string>
+    <string name="reason_75_moves">Remis nach der 75-Züge-Regel</string>
+    <string name="reason_resigned">Du hast aufgegeben</string>
+    <string name="reason_draw_claimed">Remis beansprucht</string>
+    <string name="reason_players">Ergebnis von den Spielern eingetragen</string>
+    <string name="reason_game_finished">Partie beendet</string>
+    <string name="reason_imported">Importiertes Ergebnis</string>
+
+    <!-- Export and import -->
+    <string name="export_title">Partien exportieren</string>
+    <string name="export_text">Eine PGN-Datei mit allen gewählten Partien. Andere Schach-Apps wie Lichess und ChessBase können sie importieren.</string>
+    <string name="section_games">Partien</string>
+    <string name="section_period">Zeitraum</string>
+    <string name="counting_games">Zähle Partien …</string>
+    <string name="no_games_match">Keine passenden Partien.</string>
+    <plurals name="games_selected">
+        <item quantity="one">%d Partie ausgewählt.</item>
+        <item quantity="other">%d Partien ausgewählt.</item>
+    </plurals>
+    <string name="save_file">Datei speichern</string>
+    <string name="share">Teilen</string>
+    <string name="share_games_chooser">Partien teilen</string>
+    <plurals name="export_saved">
+        <item quantity="one">%d Partie gespeichert.</item>
+        <item quantity="other">%d Partien gespeichert.</item>
+    </plurals>
+    <string name="export_failed">Export fehlgeschlagen: %1$s</string>
+    <string name="filter_all">Alle Partien</string>
+    <string name="filter_computer">Gegen den Computer</string>
+    <string name="filter_over_board">Am Brett</string>
+    <string name="filter_recorded">Notierte Partien</string>
+    <string name="period_all">Gesamter Zeitraum</string>
+    <string name="period_30_days">Letzte 30 Tage</string>
+    <string name="period_12_months">Letzte 12 Monate</string>
+    <string name="import_title">Partien importieren</string>
+    <string name="ok">OK</string>
+    <string name="import_failed">Import fehlgeschlagen: %1$s</string>
+    <string name="import_no_games">Die Datei enthält keine Partien.</string>
+    <plurals name="import_imported">
+        <item quantity="one">%d Partie importiert.</item>
+        <item quantity="other">%d Partien importiert.</item>
+    </plurals>
+    <plurals name="import_skipped">
+        <item quantity="one">%d Partie übersprungen, die schon in deinem Verlauf ist.</item>
+        <item quantity="other">%d Partien übersprungen, die schon in deinem Verlauf sind.</item>
+    </plurals>
+    <plurals name="import_unreadable">
+        <item quantity="one">%d Partie konnte nicht gelesen werden:</item>
+        <item quantity="other">%d Partien konnten nicht gelesen werden:</item>
+    </plurals>
+    <string name="import_more">und %1$d weitere</string>
+
+    <!-- Board extras -->
+    <string name="move_strip_empty">Noch keine Züge</string>
+    <plurals name="move_strip_description">
+        <item quantity="one">Zugliste, %d Zug</item>
+        <item quantity="other">Zugliste, %d Züge</item>
+    </plurals>
+    <string name="moves_button">Züge</string>
+    <string name="promote_title">Bauer umwandeln</string>
+
+    <!-- Settings -->
+    <string name="move_sounds">Zuggeräusche</string>
+    <string name="move_sounds_help">Ton für Züge, Schlagzüge und Schach</string>
+    <string name="vibration">Vibration</string>
+    <string name="vibration_help">Kurze Vibration bei jedem Zug</string>
+    <string name="legal_moves">Erlaubte Züge zeigen</string>
+    <string name="legal_moves_help">Punkte und Ringe auf den Feldern, auf die eine gewählte Figur ziehen kann</string>
+    <string name="coordinates">Koordinaten zeigen</string>
+    <string name="coordinates_help">Linien und Reihen am Brettrand</string>
+    <string name="eink_mode">E-Ink-Modus</string>
+    <string name="eink_mode_help">Nur Schwarz und Weiß, keine Animationen. Für E-Paper-Bildschirme wie Boox.</string>
+    <string name="board_colours">Brettfarben</string>
+    <string name="eink_board_note">Der E-Ink-Modus verwendet ein schwarz-weißes Brett mit schraffierten dunklen Feldern.</string>
+    <string name="theme_green">Grün</string>
+    <string name="theme_walnut">Nussbaum</string>
+    <string name="theme_slate">Schiefer</string>
+    <string name="board_theme_description">Brett %1$s</string>
+    <string name="selected_suffix">, ausgewählt</string>
+    <string name="language">Sprache</string>
+    <string name="language_system">Systemstandard</string>
+
+    <!-- Chess clock -->
+    <string name="rotate_0">0° drehen</string>
+    <string name="rotate_180">180° drehen</string>
+    <string name="start_clock">Uhr starten</string>
+    <string name="white_flagged">Weiß: Zeit überschritten</string>
+    <string name="black_flagged">Schwarz: Zeit überschritten</string>
+    <string name="clock_finished">Uhr beendet</string>
+    <string name="reset">Zurücksetzen</string>
+    <string name="setup">Einstellen</string>
+    <string name="setup_title">Uhr einstellen</string>
+    <string name="preset">Vorgabe · %1$s</string>
+    <string name="custom">Eigene</string>
+    <string name="custom_time">Eigene Zeit</string>
+    <string name="minutes">Minuten</string>
+    <string name="seconds">Sekunden</string>
+    <string name="increment_seconds">Inkrement (s)</string>
+    <string name="delay_seconds">Verzögerung (s)</string>
+    <string name="starting_side">Wer beginnt</string>
+    <string name="start_with_white">Mit Weiß beginnen</string>
+    <string name="start_with_black">Mit Schwarz beginnen</string>
+    <string name="error_minutes">Die Minuten müssen zwischen 0 und 1440 liegen.</string>
+    <string name="error_seconds">Die Sekunden müssen zwischen 0 und 59 liegen.</string>
+    <string name="error_zero_time">Die Startzeit muss größer als null sein.</string>
+    <string name="error_max_time">Die Startzeit darf 24 Stunden nicht überschreiten.</string>
+    <string name="error_increment">Das Inkrement muss zwischen 0 und 3600 Sekunden liegen.</string>
+    <string name="error_delay">Die Verzögerung muss zwischen 0 und 3600 Sekunden liegen.</string>
+    <string name="apply_time_control">Bedenkzeit übernehmen</string>
+    <string name="reset_title">Uhr zurücksetzen?</string>
+    <string name="reset_text">Beide Uhren werden auf %1$s zurückgesetzt.</string>
+    <string name="keep_clock">Uhr behalten</string>
+    <string name="change_title">Bedenkzeit ändern?</string>
+    <string name="change_text">Die laufende Uhr wird angehalten und ersetzt.</string>
+    <string name="change">Ändern</string>
+    <string name="clock_panel_white">Uhr von Weiß</string>
+    <string name="clock_panel_black">Uhr von Schwarz</string>
+    <string name="active_suffix">, aktiv</string>
+    <string name="delay_value">Verzögerung %1$s</string>
+    <string name="flag_fallen">Blättchen gefallen</string>
+    <string name="tap_after_move">Nach deinem Zug tippen</string>
+    <string name="ready_to_start">Bereit zum Start</string>
+    <string name="paused">Angehalten</string>
+</resources>

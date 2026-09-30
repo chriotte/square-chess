@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Home -->
+    <string name="continue_game">Continuar partida</string>
+    <string name="view_last_game">Ver última partida</string>
+    <string name="record_physical_game">Anotar partida de tablero</string>
+    <string name="game_history">Historial de partidas</string>
+    <string name="settings_title">Ajustes</string>
+    <string name="home_back">‹ Inicio</string>
+
+    <!-- Game history -->
+    <string name="importing">Importando…</string>
+    <string name="import_action">Importar</string>
+    <string name="export_action">Exportar</string>
+    <string name="your_games">Tus partidas</string>
+    <string name="first_game_hint">Tu primera partida empieza aquí.</string>
+    <string name="long_press_delete">Mantén pulsada una partida para eliminarla.</string>
+    <string name="mode_computer">Contra el ordenador</string>
+    <string name="mode_over_board">En el tablero</string>
+    <string name="mode_recorded">Partida anotada</string>
+    <plurals name="history_moves">
+        <item quantity="one">%d jugada</item>
+        <item quantity="many">%d jugadas</item>
+        <item quantity="other">%d jugadas</item>
+    </plurals>
+    <string name="game_in_progress">En curso</string>
+    <string name="delete_game_action">Eliminar partida</string>
+
+    <!-- Players, sides and levels -->
+    <string name="white">Blancas</string>
+    <string name="black">Negras</string>
+    <string name="name_computer">Ordenador (%1$s)</string>
+    <string name="level_label">Nivel %1$d</string>
+    <string name="level_desc_1">Principiante · a menudo no ve capturas</string>
+    <string name="level_desc_2">Principiante · comete errores claros</string>
+    <string name="level_desc_3">Aficionado · captura piezas sueltas</string>
+    <string name="level_desc_4">Aficionado · no ve algunas tácticas</string>
+    <string name="level_desc_5">Jugador en progreso</string>
+    <string name="level_desc_6">Intermedio</string>
+    <string name="level_desc_7">Jugador de club</string>
+    <string name="level_desc_8">Fuerte</string>
+    <string name="level_desc_9">Muy fuerte</string>
+    <string name="level_desc_10">Máxima fuerza</string>
+
+    <!-- Pieces -->
+    <string name="piece_king">Rey</string>
+    <string name="piece_queen">Dama</string>
+    <string name="piece_rook">Torre</string>
+    <string name="piece_bishop">Alfil</string>
+    <string name="piece_knight">Caballo</string>
+    <string name="piece_pawn">Peón</string>
+    <string name="square_white_king">rey blanco</string>
+    <string name="square_white_queen">dama blanca</string>
+    <string name="square_white_rook">torre blanca</string>
+    <string name="square_white_bishop">alfil blanco</string>
+    <string name="square_white_knight">caballo blanco</string>
+    <string name="square_white_pawn">peón blanco</string>
+    <string name="square_black_king">rey negro</string>
+    <string name="square_black_queen">dama negra</string>
+    <string name="square_black_rook">torre negra</string>
+    <string name="square_black_bishop">alfil negro</string>
+    <string name="square_black_knight">caballo negro</string>
+    <string name="square_black_pawn">peón negro</string>
+    <string name="square_empty">vacía</string>
+    <string name="square_description">%1$s, %2$s</string>
+    <string name="square_legal_suffix">, destino legal</string>
+    <string name="square_check_suffix">, jaque</string>
+
+    <!-- Captured pieces -->
+    <string name="captured_description">Capturado por %1$s: %2$s</string>
+    <string name="no_captures">Sin capturas</string>
+    <string name="ahead_by">, %1$d de ventaja</string>
+    <plurals name="count_pawns"><item quantity="one">%d peón</item><item quantity="many">%d peones</item><item quantity="other">%d peones</item></plurals>
+    <plurals name="count_knights"><item quantity="one">%d caballo</item><item quantity="many">%d caballos</item><item quantity="other">%d caballos</item></plurals>
+    <plurals name="count_bishops"><item quantity="one">%d alfil</item><item quantity="many">%d alfiles</item><item quantity="other">%d alfiles</item></plurals>
+    <plurals name="count_rooks"><item quantity="one">%d torre</item><item quantity="many">%d torres</item><item quantity="other">%d torres</item></plurals>
+    <plurals name="count_queens"><item quantity="one">%d dama</item><item quantity="many">%d damas</item><item quantity="other">%d damas</item></plurals>
+
+    <!-- Game header -->
+    <string name="status_review">Repaso · %1$d/%2$d</string>
+    <string name="status_game_over">Partida terminada</string>
+    <string name="status_thinking">El ordenador piensa</string>
+    <string name="status_time_expired">Tiempo agotado</string>
+    <string name="status_check">Jaque</string>
+    <string name="status_unavailable">Ordenador no disponible</string>
+    <string name="status_your_move">Tu turno</string>
+    <string name="status_computer_to_move">Turno del ordenador</string>
+    <string name="status_white_to_move">Juegan blancas</string>
+    <string name="status_black_to_move">Juegan negras</string>
+    <string name="clock_paused_interrupted">Reloj en pausa · Se interrumpió la app</string>
+    <string name="clock_paused">Reloj en pausa · Reanuda cuando quieras</string>
+    <string name="white_ran_out">Las blancas se quedaron sin tiempo</string>
+    <string name="black_ran_out">Las negras se quedaron sin tiempo</string>
+    <string name="clock_white_short">B</string>
+    <string name="clock_black_short">N</string>
+    <string name="clock_description_white">blancas %1$s</string>
+    <string name="clock_description_black">negras %1$s</string>
+    <string name="clock_running_suffix">, en marcha</string>
+    <string name="review">Repasar</string>
+    <string name="return_action">Volver</string>
+    <string name="return_to_game">Volver a la partida</string>
+    <string name="undo">Deshacer</string>
+    <string name="undo_description">Deshacer el último turno</string>
+    <string name="menu">Menú</string>
+    <string name="menu_description">Menú de la partida</string>
+    <string name="hint">Pista</string>
+    <string name="hide">Ocultar</string>
+    <string name="show_hint">Mostrar pista</string>
+    <string name="hide_hint">Ocultar pista</string>
+    <string name="first_position">Primera posición</string>
+    <string name="previous_move">Jugada anterior</string>
+    <string name="next_move">Jugada siguiente</string>
+    <string name="last_position">Última posición</string>
+    <string name="pause">Pausa</string>
+    <string name="resume">Reanudar</string>
+    <string name="pause_clock">Pausar reloj</string>
+    <string name="resume_clock">Reanudar reloj</string>
+
+    <!-- Hints -->
+    <string name="finding_hint">Buscando pista…</string>
+    <string name="hint_unavailable">Pista no disponible · Inténtalo de nuevo</string>
+    <string name="hint_line">Pista: %1$s · %2$s</string>
+    <string name="hint_move">%1$s %2$s → %3$s</string>
+    <string name="hint_castle_kingside">Enroque corto · %1$s → %2$s</string>
+    <string name="hint_castle_queenside">Enroque largo · %1$s → %2$s</string>
+    <string name="hint_promotion">Peón %1$s → %2$s, corona en %3$s</string>
+    <string name="hint_spoken_move">Pista: %1$s de %2$s a %3$s, %4$s</string>
+    <string name="hint_spoken_castle_kingside">Pista: enroque corto, %1$s</string>
+    <string name="hint_spoken_castle_queenside">Pista: enroque largo, %1$s</string>
+    <string name="hint_spoken_promotion">Pista: peón de %1$s a %2$s, corona en %3$s, %4$s</string>
+
+    <!-- Move entry -->
+    <string name="move_entry">Jugada: %1$s</string>
+    <string name="move_entry_description">Entrada de jugada %1$s</string>
+    <string name="clear">Borrar</string>
+    <string name="play">Jugar</string>
+    <string name="entry_position_changed">La posición ha cambiado: escribe tu jugada de nuevo</string>
+    <string name="entry_illegal">Jugada ilegal o incompleta</string>
+    <string name="entry_clock_paused">El reloj está en pausa</string>
+    <string name="entry_time_expired">Tiempo agotado</string>
+
+    <!-- New game -->
+    <string name="difficulty">Dificultad</string>
+    <string name="easier">Más fácil</string>
+    <string name="stronger">Más fuerte</string>
+    <string name="choose_side">Elige tu color</string>
+    <string name="play_as_white">Jugar con blancas</string>
+    <string name="play_as_black">Jugar con negras</string>
+    <string name="allow_hints">Permitir pistas</string>
+    <string name="allow_hints_help">Muestra un botón de pista en tus turnos.</string>
+    <string name="recording_help">Introduce las jugadas de tu tablero. Sin pistas ni análisis del motor durante la anotación. Un acompañante informal, no un equipo homologado para torneos.</string>
+    <string name="over_board_help">Comparte este tablero con otra persona. Elige un control de tiempo o juega sin reloj.</string>
+    <string name="time_control">Control de tiempo · %1$s</string>
+    <string name="time_control_description">Control de tiempo: %1$s</string>
+    <string name="untimed">Sin reloj</string>
+    <string name="more_options">Más opciones</string>
+    <string name="fewer_options">Menos opciones</string>
+    <string name="importing_position">Importando posición…</string>
+    <string name="starting_from_imported">Empieza desde la posición importada</string>
+    <string name="use_standard_position">Usar la posición inicial</string>
+    <string name="file_read_failed">No se pudo leer el archivo elegido: %1$s</string>
+    <string name="io_error">Error de E/S</string>
+    <string name="file_permission_denied">Se denegó el permiso para leer el archivo elegido.</string>
+    <string name="fen_invalid">El archivo elegido no es una posición FEN válida.</string>
+    <string name="fen_wrong_file">Elige un archivo de posición terminado en .fen. Aquí no se admiten archivos de partidas completas (.pgn).</string>
+    <string name="start_game">Empezar partida</string>
+    <string name="cancel">Cancelar</string>
+
+    <!-- Game menu -->
+    <string name="at_the_board">En el tablero</string>
+    <string name="section_game">Partida</string>
+    <string name="undo_take_back">Deshacer / retroceder</string>
+    <string name="claim_draw">Reclamar tablas</string>
+    <string name="resign">Abandonar</string>
+    <string name="end_game">Terminar partida</string>
+    <string name="retry_engine">Reintentar motor</string>
+    <string name="section_view">Ver</string>
+    <string name="review_game">Repasar la partida</string>
+    <string name="move_list">Lista de jugadas</string>
+    <string name="flip_board">Girar tablero</string>
+    <string name="section_share">Compartir</string>
+    <string name="share_fen">Compartir FEN</string>
+    <string name="share_pgn">Compartir PGN</string>
+    <string name="share_fen_chooser">Compartir posición en FEN</string>
+    <string name="share_pgn_chooser">Compartir partida en PGN</string>
+    <string name="save_home">Guardar e ir al inicio</string>
+    <string name="back_to_board">Volver al tablero</string>
+    <string name="resign_title">¿Abandonar esta partida?</string>
+    <string name="resign_text">Gana el ordenador. La partida queda en tu historial.</string>
+    <string name="keep_playing">Seguir jugando</string>
+    <string name="delete_title">¿Eliminar esta partida?</string>
+    <string name="delete_text">%1$s · %2$s, %3$s. No se puede deshacer. Exporta tus partidas antes si quieres una copia.</string>
+    <string name="delete">Eliminar</string>
+    <string name="undo_title">¿Deshacer el último turno?</string>
+    <string name="undo_text">La jugada eliminada se puede volver a jugar. Contra el ordenador se eliminan las dos jugadas cuando es posible.</string>
+    <string name="take_back">Deshacer</string>
+    <string name="end_title">Terminar esta partida</string>
+    <string name="end_text">Elige el resultado acordado.</string>
+    <string name="white_wins">Ganan blancas</string>
+    <string name="black_wins">Ganan negras</string>
+    <string name="draw">Tablas</string>
+    <string name="moves_title">Jugadas</string>
+    <string name="no_moves">Aún no hay jugadas.</string>
+    <string name="close">Cerrar</string>
+
+    <!-- Result -->
+    <string name="review_board">Ver el tablero</string>
+    <string name="play_again">Jugar otra vez</string>
+    <string name="you_won">Has ganado</string>
+    <string name="you_lost">Has perdido</string>
+    <string name="score_white">Blancas · 1–0</string>
+    <string name="score_black">Negras · 0–1</string>
+    <string name="score_draw">Tablas · ½–½</string>
+    <string name="reason_checkmate">Jaque mate</string>
+    <string name="reason_stalemate">Rey ahogado</string>
+    <string name="reason_insufficient">Tablas por material insuficiente</string>
+    <string name="reason_fivefold">Tablas por quíntuple repetición</string>
+    <string name="reason_75_moves">Tablas por la regla de las 75 jugadas</string>
+    <string name="reason_resigned">Has abandonado</string>
+    <string name="reason_draw_claimed">Tablas reclamadas</string>
+    <string name="reason_players">Resultado anotado por los jugadores</string>
+    <string name="reason_game_finished">Partida terminada</string>
+    <string name="reason_imported">Resultado importado</string>
+
+    <!-- Export and import -->
+    <string name="export_title">Exportar partidas</string>
+    <string name="export_text">Un archivo PGN con todas las partidas elegidas. Otras apps de ajedrez, como Lichess y ChessBase, pueden importarlo.</string>
+    <string name="section_games">Partidas</string>
+    <string name="section_period">Periodo</string>
+    <string name="counting_games">Contando partidas…</string>
+    <string name="no_games_match">Ninguna partida coincide.</string>
+    <plurals name="games_selected">
+        <item quantity="one">%d partida elegida.</item>
+        <item quantity="many">%d partidas elegidas.</item>
+        <item quantity="other">%d partidas elegidas.</item>
+    </plurals>
+    <string name="save_file">Guardar archivo</string>
+    <string name="share">Compartir</string>
+    <string name="share_games_chooser">Compartir partidas</string>
+    <plurals name="export_saved">
+        <item quantity="one">Se guardó %d partida.</item>
+        <item quantity="many">Se guardaron %d partidas.</item>
+        <item quantity="other">Se guardaron %d partidas.</item>
+    </plurals>
+    <string name="export_failed">No se pudo exportar: %1$s</string>
+    <string name="filter_all">Todas las partidas</string>
+    <string name="filter_computer">Contra el ordenador</string>
+    <string name="filter_over_board">En el tablero</string>
+    <string name="filter_recorded">Partidas anotadas</string>
+    <string name="period_all">Todo</string>
+    <string name="period_30_days">Últimos 30 días</string>
+    <string name="period_12_months">Últimos 12 meses</string>
+    <string name="import_title">Importar partidas</string>
+    <string name="ok">Aceptar</string>
+    <string name="import_failed">No se pudo importar: %1$s</string>
+    <string name="import_no_games">El archivo no contiene partidas.</string>
+    <plurals name="import_imported">
+        <item quantity="one">Se importó %d partida.</item>
+        <item quantity="many">Se importaron %d partidas.</item>
+        <item quantity="other">Se importaron %d partidas.</item>
+    </plurals>
+    <plurals name="import_skipped">
+        <item quantity="one">Se omitió %d partida que ya está en tu historial.</item>
+        <item quantity="many">Se omitieron %d partidas que ya están en tu historial.</item>
+        <item quantity="other">Se omitieron %d partidas que ya están en tu historial.</item>
+    </plurals>
+    <plurals name="import_unreadable">
+        <item quantity="one">No se pudo leer %d partida:</item>
+        <item quantity="many">No se pudieron leer %d partidas:</item>
+        <item quantity="other">No se pudieron leer %d partidas:</item>
+    </plurals>
+    <string name="import_more">y %1$d más</string>
+
+    <!-- Board extras -->
+    <string name="move_strip_empty">Aún no hay jugadas</string>
+    <plurals name="move_strip_description">
+        <item quantity="one">Lista de jugadas, %d jugada</item>
+        <item quantity="many">Lista de jugadas, %d jugadas</item>
+        <item quantity="other">Lista de jugadas, %d jugadas</item>
+    </plurals>
+    <string name="moves_button">Jugadas</string>
+    <string name="promote_title">Coronar peón</string>
+
+    <!-- Settings -->
+    <string name="move_sounds">Sonidos de jugadas</string>
+    <string name="move_sounds_help">Sonido para jugadas, capturas y jaques</string>
+    <string name="vibration">Vibración</string>
+    <string name="vibration_help">Vibración breve al hacer una jugada</string>
+    <string name="legal_moves">Mostrar jugadas legales</string>
+    <string name="legal_moves_help">Puntos y anillos en las casillas a las que puede ir la pieza elegida</string>
+    <string name="coordinates">Mostrar coordenadas</string>
+    <string name="coordinates_help">Columnas y filas en el borde del tablero</string>
+    <string name="eink_mode">Modo de tinta electrónica</string>
+    <string name="eink_mode_help">Solo blanco y negro, sin animaciones. Para pantallas de papel electrónico como Boox.</string>
+    <string name="board_colours">Colores del tablero</string>
+    <string name="eink_board_note">El modo de tinta electrónica usa un tablero en blanco y negro con casillas oscuras rayadas.</string>
+    <string name="theme_green">Verde</string>
+    <string name="theme_walnut">Nogal</string>
+    <string name="theme_slate">Pizarra</string>
+    <string name="board_theme_description">Tablero %1$s</string>
+    <string name="selected_suffix">, seleccionado</string>
+    <string name="language">Idioma</string>
+    <string name="language_system">Predeterminado del sistema</string>
+
+    <!-- Chess clock -->
+    <string name="rotate_0">Girar 0°</string>
+    <string name="rotate_180">Girar 180°</string>
+    <string name="start_clock">Iniciar reloj</string>
+    <string name="white_flagged">Blancas: tiempo agotado</string>
+    <string name="black_flagged">Negras: tiempo agotado</string>
+    <string name="clock_finished">Reloj terminado</string>
+    <string name="reset">Reiniciar</string>
+    <string name="setup">Ajustar</string>
+    <string name="setup_title">Ajustar reloj</string>
+    <string name="preset">Predefinido · %1$s</string>
+    <string name="custom">Personalizado</string>
+    <string name="custom_time">Tiempo personalizado</string>
+    <string name="minutes">Minutos</string>
+    <string name="seconds">Segundos</string>
+    <string name="increment_seconds">Incremento (s)</string>
+    <string name="delay_seconds">Retardo (s)</string>
+    <string name="starting_side">Quién empieza</string>
+    <string name="start_with_white">Empiezan blancas</string>
+    <string name="start_with_black">Empiezan negras</string>
+    <string name="error_minutes">Los minutos deben estar entre 0 y 1440.</string>
+    <string name="error_seconds">Los segundos deben estar entre 0 y 59.</string>
+    <string name="error_zero_time">El tiempo inicial debe ser mayor que cero.</string>
+    <string name="error_max_time">El tiempo inicial no puede superar las 24 horas.</string>
+    <string name="error_increment">El incremento debe estar entre 0 y 3600 segundos.</string>
+    <string name="error_delay">El retardo debe estar entre 0 y 3600 segundos.</string>
+    <string name="apply_time_control">Aplicar control de tiempo</string>
+    <string name="reset_title">¿Reiniciar el reloj?</string>
+    <string name="reset_text">Los dos relojes volverán a %1$s.</string>
+    <string name="keep_clock">Mantener reloj</string>
+    <string name="change_title">¿Cambiar el control de tiempo?</string>
+    <string name="change_text">El reloj en marcha se detendrá y se sustituirá.</string>
+    <string name="change">Cambiar</string>
+    <string name="clock_panel_white">Reloj de blancas</string>
+    <string name="clock_panel_black">Reloj de negras</string>
+    <string name="active_suffix">, activo</string>
+    <string name="delay_value">Retardo %1$s</string>
+    <string name="flag_fallen">Bandera caída</string>
+    <string name="tap_after_move">Toca después de tu jugada</string>
+    <string name="ready_to_start">Listo para empezar</string>
+    <string name="paused">En pausa</string>
+</resources>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="play_against_computer">Gegen den Computer spielen</string>
+    <string name="over_the_board">Am Brett</string>
+    <string name="chess_clock">Schachuhr</string>
+    <string name="chess_clock_subtitle">Für Partien an einem echten Brett</string>
+    <string name="import_position">Stellung importieren</string>
+    <string name="replace_position">Stellung ersetzen</string>
+    <string name="import_position_help">Starte aus einer Stellung, die eine andere Schach-App gespeichert hat. Wähle eine .fen-Datei: Sie enthält die Figuren und wer am Zug ist, aber nicht die Züge einer ganzen Partie. Lass dies unverändert, um eine normale Partie zu beginnen.</string>
+</resources>

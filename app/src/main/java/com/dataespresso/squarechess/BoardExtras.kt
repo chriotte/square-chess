@@ -12,6 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -58,15 +60,21 @@ fun captures(position: ChessPosition): Captures {
     return Captures(byWhite = lost(Side.BLACK), byBlack = lost(Side.WHITE), whiteLead = material(Side.WHITE) - material(Side.BLACK))
 }
 
-private fun describe(pieces: List<Piece>, lead: Int): String =
-    if (pieces.isEmpty()) "No captures" else pieces.groupBy { it.pieceType }.entries.joinToString(", ") { (type, list) ->
-        "${list.size} ${type.name.lowercase()}${if (list.size > 1) "s" else ""}"
-    } + if (lead > 0) ", ahead by $lead" else ""
+private fun describe(res: android.content.res.Resources, pieces: List<Piece>, lead: Int): String =
+    if (pieces.isEmpty()) res.getString(R.string.no_captures) else pieces.groupBy { it.pieceType }.entries.joinToString(", ") { (type, list) ->
+        val plural = when (type) {
+            PieceType.QUEEN -> R.plurals.count_queens; PieceType.ROOK -> R.plurals.count_rooks
+            PieceType.BISHOP -> R.plurals.count_bishops; PieceType.KNIGHT -> R.plurals.count_knights
+            else -> R.plurals.count_pawns
+        }
+        res.getQuantityString(plural, list.size, list.size)
+    } + if (lead > 0) res.getString(R.string.ahead_by, lead) else ""
 
 /** A row of pieces taken by one side, with the material lead when ahead. */
 @Composable fun CapturedRow(pieces: List<Piece>, lead: Int, side: String, modifier: Modifier = Modifier) {
+    val description = stringResource(R.string.captured_description, side, describe(appResources(), pieces, lead))
     Row(modifier.height(CAPTURED_ROW_HEIGHT).semantics(mergeDescendants = true) {
-        contentDescription = "$side captured: ${describe(pieces, lead)}"
+        contentDescription = description
     }, verticalAlignment = Alignment.CenterVertically) {
         pieces.forEach { Image(painterResource(pieceDrawable(it)), null, Modifier.size(18.dp).offset(x = 0.dp)) }
         if (lead > 0) Text("+$lead", fontSize = 12.sp, modifier = Modifier.padding(start = 4.dp))
@@ -76,8 +84,9 @@ private fun describe(pieces: List<Piece>, lead: Int): String =
 /** The same content stacked vertically, for the gutters beside a square board. */
 @Composable fun CapturedColumn(pieces: List<Piece>, lead: Int, side: String, width: Dp, fromBottom: Boolean, modifier: Modifier = Modifier) {
     val icon = minOf(width - 4.dp, 20.dp)
+    val description = stringResource(R.string.captured_description, side, describe(appResources(), pieces, lead))
     Column(modifier.width(width).semantics(mergeDescendants = true) {
-        contentDescription = "$side captured: ${describe(pieces, lead)}"
+        contentDescription = description
     }, horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = if (fromBottom) Arrangement.Bottom else Arrangement.Top) {
         val content = @Composable {
@@ -94,10 +103,11 @@ private fun describe(pieces: List<Piece>, lead: Int): String =
     val eink = LocalPalette.current.eink
     // E-ink jumps instead of scrolling smoothly: each animation frame is a screen refresh.
     LaunchedEffect(san.size, currentPly) { if (eink) scroll.scrollTo(scroll.maxValue) else scroll.animateScrollTo(scroll.maxValue) }
+    val description = pluralStringResource(R.plurals.move_strip_description, san.size, san.size)
     Row(modifier.height(MOVE_STRIP_HEIGHT).clickable(role = Role.Button, onClick = onOpen)
-        .semantics { contentDescription = "Move list, ${san.size} moves" }
+        .semantics { contentDescription = description }
         .horizontalScroll(scroll).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        if (san.isEmpty()) Text("No moves yet", fontSize = 13.sp, color = LocalPalette.current.muted)
+        if (san.isEmpty()) Text(stringResource(R.string.move_strip_empty), fontSize = 13.sp, color = LocalPalette.current.muted)
         san.forEachIndexed { ply, move ->
             val whiteMove = (ply % 2 == 0) == whiteFirst
             val number = firstMoveNumber + (ply + if (whiteFirst) 0 else 1) / 2
@@ -125,25 +135,28 @@ fun lastMoveText(san: List<String>, firstMoveNumber: Int, whiteFirst: Boolean): 
 /** Review navigation below the board. The same content descriptions as the header version. */
 @Composable fun ReviewBar(ply: Int, total: Int, onFirst: () -> Unit, onPrevious: () -> Unit, onMoves: () -> Unit,
                           onNext: () -> Unit, onLast: () -> Unit, modifier: Modifier = Modifier) {
+    val first = stringResource(R.string.first_position); val previous = stringResource(R.string.previous_move)
+    val next = stringResource(R.string.next_move); val last = stringResource(R.string.last_position)
     Surface(modifier.height(REVIEW_BAR_HEIGHT).padding(top = 4.dp), shape = RoundedCornerShape(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
-            TextButton(enabled = ply > 0, onClick = onFirst, modifier = Modifier.semantics { contentDescription = "First position" }) { Text("|‹") }
-            TextButton(enabled = ply > 0, onClick = onPrevious, modifier = Modifier.semantics { contentDescription = "Previous move" }) { Text("‹") }
-            TextButton(onClick = onMoves) { Text("Moves") }
-            TextButton(enabled = ply < total, onClick = onNext, modifier = Modifier.semantics { contentDescription = "Next move" }) { Text("›") }
-            TextButton(enabled = ply < total, onClick = onLast, modifier = Modifier.semantics { contentDescription = "Last position" }) { Text("›|") }
+            TextButton(enabled = ply > 0, onClick = onFirst, modifier = Modifier.semantics { contentDescription = first }) { Text("|‹") }
+            TextButton(enabled = ply > 0, onClick = onPrevious, modifier = Modifier.semantics { contentDescription = previous }) { Text("‹") }
+            TextButton(onClick = onMoves) { Text(stringResource(R.string.moves_button), maxLines = 1) }
+            TextButton(enabled = ply < total, onClick = onNext, modifier = Modifier.semantics { contentDescription = next }) { Text("›") }
+            TextButton(enabled = ply < total, onClick = onLast, modifier = Modifier.semantics { contentDescription = last }) { Text("›|") }
         }
     }
 }
 
 /** Promotion choice with piece images; [moves] are UCI moves ending in q, r, b or n. */
 @Composable fun PromotionDialog(moves: List<String>, white: Boolean, onPick: (String) -> Unit, onCancel: () -> Unit) {
-    AlertDialog(onDismissRequest = onCancel, title = { Text("Promote pawn") }, text = {
+    val res = appResources()
+    AlertDialog(onDismissRequest = onCancel, title = { Text(stringResource(R.string.promote_title)) }, text = {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf('q', 'r', 'b', 'n').mapNotNull { letter -> moves.firstOrNull { it.last() == letter }?.let { letter to it } }
                 .forEach { (letter, move) ->
                     val type = when (letter) { 'q' -> PieceType.QUEEN; 'r' -> PieceType.ROOK; 'b' -> PieceType.BISHOP; else -> PieceType.KNIGHT }
-                    val name = when (letter) { 'q' -> "Queen"; 'r' -> "Rook"; 'b' -> "Bishop"; else -> "Knight" }
+                    val name = res.getString(pieceName(type))
                     Surface(onClick = { onPick(move) }, shape = RoundedCornerShape(8.dp),
                         color = if (LocalPalette.current.eink) Color.White else Color(0xFFF2E7CF),
                         border = if (LocalPalette.current.eink) androidx.compose.foundation.BorderStroke(1.5.dp, Color.Black) else null,
@@ -152,5 +165,5 @@ fun lastMoveText(san: List<String>, firstMoveNumber: Int, whiteFirst: Boolean): 
                     }
                 }
         }
-    }, confirmButton = { TextButton(onClick = onCancel) { Text("Cancel") } })
+    }, confirmButton = { TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) } })
 }

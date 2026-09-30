@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Languages listed under Android 13+ Settings > Apps > Square Chess > Language. Keep in sync with APP_LANGUAGES. -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="zh-CN" />
+    <locale android:name="nb" />
+    <locale android:name="de" />
+    <locale android:name="es" />
+    <locale android:name="fr" />
+</locale-config>

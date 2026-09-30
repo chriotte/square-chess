@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Home -->
+    <string name="continue_game">继续对局</string>
+    <string name="view_last_game">查看上一局</string>
+    <string name="record_physical_game">记录实体棋盘对局</string>
+    <string name="game_history">对局记录</string>
+    <string name="settings_title">设置</string>
+    <string name="home_back">‹ 主页</string>
+
+    <!-- Game history -->
+    <string name="importing">正在导入…</string>
+    <string name="import_action">导入</string>
+    <string name="export_action">导出</string>
+    <string name="your_games">你的对局</string>
+    <string name="first_game_hint">你的第一局从这里开始。</string>
+    <string name="long_press_delete">长按对局即可删除。</string>
+    <string name="mode_computer">人机对战</string>
+    <string name="mode_over_board">面对面</string>
+    <string name="mode_recorded">记录的对局</string>
+    <plurals name="history_moves">
+        <item quantity="other">%d 步</item>
+    </plurals>
+    <string name="game_in_progress">进行中</string>
+    <string name="delete_game_action">删除对局</string>
+
+    <!-- Players, sides and levels -->
+    <string name="white">白方</string>
+    <string name="black">黑方</string>
+    <string name="name_computer">电脑（%1$s）</string>
+    <string name="level_label">%1$d 级</string>
+    <string name="level_desc_1">入门 · 常常漏看吃子</string>
+    <string name="level_desc_2">入门 · 会犯明显错误</string>
+    <string name="level_desc_3">休闲 · 会吃掉白送的子</string>
+    <string name="level_desc_4">休闲 · 会漏掉一些战术</string>
+    <string name="level_desc_5">进步中的棋手</string>
+    <string name="level_desc_6">中级</string>
+    <string name="level_desc_7">俱乐部棋手</string>
+    <string name="level_desc_8">强</string>
+    <string name="level_desc_9">很强</string>
+    <string name="level_desc_10">全力</string>
+
+    <!-- Pieces -->
+    <string name="piece_king">王</string>
+    <string name="piece_queen">后</string>
+    <string name="piece_rook">车</string>
+    <string name="piece_bishop">象</string>
+    <string name="piece_knight">马</string>
+    <string name="piece_pawn">兵</string>
+    <string name="square_white_king">白王</string>
+    <string name="square_white_queen">白后</string>
+    <string name="square_white_rook">白车</string>
+    <string name="square_white_bishop">白象</string>
+    <string name="square_white_knight">白马</string>
+    <string name="square_white_pawn">白兵</string>
+    <string name="square_black_king">黑王</string>
+    <string name="square_black_queen">黑后</string>
+    <string name="square_black_rook">黑车</string>
+    <string name="square_black_bishop">黑象</string>
+    <string name="square_black_knight">黑马</string>
+    <string name="square_black_pawn">黑兵</string>
+    <string name="square_empty">空</string>
+    <string name="square_description">%1$s，%2$s</string>
+    <string name="square_legal_suffix">，可走</string>
+    <string name="square_check_suffix">，被将军</string>
+
+    <!-- Captured pieces -->
+    <string name="captured_description">%1$s吃掉：%2$s</string>
+    <string name="no_captures">未吃子</string>
+    <string name="ahead_by">，领先 %1$d</string>
+    <plurals name="count_pawns"><item quantity="other">%d 个兵</item></plurals>
+    <plurals name="count_knights"><item quantity="other">%d 个马</item></plurals>
+    <plurals name="count_bishops"><item quantity="other">%d 个象</item></plurals>
+    <plurals name="count_rooks"><item quantity="other">%d 个车</item></plurals>
+    <plurals name="count_queens"><item quantity="other">%d 个后</item></plurals>
+
+    <!-- Game header -->
+    <string name="status_review">复盘 · %1$d/%2$d</string>
+    <string name="status_game_over">对局结束</string>
+    <string name="status_thinking">电脑思考中</string>
+    <string name="status_time_expired">时间到</string>
+    <string name="status_check">将军</string>
+    <string name="status_unavailable">电脑不可用</string>
+    <string name="status_your_move">轮到你走</string>
+    <string name="status_computer_to_move">轮到电脑走</string>
+    <string name="status_white_to_move">白方走棋</string>
+    <string name="status_black_to_move">黑方走棋</string>
+    <string name="clock_paused_interrupted">棋钟已暂停 · 应用被中断</string>
+    <string name="clock_paused">棋钟已暂停 · 准备好后继续</string>
+    <string name="white_ran_out">白方超时</string>
+    <string name="black_ran_out">黑方超时</string>
+    <string name="clock_white_short">白</string>
+    <string name="clock_black_short">黑</string>
+    <string name="clock_description_white">白方 %1$s</string>
+    <string name="clock_description_black">黑方 %1$s</string>
+    <string name="clock_running_suffix">，计时中</string>
+    <string name="review">复盘</string>
+    <string name="return_action">返回</string>
+    <string name="return_to_game">返回对局</string>
+    <string name="undo">悔棋</string>
+    <string name="undo_description">撤回上一回合</string>
+    <string name="menu">菜单</string>
+    <string name="menu_description">对局菜单</string>
+    <string name="hint">提示</string>
+    <string name="hide">隐藏</string>
+    <string name="show_hint">显示提示</string>
+    <string name="hide_hint">隐藏提示</string>
+    <string name="first_position">第一个局面</string>
+    <string name="previous_move">上一步</string>
+    <string name="next_move">下一步</string>
+    <string name="last_position">最后局面</string>
+    <string name="pause">暂停</string>
+    <string name="resume">继续</string>
+    <string name="pause_clock">暂停棋钟</string>
+    <string name="resume_clock">继续棋钟</string>
+
+    <!-- Hints -->
+    <string name="finding_hint">正在寻找提示…</string>
+    <string name="hint_unavailable">无法提供提示 · 请重试</string>
+    <string name="hint_line">提示：%1$s · %2$s</string>
+    <string name="hint_move">%1$s %2$s → %3$s</string>
+    <string name="hint_castle_kingside">短易位 · %1$s → %2$s</string>
+    <string name="hint_castle_queenside">长易位 · %1$s → %2$s</string>
+    <string name="hint_promotion">兵 %1$s → %2$s，升变为%3$s</string>
+    <string name="hint_spoken_move">提示：%1$s从 %2$s 走到 %3$s，%4$s</string>
+    <string name="hint_spoken_castle_kingside">提示：短易位，%1$s</string>
+    <string name="hint_spoken_castle_queenside">提示：长易位，%1$s</string>
+    <string name="hint_spoken_promotion">提示：兵从 %1$s 走到 %2$s，升变为%3$s，%4$s</string>
+
+    <!-- Move entry -->
+    <string name="move_entry">走法：%1$s</string>
+    <string name="move_entry_description">输入走法 %1$s</string>
+    <string name="clear">清除</string>
+    <string name="play">走棋</string>
+    <string name="entry_position_changed">局面已改变——请重新输入走法</string>
+    <string name="entry_illegal">走法不合规或不完整</string>
+    <string name="entry_clock_paused">棋钟已暂停</string>
+    <string name="entry_time_expired">时间到</string>
+
+    <!-- New game -->
+    <string name="difficulty">难度</string>
+    <string name="easier">较易</string>
+    <string name="stronger">较强</string>
+    <string name="choose_side">选择执子颜色</string>
+    <string name="play_as_white">执白</string>
+    <string name="play_as_black">执黑</string>
+    <string name="allow_hints">允许提示</string>
+    <string name="allow_hints_help">轮到你时显示“提示”按钮。</string>
+    <string name="recording_help">输入实体棋盘上的走法。记录期间不提供提示或引擎分析。这是休闲辅助工具，不是经认证的比赛设备。</string>
+    <string name="over_board_help">和朋友共用这个棋盘。选择计时方式，或不计时对局。</string>
+    <string name="time_control">计时 · %1$s</string>
+    <string name="time_control_description">计时：%1$s</string>
+    <string name="untimed">不计时</string>
+    <string name="more_options">更多选项</string>
+    <string name="fewer_options">收起选项</string>
+    <string name="importing_position">正在导入局面…</string>
+    <string name="starting_from_imported">从导入的局面开始</string>
+    <string name="use_standard_position">使用标准开局局面</string>
+    <string name="file_read_failed">无法读取所选文件：%1$s</string>
+    <string name="io_error">输入/输出错误</string>
+    <string name="file_permission_denied">读取所选文件的权限被拒绝。</string>
+    <string name="fen_invalid">所选文件不是有效的 FEN 局面。</string>
+    <string name="fen_wrong_file">请选择以 .fen 结尾的局面文件。此处不支持完整对局文件（.pgn）。</string>
+    <string name="start_game">开始对局</string>
+    <string name="cancel">取消</string>
+
+    <!-- Game menu -->
+    <string name="at_the_board">对局中</string>
+    <string name="section_game">对局</string>
+    <string name="undo_take_back">悔棋 / 撤回</string>
+    <string name="claim_draw">要求和棋</string>
+    <string name="resign">认输</string>
+    <string name="end_game">结束对局</string>
+    <string name="retry_engine">重试引擎</string>
+    <string name="section_view">查看</string>
+    <string name="review_game">复盘对局</string>
+    <string name="move_list">着法列表</string>
+    <string name="flip_board">翻转棋盘</string>
+    <string name="section_share">分享</string>
+    <string name="share_fen">分享 FEN</string>
+    <string name="share_pgn">分享 PGN</string>
+    <string name="share_fen_chooser">以 FEN 分享局面</string>
+    <string name="share_pgn_chooser">以 PGN 分享对局</string>
+    <string name="save_home">保存并返回主页</string>
+    <string name="back_to_board">返回棋盘</string>
+    <string name="resign_title">认输这局？</string>
+    <string name="resign_text">电脑获胜。对局会保留在你的记录中。</string>
+    <string name="keep_playing">继续下棋</string>
+    <string name="delete_title">删除这局？</string>
+    <string name="delete_text">%1$s · %2$s，%3$s。此操作无法撤销。如需保留副本，请先导出对局。</string>
+    <string name="delete">删除</string>
+    <string name="undo_title">撤回上一回合？</string>
+    <string name="undo_text">撤回的走法可以重新走。人机对战时，会尽量同时撤回双方的走法。</string>
+    <string name="take_back">撤回</string>
+    <string name="end_title">结束这局</string>
+    <string name="end_text">请选择双方同意的结果。</string>
+    <string name="white_wins">白方胜</string>
+    <string name="black_wins">黑方胜</string>
+    <string name="draw">和棋</string>
+    <string name="moves_title">着法</string>
+    <string name="no_moves">还没有着法。</string>
+    <string name="close">关闭</string>
+
+    <!-- Result -->
+    <string name="review_board">查看棋盘</string>
+    <string name="play_again">再来一局</string>
+    <string name="you_won">你赢了</string>
+    <string name="you_lost">你输了</string>
+    <string name="score_white">白方 · 1–0</string>
+    <string name="score_black">黑方 · 0–1</string>
+    <string name="score_draw">和棋 · ½–½</string>
+    <string name="reason_checkmate">将死</string>
+    <string name="reason_stalemate">逼和</string>
+    <string name="reason_insufficient">子力不足，和棋</string>
+    <string name="reason_fivefold">五次重复局面，和棋</string>
+    <string name="reason_75_moves">75 步规则，和棋</string>
+    <string name="reason_resigned">你认输了</string>
+    <string name="reason_draw_claimed">已要求和棋</string>
+    <string name="reason_players">结果由棋手记录</string>
+    <string name="reason_game_finished">对局结束</string>
+    <string name="reason_imported">导入的结果</string>
+
+    <!-- Export and import -->
+    <string name="export_title">导出对局</string>
+    <string name="export_text">一个包含所有所选对局的 PGN 文件。Lichess、ChessBase 等其他国际象棋应用可以导入它。</string>
+    <string name="section_games">对局</string>
+    <string name="section_period">时间范围</string>
+    <string name="counting_games">正在统计对局…</string>
+    <string name="no_games_match">没有符合条件的对局。</string>
+    <plurals name="games_selected">
+        <item quantity="other">已选择 %d 局。</item>
+    </plurals>
+    <string name="save_file">保存文件</string>
+    <string name="share">分享</string>
+    <string name="share_games_chooser">分享对局</string>
+    <plurals name="export_saved">
+        <item quantity="other">已保存 %d 局。</item>
+    </plurals>
+    <string name="export_failed">导出失败：%1$s</string>
+    <string name="filter_all">全部对局</string>
+    <string name="filter_computer">人机对战</string>
+    <string name="filter_over_board">面对面</string>
+    <string name="filter_recorded">记录的对局</string>
+    <string name="period_all">全部时间</string>
+    <string name="period_30_days">最近 30 天</string>
+    <string name="period_12_months">最近 12 个月</string>
+    <string name="import_title">导入对局</string>
+    <string name="ok">确定</string>
+    <string name="import_failed">导入失败：%1$s</string>
+    <string name="import_no_games">文件中没有对局。</string>
+    <plurals name="import_imported">
+        <item quantity="other">已导入 %d 局。</item>
+    </plurals>
+    <plurals name="import_skipped">
+        <item quantity="other">已跳过 %d 局（已在你的记录中）。</item>
+    </plurals>
+    <plurals name="import_unreadable">
+        <item quantity="other">无法读取 %d 局：</item>
+    </plurals>
+    <string name="import_more">另有 %1$d 局</string>
+
+    <!-- Board extras -->
+    <string name="move_strip_empty">还没有着法</string>
+    <plurals name="move_strip_description">
+        <item quantity="other">着法列表，%d 步</item>
+    </plurals>
+    <string name="moves_button">着法</string>
+    <string name="promote_title">兵升变</string>
+
+    <!-- Settings -->
+    <string name="move_sounds">走棋音效</string>
+    <string name="move_sounds_help">走棋、吃子和将军时的声音</string>
+    <string name="vibration">振动</string>
+    <string name="vibration_help">走棋时短暂振动</string>
+    <string name="legal_moves">显示可走位置</string>
+    <string name="legal_moves_help">在所选棋子可走的格子上显示圆点和圆环</string>
+    <string name="coordinates">显示坐标</string>
+    <string name="coordinates_help">在棋盘边缘显示列和行</string>
+    <string name="eink_mode">墨水屏模式</string>
+    <string name="eink_mode_help">仅黑白显示，无动画。适用于文石 Boox 等电子纸屏幕。</string>
+    <string name="board_colours">棋盘颜色</string>
+    <string name="eink_board_note">墨水屏模式使用黑白棋盘，深色格子带斜线。</string>
+    <string name="theme_green">绿色</string>
+    <string name="theme_walnut">胡桃木</string>
+    <string name="theme_slate">石板</string>
+    <string name="board_theme_description">%1$s棋盘</string>
+    <string name="selected_suffix">，已选择</string>
+    <string name="language">语言</string>
+    <string name="language_system">跟随系统</string>
+
+    <!-- Chess clock -->
+    <string name="rotate_0">旋转 0°</string>
+    <string name="rotate_180">旋转 180°</string>
+    <string name="start_clock">开始计时</string>
+    <string name="white_flagged">白方超时</string>
+    <string name="black_flagged">黑方超时</string>
+    <string name="clock_finished">计时结束</string>
+    <string name="reset">重置</string>
+    <string name="setup">设置</string>
+    <string name="setup_title">设置棋钟</string>
+    <string name="preset">预设 · %1$s</string>
+    <string name="custom">自定义</string>
+    <string name="custom_time">自定义时间</string>
+    <string name="minutes">分钟</string>
+    <string name="seconds">秒</string>
+    <string name="increment_seconds">每步加秒（秒）</string>
+    <string name="delay_seconds">延时（秒）</string>
+    <string name="starting_side">先手方</string>
+    <string name="start_with_white">白方先走</string>
+    <string name="start_with_black">黑方先走</string>
+    <string name="error_minutes">分钟数必须在 0 到 1440 之间。</string>
+    <string name="error_seconds">秒数必须在 0 到 59 之间。</string>
+    <string name="error_zero_time">起始时间必须大于零。</string>
+    <string name="error_max_time">起始时间不能超过 24 小时。</string>
+    <string name="error_increment">每步加秒必须在 0 到 3600 秒之间。</string>
+    <string name="error_delay">延时必须在 0 到 3600 秒之间。</string>
+    <string name="apply_time_control">应用计时设置</string>
+    <string name="reset_title">重置棋钟？</string>
+    <string name="reset_text">两个棋钟都会回到 %1$s。</string>
+    <string name="keep_clock">保留棋钟</string>
+    <string name="change_title">更改计时方式？</string>
+    <string name="change_text">正在运行的棋钟会停止并被替换。</string>
+    <string name="change">更改</string>
+    <string name="clock_panel_white">白方棋钟</string>
+    <string name="clock_panel_black">黑方棋钟</string>
+    <string name="active_suffix">，计时中</string>
+    <string name="delay_value">延时 %1$s</string>
+    <string name="flag_fallen">已超时</string>
+    <string name="tap_after_move">走完后点按</string>
+    <string name="ready_to_start">准备开始</string>
+    <string name="paused">已暂停</string>
+</resources>

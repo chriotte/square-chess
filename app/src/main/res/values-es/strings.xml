@@ -1,0 +1,9 @@
+<resources>
+    <string name="play_against_computer">Jugar contra el ordenador</string>
+    <string name="over_the_board">En el tablero</string>
+    <string name="chess_clock">Reloj de ajedrez</string>
+    <string name="chess_clock_subtitle">Para partidas en un tablero físico</string>
+    <string name="import_position">Importar posición</string>
+    <string name="replace_position">Cambiar posición</string>
+    <string name="import_position_help">Empieza desde una posición guardada por otra app de ajedrez. Elige un archivo .fen: contiene las piezas y a quién le toca, pero no las jugadas de una partida completa. Déjalo sin cambios para empezar una partida normal.</string>
+</resources>
