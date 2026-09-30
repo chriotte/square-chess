@@ -387,7 +387,7 @@ class MainActivity: ComponentActivity() {
                         }
                     }
                 }
-                if(dialog=="new") AlertDialog(onDismissRequest={dialog=""},title={Text(when(selectedMode){GameMode.COMPUTER->stringResource(R.string.play_against_computer); GameMode.LOCAL_TWO_PLAYER->stringResource(R.string.over_the_board); else->stringResource(R.string.record_physical_game)})},text={
+                if(dialog=="new") AppAlertDialog(onDismissRequest={dialog=""},title={Text(when(selectedMode){GameMode.COMPUTER->stringResource(R.string.play_against_computer); GameMode.LOCAL_TWO_PLAYER->stringResource(R.string.over_the_board); else->stringResource(R.string.record_physical_game)})},text={
                     Column(Modifier.verticalScroll(rememberScrollState())) {
                         if(selectedMode==GameMode.COMPUTER) {
                             val shownLevel=level.coerceIn(1,ENGINE_LEVELS.size)
@@ -426,7 +426,7 @@ class MainActivity: ComponentActivity() {
                             TextButton(onClick={clockPresetMenu=true},modifier=Modifier.semantics { contentDescription=presetDescription }) {
                                 Text(stringResource(R.string.time_control,presetName))
                             }
-                            DropdownMenu(expanded=clockPresetMenu,onDismissRequest={clockPresetMenu=false}) {
+                            DropdownMenu(expanded=clockPresetMenu,onDismissRequest={clockPresetMenu=false},border=menuBorder()) {
                                 CLOCK_PRESETS.forEach { preset ->
                                     DropdownMenuItem(
                                         text={Text(presetText(preset.label))},
@@ -461,7 +461,7 @@ class MainActivity: ComponentActivity() {
                     importedFen=null;fenImportError=null
                     screen="game";draft=NotationDraft();dialog=""
                 }) {Text(stringResource(R.string.start_game))}},dismissButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.cancel))}})
-                if(dialog=="menu") AlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.at_the_board))},text={Column(Modifier.verticalScroll(rememberScrollState())){
+                if(dialog=="menu") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.at_the_board))},text={Column(Modifier.verticalScroll(rememberScrollState())){
                     val computerGame=s.game?.mode==GameMode.COMPUTER.name
                     if(s.game?.result=="*" && reviewPly==null) {
                         MenuSection(stringResource(R.string.section_game))
@@ -495,14 +495,14 @@ class MainActivity: ComponentActivity() {
                     HorizontalDivider(Modifier.padding(vertical=4.dp))
                     TextButton(onClick={screen="home";dialog="";vm.pauseForNavigation()}){Text(stringResource(R.string.save_home))}
                 }},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.back_to_board))}})
-                if(dialog=="resign") AlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.resign_title))},
+                if(dialog=="resign") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.resign_title))},
                     text={Text(stringResource(R.string.resign_text))},
                     confirmButton={TextButton(onClick={
                         vm.end(if(s.game?.humanWhite==true) "0-1" else "1-0","You resigned");dialog=""
                     }){Text(stringResource(R.string.resign))}},
                     dismissButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.keep_playing))}})
                 pendingDelete?.let { game ->
-                    AlertDialog(onDismissRequest={pendingDelete=null},title={Text(stringResource(R.string.delete_title))},
+                    AppAlertDialog(onDismissRequest={pendingDelete=null},title={Text(stringResource(R.string.delete_title))},
                         text={Text(stringResource(R.string.delete_text,displayName(resources,game.white),displayName(resources,game.black),historyDate(game.updated)))},
                         confirmButton={TextButton(onClick={vm.delete(game);pendingDelete=null}){Text(stringResource(R.string.delete))}},
                         dismissButton={TextButton(onClick={pendingDelete=null}){Text(stringResource(R.string.cancel))}})
@@ -510,7 +510,7 @@ class MainActivity: ComponentActivity() {
                 if(dialog=="export") {
                     var count by remember { mutableStateOf<Int?>(null) }
                     LaunchedEffect(exportMode,exportPeriod) { count=vm.gamesForExport(exportMode,exportPeriod).size }
-                    AlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.export_title))},text={Column(Modifier.verticalScroll(rememberScrollState())) {
+                    AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.export_title))},text={Column(Modifier.verticalScroll(rememberScrollState())) {
                         Text(stringResource(R.string.export_text),fontSize=13.sp)
                         MenuSection(stringResource(R.string.section_games))
                         FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -539,22 +539,22 @@ class MainActivity: ComponentActivity() {
                     }})
                 }
                 importMessage?.let { message ->
-                    AlertDialog(onDismissRequest={importMessage=null},title={Text(stringResource(R.string.import_title))},
+                    AppAlertDialog(onDismissRequest={importMessage=null},title={Text(stringResource(R.string.import_title))},
                         text={Text(message,modifier=Modifier.verticalScroll(rememberScrollState()))},
                         confirmButton={TextButton(onClick={importMessage=null}){Text(stringResource(R.string.ok))}})
                 }
                 exportMessage?.let { message ->
-                    AlertDialog(onDismissRequest={exportMessage=null},title={Text(stringResource(R.string.export_action))},text={Text(message)},
+                    AppAlertDialog(onDismissRequest={exportMessage=null},title={Text(stringResource(R.string.export_action))},text={Text(message)},
                         confirmButton={TextButton(onClick={exportMessage=null}){Text(stringResource(R.string.ok))}})
                 }
-                if(dialog=="undo") AlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.undo_title))},text={Text(stringResource(R.string.undo_text))},confirmButton={TextButton(onClick={vm.undo();dialog=""}){Text(stringResource(R.string.take_back))}},dismissButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.keep_playing))}})
-                if(dialog=="end") AlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.end_title))},text={Column{ Text(stringResource(R.string.end_text)); listOf(R.string.white_wins to "1-0",R.string.black_wins to "0-1",R.string.draw to "1/2-1/2").forEach{(name,result)->TextButton(onClick={vm.end(result,"Result recorded by the players");dialog=""}){Text(stringResource(name))}} }},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.cancel))}})
-                if(dialog=="history") AlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.moves_title))},text={Column(Modifier.verticalScroll(rememberScrollState())){if(s.position.moves.isEmpty()) Text(stringResource(R.string.no_moves)) else s.position.san.chunked(2).forEachIndexed { i,pair-> Text("${i+1}.  ${pair.joinToString("    ")}",fontFamily=FontFamily.Monospace,modifier=Modifier.padding(4.dp)) }}},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.close))}})
+                if(dialog=="undo") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.undo_title))},text={Text(stringResource(R.string.undo_text))},confirmButton={TextButton(onClick={vm.undo();dialog=""}){Text(stringResource(R.string.take_back))}},dismissButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.keep_playing))}})
+                if(dialog=="end") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.end_title))},text={Column{ Text(stringResource(R.string.end_text)); listOf(R.string.white_wins to "1-0",R.string.black_wins to "0-1",R.string.draw to "1/2-1/2").forEach{(name,result)->TextButton(onClick={vm.end(result,"Result recorded by the players");dialog=""}){Text(stringResource(name))}} }},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.cancel))}})
+                if(dialog=="history") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.moves_title))},text={Column(Modifier.verticalScroll(rememberScrollState())){if(s.position.moves.isEmpty()) Text(stringResource(R.string.no_moves)) else s.position.san.chunked(2).forEachIndexed { i,pair-> Text("${i+1}.  ${pair.joinToString("    ")}",fontFamily=FontFamily.Monospace,modifier=Modifier.padding(4.dp)) }}},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.close))}})
                 if(entryPromotions.isNotEmpty()) PromotionDialog(entryPromotions,white=s.position.board.sideToMove==Side.WHITE,
                     onPick={ move -> entryPromotions=emptyList();submitDraft(move) },onCancel={entryPromotions=emptyList()})
                 if(resultDialog!=null) {
                     val event=resultDialog!!
-                    AlertDialog(
+                    AppAlertDialog(
                         onDismissRequest={resultDialog=null;vm.acknowledgeResult()},
                         title={Text(stringResource(resultHeadline(event,s.game)))},
                         text={Column {

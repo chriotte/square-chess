@@ -151,7 +151,7 @@ fun lastMoveText(san: List<String>, firstMoveNumber: Int, whiteFirst: Boolean): 
 /** Promotion choice with piece images; [moves] are UCI moves ending in q, r, b or n. */
 @Composable fun PromotionDialog(moves: List<String>, white: Boolean, onPick: (String) -> Unit, onCancel: () -> Unit) {
     val res = appResources()
-    AlertDialog(onDismissRequest = onCancel, title = { Text(stringResource(R.string.promote_title)) }, text = {
+    AppAlertDialog(onDismissRequest = onCancel, title = { Text(stringResource(R.string.promote_title)) }, text = {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf('q', 'r', 'b', 'n').mapNotNull { letter -> moves.firstOrNull { it.last() == letter }?.let { letter to it } }
                 .forEach { (letter, move) ->

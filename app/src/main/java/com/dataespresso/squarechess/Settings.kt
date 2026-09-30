@@ -116,7 +116,7 @@ class SettingsStore(context: Context) {
             }
         }
     }
-    if (languageDialog) AlertDialog(onDismissRequest = { languageDialog = false },
+    if (languageDialog) AppAlertDialog(onDismissRequest = { languageDialog = false },
         title = { Text(stringResource(R.string.language)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {

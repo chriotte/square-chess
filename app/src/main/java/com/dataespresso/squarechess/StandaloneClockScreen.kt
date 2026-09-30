@@ -280,7 +280,7 @@ internal fun StandaloneClockScreen(
         }
     }
 
-    if (showSetup) AlertDialog(
+    if (showSetup) AppAlertDialog(
         onDismissRequest={showSetup=false},
         title={Text(stringResource(R.string.setup_title))},
         text={
@@ -290,7 +290,7 @@ internal fun StandaloneClockScreen(
             ) {
                 Box {
                     TextButton(onClick={presetMenu=true}) { Text(stringResource(R.string.preset,if(presetLabel==CUSTOM_PRESET) stringResource(R.string.custom) else presetLabel)) }
-                    DropdownMenu(expanded=presetMenu,onDismissRequest={presetMenu=false}) {
+                    DropdownMenu(expanded=presetMenu,onDismissRequest={presetMenu=false},border=menuBorder()) {
                         CLOCK_PRESETS.filter { it.config != null }.forEach { preset ->
                             DropdownMenuItem(
                                 text={Text(preset.label)},
@@ -358,7 +358,7 @@ internal fun StandaloneClockScreen(
         dismissButton={TextButton(onClick={showSetup=false}) { Text(stringResource(R.string.cancel)) }}
     )
 
-    if(showResetConfirmation) AlertDialog(
+    if(showResetConfirmation) AppAlertDialog(
         onDismissRequest={showResetConfirmation=false},
         title={Text(stringResource(R.string.reset_title))},
         text={Text(stringResource(R.string.reset_text,clockText(clock.config.baseMs)))},
@@ -369,7 +369,7 @@ internal fun StandaloneClockScreen(
         dismissButton={TextButton(onClick={showResetConfirmation=false}) { Text(stringResource(R.string.keep_clock)) }}
     )
 
-    if(showSetupConfirmation) AlertDialog(
+    if(showSetupConfirmation) AppAlertDialog(
         onDismissRequest={showSetupConfirmation=false},
         title={Text(stringResource(R.string.change_title))},
         text={Text(stringResource(R.string.change_text))},

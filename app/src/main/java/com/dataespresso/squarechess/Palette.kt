@@ -6,6 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.border
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.drawscope.clipRect
 
 /**
@@ -128,3 +130,25 @@ fun androidx.compose.ui.graphics.drawscope.DrawScope.cornerMarks() {
     corner(inset, inset, 1f, 1f); corner(w - inset, inset, -1f, 1f)
     corner(inset, h - inset, 1f, -1f); corner(w - inset, h - inset, -1f, -1f)
 }
+
+/**
+ * An AlertDialog with a black outline in e-ink mode. On e-paper a white dialog over the dimmed,
+ * dithered screen has no clear edge; the other modes look unchanged.
+ */
+@Composable fun AppAlertDialog(
+    onDismissRequest: () -> Unit,
+    confirmButton: @Composable () -> Unit,
+    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
+    dismissButton: (@Composable () -> Unit)? = null,
+    title: (@Composable () -> Unit)? = null,
+    text: (@Composable () -> Unit)? = null
+) {
+    val outline = if (LocalPalette.current.eink)
+        androidx.compose.ui.Modifier.border(2.dp, Color.Black, AlertDialogDefaults.shape) else androidx.compose.ui.Modifier
+    AlertDialog(onDismissRequest = onDismissRequest, confirmButton = confirmButton, modifier = modifier.then(outline),
+        dismissButton = dismissButton, title = title, text = text)
+}
+
+/** The outline for drop-down menus in e-ink mode, for the same reason. */
+@Composable fun menuBorder(): androidx.compose.foundation.BorderStroke? =
+    if (LocalPalette.current.eink) androidx.compose.foundation.BorderStroke(2.dp, Color.Black) else null
