@@ -1,8 +1,8 @@
 # Square Chess
 
-**Chess built for square screens, compact phones and physical keyboards.**
+**Chess built for square screens, compact devices, e-ink and physical keyboards.**
 
-Square Chess is an offline Android chess app designed to give the board as much of the screen as possible, especially on square and near-square devices.
+Square Chess is an offline Android chess app built especially for hardware that conventional chess apps often do not use well — square and near-square screens, compact devices, e-ink displays and physical keyboards — while still working on ordinary phones and tablets.
 
 On phones with a physical QWERTY keyboard, you can also play by typing moves such as `e2e4`.
 
@@ -15,6 +15,7 @@ On phones with a physical QWERTY keyboard, you can also play by typing moves suc
 - **Record games played on a real board** and review them afterwards move by move.
 - **Standalone chess clock** for over-the-board games, with increment and delay.
 - **Physical keyboard input** using moves such as `e4`, `Nf3`, `O-O` or `e2e4`.
+- **E-ink mode** with a black-and-white board, shape-based highlights and no animations, for e-paper screens such as Boox.
 - **Touch controls** with both tap-to-move and drag-and-drop.
 - **Review your games** with move history, undo, resign and draw handling.
 - **Import and export PGN** for Lichess, ChessBase and other chess software.
@@ -22,11 +23,11 @@ On phones with a physical QWERTY keyboard, you can also play by typing moves suc
 
 ## Why Square Chess?
 
-Most Android chess apps are designed around tall phone screens.
+Most Android chess apps are designed around tall, colour phone screens.
 
-Square Chess takes a board-first approach: the chessboard is made as large as possible, while controls and optional information are fitted around the space that remains.
+Square Chess takes a board-first approach: the chessboard is made as large as possible, while controls and optional information are fitted around the space that remains. The same idea applies to e-ink: the board is drawn in clear black and white, moves are marked by shapes rather than colours, and nothing animates, so e-paper screens stay sharp.
 
-It is particularly suited to square and near-square phones, including 1:1 and 9:10 displays, while still working on conventional Android screens.
+It is particularly suited to square and near-square phones (including 1:1 and 9:10 displays), compact devices, e-ink readers and phones with physical keyboards, while still working well on conventional Android phones and tablets.
 
 ## Private and offline
 
@@ -64,9 +65,9 @@ Square Chess requires:
 - Android 10 (API 29) or newer
 - ARM64
 
-It is designed and tested on the **Unihertz Titan 2 Elite**, with additional emulator testing for other square-screen and physical-keyboard phones.
+It is designed and tested on the **Unihertz Titan 2 Elite** and an **Onyx Boox** e-ink tablet, with additional emulator testing for other square-screen and physical-keyboard phones.
 
-It also works on conventional Android phones.
+It also works on conventional Android phones and tablets.
 
 See the [device testing plan](docs/testing/test-plan.md).
 

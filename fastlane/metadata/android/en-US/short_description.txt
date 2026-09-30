@@ -1,1 +1,1 @@
-Chess designed for square screens, compact phones and physical keyboards.
+Chess built for square screens, compact devices, e-ink and physical keyboards.
