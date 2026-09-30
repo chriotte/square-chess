@@ -45,8 +45,11 @@ data class SavedGame(
     @Query("UPDATE games SET evaluations = :evaluations WHERE id = :id") suspend fun setEvaluations(id: String, evaluations: String)
     @Query("DELETE FROM games WHERE id = :id") suspend fun delete(id: String)
 }
-@Database(entities=[SavedGame::class], version=6, exportSchema=true)
-abstract class ChessDatabase : RoomDatabase() { abstract fun games(): GameDao }
+@Database(entities=[SavedGame::class, PuzzleProgress::class], version=7, exportSchema=true)
+abstract class ChessDatabase : RoomDatabase() {
+    abstract fun games(): GameDao
+    abstract fun puzzleProgress(): PuzzleProgressDao
+}
 
 val MIGRATION_1_2 = object: Migration(1,2) {
     override fun migrate(db: SupportSQLiteDatabase) {
@@ -82,9 +85,15 @@ val MIGRATION_5_6 = object: Migration(5,6) {
         db.execSQL("ALTER TABLE games ADD COLUMN evaluations TEXT NOT NULL DEFAULT ''")
     }
 }
+/** Puzzle progress lives in its own table; the games table is not touched. */
+val MIGRATION_6_7 = object: Migration(6,7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `puzzle_progress` (`puzzleId` TEXT NOT NULL, `attempts` INTEGER NOT NULL, `solved` INTEGER NOT NULL, `firstTrySolved` INTEGER NOT NULL, `mistakes` INTEGER NOT NULL, `hints` INTEGER NOT NULL, `lastResult` TEXT NOT NULL, `lastAttemptAt` INTEGER NOT NULL, `reviewStep` INTEGER, `nextReviewAt` INTEGER, PRIMARY KEY(`puzzleId`))")
+    }
+}
 fun openChessDatabase(context: Context, name: String="square-chess.db") =
     Room.databaseBuilder(context,ChessDatabase::class.java,name)
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6).build()
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).build()
 
 fun defaultFlipFor(game: SavedGame?): Boolean = game?.orientationFlipped
     ?: (game?.mode==GameMode.COMPUTER.name && !game.humanWhite)
