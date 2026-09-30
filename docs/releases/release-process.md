@@ -12,8 +12,8 @@ One source tree, one build. Every channel gets the same code; only the signer di
 ## 2. GitHub release (standalone APK)
 
 1. `git tag -a v<versionName> -m "Square Chess <versionName>"` and `git push origin v<versionName>`.
-2. The **Release** workflow checks the tag against `versionName`, runs the tests and the release policy, builds the APK, signs it with the standalone release key, verifies the certificate, and creates a **draft** release with `Square-Chess-v<versionName>.apk` and `SHA256SUMS`.
-3. Review the draft on GitHub and publish it.
+2. The **Release** workflow checks the tag against `versionName`, runs the tests and the release policy, builds the APK, signs it with the standalone release key, verifies the certificate, and publishes the release with `Square-Chess-v<versionName>.apk` and `SHA256SUMS`.
+3. The **Reproducibility** workflow starts after the release and rebuilds the tag; F-Droid needs it to report that all files match.
 
 One-time setup (done): repository Settings → Environments → `production-release`. Its deployment rule allows only tags matching `v*`, and its four secrets were added with `scripts/release/copy-signing-secrets.ps1`. Add yourself as a required reviewer if the GitHub plan offers it.
 

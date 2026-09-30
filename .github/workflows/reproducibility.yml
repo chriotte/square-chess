@@ -7,6 +7,11 @@ name: Reproducibility
 on:
   release:
     types: [published]
+  # A release created by the Release workflow's own token does not send the event
+  # above, so also run after every successful Release run (it checks the latest release).
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
   workflow_dispatch:
     inputs:
       tag:
@@ -21,6 +26,7 @@ permissions:
 
 jobs:
   compare:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
