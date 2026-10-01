@@ -104,11 +104,13 @@ class PuzzleViewModel internal constructor(
         val s=state.value
         val mode=s.mode ?: return
         if(mode==PuzzleMode.QUICK && s.quick.size>=QUICK_SET_SIZE) { update(s.copy(session=null,feedback=PuzzleFeedback.NONE,hintShown=false)); return }
+        val start=android.os.SystemClock.elapsedRealtimeNanos()
         val puzzle=when(mode) {
             PuzzleMode.REVIEW -> dueForReview(progress.values,now()).firstOrNull { it!=s.session?.puzzle?.id }
                 ?.let { id -> puzzles.firstOrNull { it.id==id } }
             else -> choosePuzzle(puzzles,s.level,progress,recent.toSet()+s.quick.map { it.puzzleId },s.group,random)
         }
+        Log.i("SquareChess","Chose puzzle ${puzzle?.id} in ${(android.os.SystemClock.elapsedRealtimeNanos()-start)/1000} µs")
         if(puzzle==null) {
             val note=when {
                 mode!=PuzzleMode.REVIEW -> PuzzleNote.NO_PUZZLE

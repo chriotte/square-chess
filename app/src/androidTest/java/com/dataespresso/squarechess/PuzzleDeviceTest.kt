@@ -208,7 +208,10 @@ class PuzzleDeviceTest {
             node("Hints used: 0")
             tap("Done")
             node("Continue training")
-            node("Puzzles tried: 5")
+            // The progress panel can be below the fold on small screens; read its value directly.
+            var attempted=0
+            scenario.onActivity { attempted=it.puzzles.state.value.totals.attempted }
+            assertEquals(5,attempted)
         }
     }
 }

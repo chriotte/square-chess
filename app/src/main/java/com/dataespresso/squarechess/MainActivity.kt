@@ -213,6 +213,8 @@ class MainActivity: ComponentActivity() {
                         draft=NotationDraft(); entryPromotions=emptyList()
                     }
                 }
+                // Also after the process was ended: the restored Puzzles screen loads the pack and the saved puzzle.
+                LaunchedEffect(screen) { if(screen=="puzzles") puzzles.open() }
                 // A typed move belongs to one puzzle position: a new position (or no puzzle) clears it.
                 LaunchedEffect(screen, puzzleUi.entryKey(), puzzleUi.session?.state) {
                     if(screen=="puzzles" && (puzzleUi.session?.state!=PuzzleState.SOLVING ||
@@ -260,7 +262,7 @@ class MainActivity: ComponentActivity() {
                                 LandingOption(stringResource(R.string.over_the_board)) { openNewGame(GameMode.LOCAL_TWO_PLAYER) }
                                 LandingOption(stringResource(R.string.record_physical_game)) { openNewGame(GameMode.PHYSICAL_BOARD_RECORDING) }
                                 LandingOption(stringResource(R.string.puzzles),stringResource(R.string.puzzles_subtitle)) {
-                                    vm.pauseForNavigation(); puzzles.open(); screen="puzzles"
+                                    vm.pauseForNavigation(); screen="puzzles"
                                 }
                                 LandingOption(
                                     stringResource(R.string.chess_clock),

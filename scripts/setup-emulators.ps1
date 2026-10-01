@@ -58,6 +58,16 @@ $deviceProfiles = @(
         Height = 1240
         Density = 420
         Keyboard = $false
+    },
+    [pscustomobject]@{
+        # E-ink tablet layout, close to an ONYX BOOX Note3 (10.3 in, 1404 x 1872, 227 ppi).
+        # Only the screen size and density: an emulator cannot show e-paper refresh.
+        Name = 'SquareChess_Eink_Tablet'
+        DisplayName = 'Square Chess - e-ink tablet (layout only)'
+        Width = 1404
+        Height = 1872
+        Density = 227
+        Keyboard = $false
     }
 )
 

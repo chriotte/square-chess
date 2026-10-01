@@ -10,6 +10,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -87,7 +88,11 @@ import androidx.compose.ui.unit.sp
                     ui.mode==PuzzleMode.THEME && ui.group!=null -> stringResource(groupName(ui.group))
                     else -> stringResource(R.string.puzzle_mode_training,ui.level)
                 }
-                Text(listOfNotNull(first,second).joinToString("\n"),fontSize=14.sp,fontWeight=FontWeight.Medium,maxLines=2,overflow=TextOverflow.Ellipsis,
+                // Two 14 sp lines fit the 56 dp header below font scale 1.25 (measured on the Titan); from
+                // that only the first line shows, so a larger font never makes the board smaller.
+                val oneLine=LocalDensity.current.fontScale>=1.25f
+                Text(if(oneLine) first else listOfNotNull(first,second).joinToString("\n"),fontSize=14.sp,fontWeight=FontWeight.Medium,
+                    maxLines=if(oneLine) 1 else 2,overflow=TextOverflow.Ellipsis,
                     modifier=Modifier.semantics {
                         liveRegion=LiveRegionMode.Polite
                         if(hint!=null) contentDescription=hint.spoken
