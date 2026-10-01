@@ -1,0 +1,1 @@
+New: offline puzzles. 10,000 tactics puzzles from the Lichess database, with Quick 5, Review mistakes, themes and hints. Solve by touch or on a physical keyboard; works in e-ink mode. The Back key now returns to Home from Settings, Game history and the game screen.

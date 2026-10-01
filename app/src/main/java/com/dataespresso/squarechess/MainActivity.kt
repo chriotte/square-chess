@@ -259,11 +259,11 @@ class MainActivity: ComponentActivity() {
                                     colors=ButtonDefaults.buttonColors(containerColor=palette.accent,contentColor=palette.onAccent)
                                 ) { Text(stringResource(if(s.game?.result=="*") R.string.continue_game else R.string.view_last_game),fontSize=17.sp) }
                                 LandingOption(stringResource(R.string.play_against_computer)) { openNewGame(GameMode.COMPUTER) }
-                                LandingOption(stringResource(R.string.over_the_board)) { openNewGame(GameMode.LOCAL_TWO_PLAYER) }
-                                LandingOption(stringResource(R.string.record_physical_game)) { openNewGame(GameMode.PHYSICAL_BOARD_RECORDING) }
                                 LandingOption(stringResource(R.string.puzzles),stringResource(R.string.puzzles_subtitle)) {
                                     vm.pauseForNavigation(); screen="puzzles"
                                 }
+                                LandingOption(stringResource(R.string.over_the_board)) { openNewGame(GameMode.LOCAL_TWO_PLAYER) }
+                                LandingOption(stringResource(R.string.record_physical_game)) { openNewGame(GameMode.PHYSICAL_BOARD_RECORDING) }
                                 LandingOption(
                                     stringResource(R.string.chess_clock),
                                     stringResource(R.string.chess_clock_subtitle)

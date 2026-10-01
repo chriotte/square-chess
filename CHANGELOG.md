@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.0 — 1 October 2026
+- Puzzles (Home → Puzzles): 10,000 offline tactics puzzles from the Lichess puzzle database (CC0). Continue training picks puzzles near your training level; Quick 5 gives five puzzles and a short summary; Review mistakes brings back puzzles you solved with a mistake or a hint (again after 3, 7 and 30 days); Choose a theme trains checkmates, forks, pins, tactical motifs or endgames. The opponent's moves come automatically; a wrong move only shows "Not quite · try again". Solve by touch, drag or keyboard notation (SAN or UCI); Hint shows the move with the usual arrow. Works in e-ink mode. Puzzle progress is stored apart from your games (database version 7) and never appears in Game history. The engine is not used.
+- Back key: Settings and Game history go back to Home; on the game screen Back clears a typed move, then leaves the review, then saves the game and goes Home.
+- The board code is shared between games and puzzles (no change for games).
+
 ## 1.2.0 — 30 September 2026
 - Optional evaluation: tick "Show evaluation" when you start a game against the computer or over the board. After each move the header shows the move's label (best move, good move, inaccuracy, mistake or blunder) and who is ahead, for example "+0.6 · White slightly better". The engine rates each position for 0.3 seconds at full strength, and the computer replies after the rating. The review shows the label of each move, and the move list counts each side's inaccuracies, mistakes and blunders. Off by default, because it uses more battery; the choice and the ratings are saved with the game (database version 6). Not available when you record a real-board game.
 - Opening names: the header and the move list show the opening, for example "C60 Ruy Lopez", from the Lichess opening list (CC0). The names are in English in all languages.
