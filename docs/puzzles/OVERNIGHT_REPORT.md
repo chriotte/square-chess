@@ -90,7 +90,7 @@ Not tested: physical devices (Titan, BOOX). I did not use your Titan tonight.
 
 ## Screenshots
 
-In `outputs/puzzle-report/` (not in the repository, about 2.6 MB):
+In `outputs/puzzle-report/` (not in the repository, 22 files, about 2.7 MB):
 
 ```text
 01-07  Titan 2 Elite: home, landing, White puzzle, hint, wrong move, correct move with reply, solved
