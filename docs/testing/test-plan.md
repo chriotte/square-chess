@@ -4,9 +4,9 @@
 
 | Suite | Command | Covers |
 |---|---|---|
-| JVM unit tests (75) | `./gradlew testDebugUnitTest testReleaseUnitTest` | Rules and perft, SAN/notation entry, draws and dead positions, clocks, FEN import, PGN export and import, difficulty levels, captured pieces, move sounds, toolbar layout, feedback reports |
+| JVM unit tests (134) | `./gradlew testDebugUnitTest testReleaseUnitTest` | Rules and perft, SAN/notation entry, draws and dead positions, clocks, FEN import, PGN export and import, difficulty levels, captured pieces, move sounds, toolbar layout, feedback reports, evaluation, openings, e-ink detection, puzzles (rules, pack, review, training level, selection) |
 | Lint and release policy | `./gradlew check` | Android lint; no proprietary Google/Firebase/Play libraries; release permissions on the allow-list |
-| Device tests (29, dev app only) | see `docs/development/building.md` | Engine (legal moves at all levels, restart, cancellation, terminal positions), keyboard entry and review, clocks and lifecycle, Room migrations, layout, help and feedback |
+| Device tests (dev app only) | see `docs/development/building.md` | Engine (legal moves at all levels, restart, cancellation, terminal positions), keyboard entry and review, clocks and lifecycle, Room migrations, layout, help and feedback, evaluation, puzzles (`PuzzleDeviceTest`; see `docs/puzzles/testing.md`) |
 | Engine calibration (opt-in) | `-e beginnerCalibration true [-e levels 1,2] [-e rounds N]` on `BeginnerCalibrationDeviceTest` | Tactical probes and games between levels; fails on any stale engine output |
 | Engine benchmark / self-play (opt-in) | `-e engineBenchmark true` / `-e engineSelfPlay true` on `FairyEngineDeviceTest` | Response time, depth, memory; a complete self-play game |
 | Process death (host-driven) | `scripts/test-clock-process-recovery.ps1` | Clock recovery after the app process is killed |
@@ -23,6 +23,9 @@ Create them with `scripts/setup-emulators.ps1` (add `-InstallMissingComponents` 
 | `SquareChess_Light_Phone_III` | 1080 × 1240 | 420 dpi | No |
 | `SquareChess_Fold_Outer` | 1080 × 2092 | 420 dpi | No |
 | `SquareChess_Fold_Inner` | 1840 × 2208 | 420 dpi | No |
+| `SquareChess_Eink_Tablet` | 1404 × 1872 | 227 dpi | No |
+
+The e-ink tablet profile has the size and density of a 10.3-inch e-reader such as the BOOX Note3; it shows layout only, not e-paper refresh. Turn on Settings → E-ink mode in the app.
 
 The Light Phone III profile matches its 3.92-inch 1080 × 1240 AMOLED screen (about 419 ppi); it is plain Android, not LightOS.
 
