@@ -278,6 +278,7 @@ class MainActivity: ComponentActivity() {
                                 }
                             }
                             "history" -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
+                                BackHandler { screen="home" }
                                 val history by vm.history.collectAsState(initial=emptyList())
                                 Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                                     TextButton(onClick={screen="home"}) { Text(stringResource(R.string.home_back)) }
@@ -294,9 +295,12 @@ class MainActivity: ComponentActivity() {
                                         onDelete={ pendingDelete=g }) }
                                 }
                             }
-                            "settings" -> SettingsScreen(settings,onChange={ settings=it; settingsStore.save(it) },onExit={screen="home"},
+                            "settings" -> {
+                              BackHandler { screen="home" }
+                              SettingsScreen(settings,onChange={ settings=it; settingsStore.save(it) },onExit={screen="home"},
                                 language=remember { LanguageSetting.chosen(this@MainActivity) },
                                 onLanguage={ LanguageSetting.set(this@MainActivity,it) })
+                            }
                             "puzzles" -> when {
                                 puzzleUi.session!=null -> {
                                     // Back clears a typed move first (the BackHandler above), then leaves the puzzle.
@@ -332,6 +336,12 @@ class MainActivity: ComponentActivity() {
                                 latestClock={standaloneClock}
                             )
                             else -> Column(Modifier.fillMaxSize()) {
+                                // Back clears a typed move first (the BackHandler above), then leaves the review,
+                                // then saves the game and goes home, as Menu → Save & home does.
+                                BackHandler(draft.text.isEmpty()) {
+                                    if(reviewPly!=null) { endReview(); reviewPly=null; vm.foreground() }
+                                    else { screen="home"; dialog=""; vm.pauseForNavigation() }
+                                }
                                 val san=remember(s.position) { s.position.san }
                                 val fenFields=s.position.initialFen.split(" ")
                                 val whiteFirst=fenFields.getOrNull(1)!="b"

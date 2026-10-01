@@ -133,3 +133,25 @@ In `outputs/puzzle-report/` (not in the repository, 22 files, about 2.7 MB):
 3. Decide the pack size (5,000 now) and the first review delay (at once now).
 4. Have the translations checked.
 5. Then merge into main for the next release.
+
+## Update, 1 October 2026 (morning)
+
+After your review:
+
+1. **10,000 puzzles** (was 5,000), the lower end of the spec's 10,000 to 20,000. All 10,000 pass
+   the checks; the 5,000 from the first pack are all still in it. Numbers in
+   [data-source.md](data-source.md).
+2. **Back key**: Settings and Game history go back to Home; on the game screen Back first clears a
+   typed move, then leaves the review, then saves the game and goes Home (as Menu → Save & home).
+   Before, Back on these screens closed the app. New test: `BackNavigationDeviceTest`.
+
+| Measurement | Result |
+|---|---|
+| Release APK | 24,693,033 (1.2.0) → 25,320,840 bytes (+627,807, +2.5 %) |
+| Puzzle asset | 1,126,808 bytes; about 468 KB compressed |
+| First load of the pack, release build | 181, 144, 107 ms (three cold starts, Light Phone emulator) |
+| Java heap after the load, release build | 22.6 MB |
+| JVM tests | 134 passed / 0 failed; `./gradlew check` PASS |
+| Full device suite, Titan 2 Elite emulator | 54 tests: 48 passed, 0 failed, 6 skipped (as before) |
+| Full device suite, your Titan 2 (physical) | 54 tests: OK, 6 skipped (the opt-in tests, and the held-key test because PhysiBoard is active) |
+| Back and puzzle tests, Light Phone and e-ink tablet emulators | 8 / 8 each |

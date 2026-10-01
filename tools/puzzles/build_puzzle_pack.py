@@ -95,7 +95,7 @@ def order_key(puzzle_id: str) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("source")
-    parser.add_argument("--count", type=int, default=5000)
+    parser.add_argument("--count", type=int, default=10000)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args()
 

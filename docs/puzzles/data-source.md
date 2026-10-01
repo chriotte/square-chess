@@ -9,9 +9,9 @@ The bundled puzzles come from the **Lichess puzzle database**.
 | Source version | File dated 9 September 2026 (`Last-Modified: Wed, 09 Sep 2026 17:40:14 GMT`), 304,429,328 bytes, 6,100,952 puzzles |
 | Source SHA-256 | `95fd454bec9efe8f940d5863d5db4c57474f281a865834997bd8cb5d6a149bb9` |
 | Output | `app/src/main/assets/puzzles/puzzles-v1.tsv` |
-| Puzzles in the pack | 5,000 |
-| Output size | 562,508 bytes (about 235 KB compressed in the APK) |
-| Output SHA-256 | `337c2c9cf7781fa32b2a3459201cecc62d4aa3c1cd1e77ccab1990fc8711cadf` |
+| Puzzles in the pack | 10,000 |
+| Output size | 1,126,808 bytes (about 470 KB compressed in the APK) |
+| Output SHA-256 | `824986b477211035e4f019ed9db99c96e38891557e8086b46d2d9fa652ad0749` |
 
 The source file is not in the repository. Download it again from the URL above and compare the
 SHA-256 to rebuild the same pack.
@@ -23,7 +23,7 @@ pip install chess zstandard
 python tools/puzzles/build_puzzle_pack.py <path>/lichess_db_puzzle.csv.zst
 ```
 
-`--count N` changes the number of puzzles (default 5,000); `--out PATH` writes somewhere else.
+`--count N` changes the number of puzzles (default 10,000); `--out PATH` writes somewhere else.
 The script prints the summary below. The result does not depend on the order of the source
 file: inside each rating band, puzzles are ordered by a SHA-256 hash of their ID.
 
@@ -31,7 +31,7 @@ file: inside each rating band, puzzles are ordered by a SHA-256 hash of their ID
 
 1. Quality filter: at least 500 plays, popularity at least 85, rating deviation at most 80,
    rating from 600 to 2599.
-2. Even spread: 20 bands of 100 rating points, 250 puzzles from each band.
+2. Even spread: 20 bands of 100 rating points, 500 puzzles from each band.
 3. Every chosen puzzle is replayed with python-chess: the FEN must be valid, the setup move and
    every move of the solution must be legal in order, and the solver must have at least one move.
 4. Duplicate IDs are rejected.
@@ -40,7 +40,7 @@ file: inside each rating band, puzzles are ordered by a SHA-256 hash of their ID
    rating deviation are dropped.
 
 The app checks the pack again: `PuzzleParsingTest.wholeBundledPackIsPlayable` replays all
-5,000 puzzles with chesslib, and the app skips any line it cannot read or play.
+10,000 puzzles with chesslib, and the app skips any line it cannot read or play.
 
 ## Pack format
 
@@ -53,7 +53,7 @@ id  fen  moves  rating  popularity  themes
 `moves` are UCI, separated by spaces. The FEN is the position **before** the opponent's setup
 move; see [architecture.md](architecture.md#move-semantics).
 
-## Generation summary (5,000 puzzles)
+## Generation summary (10,000 puzzles)
 
 ```text
 source rows read: 6,100,952
@@ -61,14 +61,14 @@ rejected quality filter: 4,208,383
 rejected invalid FEN: 0
 rejected illegal move sequence: 0
 rejected duplicate ID: 0
-accepted: 5,000
-rating distribution: 500 in each 200-point band from 600-799 to 2400-2599
-solver side: White 2,588, Black 2,412
-solver moves per puzzle: 1: 563, 2: 2,330, 3: 1,556, 4: 397, 5: 120, 6-9: 34
-theme groups (a puzzle can be in several): Endgames 2,500, Tactical motifs 2,018,
-  Checkmate 1,389, Forks 967, Pins 451, none of the groups 599
-most common tags: endgame 2,435, mate 1,389, fork 671, mateIn2 577, mateIn1 563,
-  sacrifice 439, kingsideAttack 420, advancedPawn 361, defensiveMove 353, pin 341
+accepted: 10,000
+rating distribution: 1,000 in each 200-point band from 600-799 to 2400-2599
+solver side: White 5,225, Black 4,775
+solver moves per puzzle: 1: 1,147, 2: 4,626, 3: 3,127, 4: 776, 5: 242, 6-9: 82
+theme groups (a puzzle can be in several): Endgames 4,987, Tactical motifs 4,124,
+  Checkmate 2,738, Forks 1,884, Pins 928, none of the groups 1,193
+most common tags: endgame 4,871, mate 2,738, fork 1,280, mateIn1 1,145, mateIn2 1,110,
+  sacrifice 888, kingsideAttack 848, defensiveMove 729, advancedPawn 723, pin 686
 ```
 
 ## Size
@@ -81,4 +81,4 @@ The pack is small on purpose. Each puzzle costs about 47 bytes in the compressed
 | 5,000 | 563 KB | 236 KB |
 | 10,000 | 1,127 KB | 468 KB |
 
-A larger pack needs only `--count` and a new build.
+The first version had 5,000 puzzles; it was raised to 10,000 (the lower end of the 10,000 to 20,000 the spec recommends) after the size was measured. 20,000 would add about 940 KB to the APK in total. A different size needs only `--count` and a new build. Because each band takes the puzzles with the smallest ID hashes, a larger pack always contains the smaller one.
