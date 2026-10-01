@@ -35,6 +35,7 @@ It also works normally on conventional Android phones and tablets.
 ## Play chess your way
 
 - **Play against the computer** at ten difficulty levels, from beginner-friendly play to full-strength Fairy-Stockfish.
+- **Solve puzzles**: 10,000 offline tactics puzzles from the Lichess puzzle database, with themes, a quick set of five, and review of the ones you miss.
 - **Play with a friend** on the same device, with an optional chess clock.
 - **Record a real-board game** and review it afterwards move by move.
 - **Use touch or keyboard input** — tap, drag or type your moves.

@@ -4,6 +4,8 @@ The board comes first. Square Chess uses as much of the display as possible, whe
 
 Play against the computer at ten difficulty levels, from beginner-friendly play to full strength. You can also enable hints when you want a little help without giving up control of the game.
 
+Train your tactics with 10,000 offline puzzles from the Lichess puzzle database. Choose a theme or play a quick set of five, and the puzzles you miss come back for review.
+
 You can also:
 
 • Play with a friend on the same device, with an optional chess clock.
