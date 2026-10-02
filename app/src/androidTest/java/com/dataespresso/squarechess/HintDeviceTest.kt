@@ -157,12 +157,12 @@ class HintDeviceTest {
         val deadline=SystemClock.uptimeMillis()+15_000
         while(SystemClock.uptimeMillis()<deadline) {
             dismissImmersiveModePrompt()
-            find(instrumentation.uiAutomation.rootInActiveWindow,match)?.let { return it }
+            find(activeRoot(),match)?.let { return it }
             SystemClock.sleep(100)
         }
         error("Missing UI node: $description")
     }
-    private fun absent(text: String) = find(instrumentation.uiAutomation.rootInActiveWindow) { it==text }==null
+    private fun absent(text: String) = find(activeRoot()) { it==text }==null
     private fun tap(text: String) {
         var target=node(text)
         while(!target.isClickable && target.parent!=null) target=target.parent
@@ -202,7 +202,7 @@ class HintDeviceTest {
                 type("e2e4")
                 node("e4, white pawn")
                 node("computer reply") { it.contains("Your move") }
-                assertTrue(find(instrumentation.uiAutomation.rootInActiveWindow) { it.startsWith("Hint: ") && it.contains(" from ") }==null)
+                assertTrue(find(activeRoot()) { it.startsWith("Hint: ") && it.contains(" from ") }==null)
                 assertTrue(db.games().latest()!!.hintsEnabled)
             }
         } finally { db.close() }

@@ -24,7 +24,7 @@ class LayoutDeviceTest {
     private fun node(text: String): AccessibilityNodeInfo {
         repeat(70) {
             dismissImmersiveModePrompt()
-            find(instrumentation.uiAutomation.rootInActiveWindow,text)?.let { return it }
+            find(activeRoot(),text)?.let { return it }
             SystemClock.sleep(100)
         }
         error("Missing $text")
@@ -37,6 +37,10 @@ class LayoutDeviceTest {
         instrumentation.waitForIdleSync()
     }
     private fun capture(name: String) {
+        instrumentation.waitForIdleSync()
+        // Accessibility nodes can be ready before the window transition is drawn,
+        // especially on API 26. Let the compositor finish before saving visual evidence.
+        SystemClock.sleep(750)
         instrumentation.waitForIdleSync()
         val bitmap=instrumentation.uiAutomation.takeScreenshot()!!
         File(instrumentation.targetContext.filesDir,"layout-$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }

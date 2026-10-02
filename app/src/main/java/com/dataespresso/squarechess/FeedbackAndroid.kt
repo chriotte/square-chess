@@ -7,12 +7,13 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import androidx.core.content.pm.PackageInfoCompat
 
 data class AppInformation(val name: String, val version: String)
 fun appInformation(context: Context): AppInformation {
     val info=context.packageManager.getPackageInfo(context.packageName,0)
     return AppInformation(context.applicationInfo.loadLabel(context.packageManager).toString(),
-        "${info.versionName.orEmpty()} (${info.longVersionCode})")
+        "${info.versionName.orEmpty()} (${PackageInfoCompat.getLongVersionCode(info)})")
 }
 fun feedbackDiagnostics(context: Context, mode: String?): FeedbackDiagnostics = FeedbackDiagnostics(
     appInformation(context).version, "${Build.MANUFACTURER} ${Build.MODEL}",

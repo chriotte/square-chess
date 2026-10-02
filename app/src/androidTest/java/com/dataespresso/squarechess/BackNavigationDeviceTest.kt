@@ -35,7 +35,7 @@ class BackNavigationDeviceTest {
         val deadline=SystemClock.uptimeMillis()+10_000
         while(SystemClock.uptimeMillis()<deadline) {
             dismissImmersiveModePrompt()
-            find(instrumentation.uiAutomation.rootInActiveWindow,text)?.let { return it }
+            find(activeRoot(),text)?.let { return it }
             SystemClock.sleep(100)
         }
         error("Missing UI node: $text")
@@ -43,7 +43,7 @@ class BackNavigationDeviceTest {
     private fun gone(text: String) {
         val deadline=SystemClock.uptimeMillis()+5_000
         while(SystemClock.uptimeMillis()<deadline) {
-            if(find(instrumentation.uiAutomation.rootInActiveWindow,text)==null) return
+            if(find(activeRoot(),text)==null) return
             SystemClock.sleep(100)
         }
         error("Still shown: $text")

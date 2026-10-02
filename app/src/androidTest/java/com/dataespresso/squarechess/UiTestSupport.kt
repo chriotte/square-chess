@@ -1,6 +1,9 @@
 package com.dataespresso.squarechess
 
+import android.accessibilityservice.AccessibilityServiceInfo
+import android.os.Build
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityWindowInfo
 import androidx.test.platform.app.InstrumentationRegistry
 
 /**
@@ -9,9 +12,36 @@ import androidx.test.platform.app.InstrumentationRegistry
  */
 internal fun isIsolatedTestPackage(name: String) = name=="com.dataespresso.squarechess.dev"
 
-internal fun dismissImmersiveModePrompt() {
+/**
+ * The root of the window the user sees. Before Android 10 the "active window" lags behind when a
+ * popup (such as the time-control menu) opens or closes over a dialog, so there the topmost app
+ * window is used. Android 10+ normally reports the active window correctly, but just after an
+ * activity is recreated (seen on Android 13) it can still be the closing, empty window; then the
+ * topmost window of this app is used.
+ */
+internal fun activeRoot(): AccessibilityNodeInfo? {
     val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
-    val root = automation.rootInActiveWindow ?: return
+    if (Build.VERSION.SDK_INT >= 29) {
+        val active = automation.rootInActiveWindow
+        if (active != null && active.refresh() && active.childCount > 0) return active
+        val app = InstrumentationRegistry.getInstrumentation().targetContext.packageName
+        return appWindows(automation).firstOrNull { it.packageName == app } ?: active
+    }
+    return appWindows(automation).firstOrNull() ?: automation.rootInActiveWindow
+}
+
+/** Roots of the application windows, topmost first. */
+private fun appWindows(automation: android.app.UiAutomation): List<AccessibilityNodeInfo> {
+    val info = automation.serviceInfo
+    if (info.flags and AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS == 0) {
+        automation.serviceInfo = info.apply { flags = flags or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
+    }
+    return automation.windows.filter { it.type == AccessibilityWindowInfo.TYPE_APPLICATION }
+        .sortedByDescending { it.layer }.mapNotNull { it.root }
+}
+
+internal fun dismissImmersiveModePrompt() {
+    val root = activeRoot() ?: return
 
     fun find(node: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
         if (node == null) return null
@@ -37,7 +67,7 @@ internal fun dismissImmersiveModePrompt() {
  * step forward; returns false when nothing could scroll further.
  */
 internal fun scrollForward(): Boolean {
-    val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow ?: return false
+    val root = activeRoot() ?: return false
     var scrolled = false
     fun visit(node: AccessibilityNodeInfo?) {
         if (node == null) return

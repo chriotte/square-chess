@@ -36,8 +36,8 @@ class GameViewModel private constructor(
     private val engine: EngineController,
     private val db: ChessDatabase
 ): AndroidViewModel(app) {
-    constructor(app: Application): this(app,StockfishController(app),openChessDatabase(app))
-    internal constructor(app: Application, engine: EngineController): this(app,engine,openChessDatabase(app))
+    constructor(app: Application): this(app,StockfishController(app),appChessDatabase(app))
+    internal constructor(app: Application, engine: EngineController): this(app,engine,appChessDatabase(app))
     val state = MutableStateFlow(GameUi())
     val history = db.games().observeGames()
     private var revision = 0L
@@ -431,7 +431,7 @@ class GameViewModel private constructor(
         state.value=s.copy(game=saved,clock=clock,busy=false,engineError=null,hint=null,hintBusy=false,hintFailed=false,
             resultEvent=ResultEvent(result,reason),message="Time expired · $result")
     }
-    override fun onCleared() { engine.stop(); db.close(); super.onCleared() }
+    override fun onCleared() { engine.stop(); super.onCleared() }
 }
 
 private const val CLOCK_CHECKPOINT_INTERVAL_MS = 1_000L

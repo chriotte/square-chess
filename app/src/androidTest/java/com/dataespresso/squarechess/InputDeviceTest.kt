@@ -31,7 +31,7 @@ class InputDeviceTest {
         var attempts=0
         while(SystemClock.uptimeMillis()<deadline) {
             dismissImmersiveModePrompt()
-            find(instrumentation.uiAutomation.rootInActiveWindow,text)?.let { return it }
+            find(activeRoot(),text)?.let { return it }
             // After 2 s, look further down scrolling lists (small screens).
             if(++attempts%20==0) scrollForward()
             SystemClock.sleep(100)
@@ -45,7 +45,7 @@ class InputDeviceTest {
                 bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)
             }
         }
-        error("Missing UI node: $text; tree=${visible(instrumentation.uiAutomation.rootInActiveWindow)}")
+        error("Missing UI node: $text; tree=${visible(activeRoot())}")
     }
     private fun tap(text: String) {
         var node=waitNode(text)
@@ -89,7 +89,7 @@ class InputDeviceTest {
                 tap("Review board")
                 scenario.recreate()
                 waitNode("Game over")
-                assertNull(find(instrumentation.uiAutomation.rootInActiveWindow,"Play again"))
+                assertNull(find(activeRoot(),"Play again"))
                 assertFlipped()
                 tap("Menu"); tap("Save & home")
                 tap("View last game")
@@ -100,7 +100,7 @@ class InputDeviceTest {
             ActivityScenario.launch(MainActivity::class.java).use {
                 tap("View last game")
                 waitNode("Game over")
-                assertNull(find(instrumentation.uiAutomation.rootInActiveWindow,"Play again"))
+                assertNull(find(activeRoot(),"Play again"))
                 assertFlipped()
             }
         } finally { db.close() }
@@ -135,7 +135,7 @@ class InputDeviceTest {
                 assertEquals("e2e4",db.games().latest()!!.moves)
                 tap("Review")
                 // Narrow screens show no First/Last buttons in the header; one move back is the same here.
-                tap(if(find(instrumentation.uiAutomation.rootInActiveWindow,"First position")!=null) "First position" else "Previous move")
+                tap(if(find(activeRoot(),"First position")!=null) "First position" else "Previous move")
                 waitNode("e4, empty")
                 type("e7e5"); enter()
                 assertEquals("e2e4",db.games().latest()!!.moves)

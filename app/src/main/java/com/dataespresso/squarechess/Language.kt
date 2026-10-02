@@ -23,7 +23,7 @@ val APP_LANGUAGES = listOf(
 /**
  * The app language: the phone's language by default, or one chosen in Settings.
  * Android 13+ keeps the choice itself (it also shows under the system's App languages);
- * on Android 10–12 the app stores it and applies it to each activity.
+ * on Android 8–12 the app stores it and applies it to each activity.
  */
 object LanguageSetting {
     private const val PREFS = "settings"
@@ -46,7 +46,7 @@ object LanguageSetting {
         }
     }
 
-    /** Android 10–12: the activity context with the chosen language applied. */
+    /** Android 8–12: the activity context with the chosen language applied. */
     fun wrap(base: Context): Context {
         if (Build.VERSION.SDK_INT >= 33) return base
         val tag = base.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, "").orEmpty()

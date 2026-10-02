@@ -95,5 +95,14 @@ fun openChessDatabase(context: Context, name: String="square-chess.db") =
     Room.databaseBuilder(context,ChessDatabase::class.java,name)
         .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).build()
 
+/**
+ * The app's one database, open for the life of the process. View models must not close it: a save
+ * started just before the screen closes can still be running (seen on a slow Android 8 device).
+ */
+@Volatile private var appDatabase: ChessDatabase? = null
+fun appChessDatabase(context: Context): ChessDatabase = appDatabase ?: synchronized(ChessDatabase::class) {
+    appDatabase ?: openChessDatabase(context.applicationContext).also { appDatabase=it }
+}
+
 fun defaultFlipFor(game: SavedGame?): Boolean = game?.orientationFlipped
     ?: (game?.mode==GameMode.COMPUTER.name && !game.humanWhite)

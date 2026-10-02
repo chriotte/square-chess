@@ -5,6 +5,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
+# Default image; a profile can name its own (Image) and memory size (RamMb).
 $systemImage = 'system-images;android-36;google_apis;x86_64'
 
 $deviceProfiles = @(
@@ -68,8 +69,50 @@ $deviceProfiles = @(
         Height = 1872
         Density = 227
         Keyboard = $false
+    },
+    [pscustomobject]@{
+        # BlackBerry Priv: 5.4 in, 1440 x 2560, about 540 ppi, slide-out QWERTY keyboard.
+        # The real Priv stops at Android 6, below the app's minimum (Android 8.0), so this
+        # profile runs Android 8.0: it checks the screen and the keyboard, not the Priv's OS.
+        Name = 'SquareChess_BlackBerry_Priv'
+        DisplayName = 'Square Chess - BlackBerry Priv (Android 8.0)'
+        Width = 1440
+        Height = 2560
+        Density = 560
+        Keyboard = $true
+        Image = 'system-images;android-26;default;x86_64'
+        RamMb = 3072
+    },
+    [pscustomobject]@{
+        # Older e-ink tablet: 7.8 in, 1404 x 1872, 300 ppi, Android 8.0, 32-bit, 2 GB RAM.
+        # The 32-bit x86 image runs the app's 32-bit engine build (the closest an x86 PC gets
+        # to 32-bit ARM tablets). Layout only: an emulator cannot show e-paper refresh.
+        Name = 'SquareChess_Eink_Android8'
+        DisplayName = 'Square Chess - e-ink tablet, Android 8.0, 32-bit'
+        Width = 1404
+        Height = 1872
+        Density = 300
+        Keyboard = $false
+        Image = 'system-images;android-26;default;x86'
+        RamMb = 2048
+    },
+    [pscustomobject]@{
+        # ONYX BOOX Go 6: 6 in e-ink, 1072 x 1448, 300 ppi, Android 13. A user reported that the
+        # app works on it. Layout only: an emulator cannot show e-paper refresh.
+        Name = 'SquareChess_Boox_Go_6'
+        DisplayName = 'Square Chess - BOOX Go 6 (layout only)'
+        Width = 1072
+        Height = 1448
+        Density = 300
+        Keyboard = $false
+        Image = 'system-images;android-33;google_apis;x86_64'
+        RamMb = 2048
     }
 )
+foreach ($p in $deviceProfiles) {
+    if (-not $p.PSObject.Properties['Image']) { $p | Add-Member Image $systemImage }
+    if (-not $p.PSObject.Properties['RamMb']) { $p | Add-Member RamMb 4096 }
+}
 
 function Get-AndroidSdk {
     foreach ($variable in @('ANDROID_HOME', 'ANDROID_SDK_ROOT')) {
@@ -85,7 +128,8 @@ function Get-AndroidSdk {
             Where-Object { $_ -match '^\s*sdk\.dir\s*=' } |
             Select-Object -First 1
         if ($sdkLine -match '^\s*sdk\.dir\s*=\s*(.+?)\s*$') {
-            $sdkPath = $Matches[1].Trim('"').Replace('/', '\')
+            # local.properties escapes the drive colon: C\:/Users/...
+            $sdkPath = $Matches[1].Trim('"').Replace('\:', ':').Replace('/', '\')
             if (Test-Path -LiteralPath $sdkPath) {
                 return (Resolve-Path -LiteralPath $sdkPath).Path
             }
@@ -106,7 +150,6 @@ $sdk = Get-AndroidSdk
 $sdkManager = Join-Path $sdk 'cmdline-tools\latest\bin\sdkmanager.bat'
 $avdManager = Join-Path $sdk 'cmdline-tools\latest\bin\avdmanager.bat'
 $emulator = Join-Path $sdk 'emulator\emulator.exe'
-$imageDirectory = Join-Path $sdk 'system-images\android-36\google_apis\x86_64'
 
 if (-not (Test-Path -LiteralPath $avdManager)) {
     throw "Android SDK Command-line Tools (avdmanager) not found at '$avdManager'. Install them in Android Studio > SDK Manager."
@@ -115,32 +158,6 @@ if (-not (Test-Path -LiteralPath $avdManager)) {
 $javaCommand = Get-Command java -ErrorAction SilentlyContinue
 if (-not $env:JAVA_HOME -and -not $javaCommand) {
     throw 'Java was not found. Set JAVA_HOME to JDK 17 or add java.exe to PATH.'
-}
-
-$missing = @()
-if (-not (Test-Path -LiteralPath $emulator)) {
-    $missing += 'emulator'
-}
-if (-not (Test-Path -LiteralPath (Join-Path $imageDirectory 'package.xml'))) {
-    $missing += $systemImage
-}
-
-if ($missing.Count -gt 0) {
-    if (-not $InstallMissingComponents) {
-        throw "Missing SDK components: $($missing -join ', '). Install them in Android Studio > SDK Manager, or rerun with -InstallMissingComponents."
-    }
-    if (-not (Test-Path -LiteralPath $sdkManager)) {
-        throw "SDK Manager not found at '$sdkManager'. Install Android SDK Command-line Tools first."
-    }
-
-    & $sdkManager "--sdk_root=$sdk" 'emulator' $systemImage
-    if ($LASTEXITCODE -ne 0) {
-        throw "SDK Manager failed with exit code $LASTEXITCODE."
-    }
-    if (-not (Test-Path -LiteralPath $emulator) -or
-        -not (Test-Path -LiteralPath (Join-Path $imageDirectory 'package.xml'))) {
-        throw 'SDK Manager completed, but the emulator or API 36 x86_64 system image is still missing.'
-    }
 }
 
 $selectedProfiles = @()
@@ -156,6 +173,40 @@ if ($RequestedDevice -contains 'all') {
             throw "Unknown profile '$requestedName'. Choose one of: $validNames."
         }
         $selectedProfiles += $selected
+    }
+}
+
+# 'system-images;android-26;default;x86' is installed in system-images\android-26\default\x86.
+function Get-ImageDirectory([string]$image) { Join-Path $sdk ($image -replace ';', '\') }
+
+$missing = @()
+if (-not (Test-Path -LiteralPath $emulator)) {
+    $missing += 'emulator'
+}
+foreach ($image in @($selectedProfiles | ForEach-Object { $_.Image } | Select-Object -Unique)) {
+    if (-not (Test-Path -LiteralPath (Join-Path (Get-ImageDirectory $image) 'package.xml'))) {
+        $missing += $image
+    }
+}
+
+if ($missing.Count -gt 0) {
+    if (-not $InstallMissingComponents) {
+        throw "Missing SDK components: $($missing -join ', '). Install them in Android Studio > SDK Manager, or rerun with -InstallMissingComponents."
+    }
+    if (-not (Test-Path -LiteralPath $sdkManager)) {
+        throw "SDK Manager not found at '$sdkManager'. Install Android SDK Command-line Tools first."
+    }
+
+    & $sdkManager "--sdk_root=$sdk" @missing
+    if ($LASTEXITCODE -ne 0) {
+        throw "SDK Manager failed with exit code $LASTEXITCODE."
+    }
+    $stillMissing = @($missing | Where-Object {
+        if ($_ -eq 'emulator') { -not (Test-Path -LiteralPath $emulator) }
+        else { -not (Test-Path -LiteralPath (Join-Path (Get-ImageDirectory $_) 'package.xml')) }
+    })
+    if ($stillMissing.Count -gt 0) {
+        throw "SDK Manager completed, but these are still missing: $($stillMissing -join ', ')."
     }
 }
 
@@ -189,7 +240,7 @@ foreach ($avdProfile in $selectedProfiles) {
     try {
         # cmd supplies the "no": a PowerShell pipe can add a UTF-8 byte-order mark,
         # and avdmanager then rejects the reply.
-        $createOutput = cmd /c "echo no| `"$avdManager`" create avd -n `"$($avdProfile.Name)`" -k `"$systemImage`"" 2>&1
+        $createOutput = cmd /c "echo no| `"$avdManager`" create avd -n `"$($avdProfile.Name)`" -k `"$($avdProfile.Image)`"" 2>&1
         $createExitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousErrorPreference
@@ -219,7 +270,7 @@ foreach ($avdProfile in $selectedProfiles) {
         'hw.gpu.enabled' = 'yes'
         'hw.gpu.mode' = 'auto'
         'hw.initialOrientation' = 'Portrait'
-        'hw.ramSize' = '4096'
+        'hw.ramSize' = "$($avdProfile.RamMb)"
         'vm.heapSize' = '512'
         'skin.dynamic' = 'yes'
     }

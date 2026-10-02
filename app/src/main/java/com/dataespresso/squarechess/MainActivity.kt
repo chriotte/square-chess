@@ -97,7 +97,7 @@ class MainActivity: ComponentActivity() {
     private val settingsStore by lazy { SettingsStore(this) }
     private var settings by mutableStateOf(AppSettings())
     private val sounds by lazy { MoveSounds() }
-    // Android 10–12: apply the language chosen in Settings (Android 13+ does this itself).
+    // Android 8–12: apply the language chosen in Settings (Android 13+ does this itself).
     override fun attachBaseContext(newBase: Context) { super.attachBaseContext(LanguageSetting.wrap(newBase)) }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,7 +105,8 @@ class MainActivity: ComponentActivity() {
         // The dark window background would flash on e-paper before the first frame.
         if(settings.eink) window.decorView.setBackgroundColor(android.graphics.Color.WHITE)
         enableEdgeToEdge()
-        window.attributes = window.attributes.apply {
+        // Android 8 has no display cut-out API (and no cut-outs).
+        if (Build.VERSION.SDK_INT >= 28) window.attributes = window.attributes.apply {
             layoutInDisplayCutoutMode = if (Build.VERSION.SDK_INT >= 30)
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
             else WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
@@ -821,7 +822,7 @@ class MainActivity: ComponentActivity() {
     val topInset = WindowInsets.displayCutout.getTop(density)
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val widthPx = with(density) { maxWidth.toPx() }
-        val topCutouts = view.rootWindowInsets?.displayCutout?.boundingRects.orEmpty()
+        val topCutouts = (if (Build.VERSION.SDK_INT >= 28) view.rootWindowInsets?.displayCutout?.boundingRects.orEmpty() else emptyList())
             .filter { it.top <= 0 && it.bottom > 0 }
         // A camera hole that reaches the middle band is central. Some phones report only part of
         // the hole: a CMF Phone 2 Pro reports Rect(454, 0 - 540, 126), ending exactly at the centre.

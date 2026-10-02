@@ -32,7 +32,7 @@ class ClockProcessRecoveryDeviceTest {
         val deadline=SystemClock.uptimeMillis()+10_000
         while(SystemClock.uptimeMillis()<deadline) {
             dismissImmersiveModePrompt()
-            val root=instrumentation.uiAutomation.rootInActiveWindow
+            val root=activeRoot()
             find(root,text)?.let { return it }
             SystemClock.sleep(100)
         }

@@ -33,7 +33,7 @@ android {
         applicationId = "com.dataespresso.squarechess"
         applicationIdSuffix = if (devBuild) ".dev" else null
         manifestPlaceholders["appLabel"] = if (devBuild) "Square Chess Dev" else "Square Chess"
-        minSdk = 29
+        minSdk = 26
         targetSdk = 36
         versionCode = 12
         versionName = "1.3.0"
@@ -42,11 +42,13 @@ android {
     }
     buildTypes {
         getByName("debug") {
-            ndk { abiFilters += setOf("arm64-v8a", "x86_64") }
+            // x86 runs the 32-bit engine on the Android 8 emulator profile.
+            ndk { abiFilters += setOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86") }
         }
         getByName("release") {
+            // armeabi-v7a: 32-bit Android 8 devices such as older e-ink tablets.
             // Symbol tables let Play Console show readable native crash reports.
-            ndk { abiFilters += "arm64-v8a"; debugSymbolLevel = "SYMBOL_TABLE" }
+            ndk { abiFilters += setOf("arm64-v8a", "armeabi-v7a"); debugSymbolLevel = "SYMBOL_TABLE" }
             signingConfig = signingConfigs.findByName("release")
         }
     }

@@ -28,7 +28,7 @@ class FeedbackDeviceTest {
     private fun node(text: String): AccessibilityNodeInfo {
         repeat(35) { i ->
             dismissImmersiveModePrompt()
-            val root=instrumentation.uiAutomation.rootInActiveWindow
+            val root=activeRoot()
             (find(root) { it.contentDescription?.toString()==text }
                 ?: find(root) { it.text?.toString()==text })?.let { return it }
             if(i%5==4) find(root) { it.isScrollable && !it.isEditable }?.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
@@ -66,8 +66,8 @@ class FeedbackDeviceTest {
             tap("Privacy");node("Open privacy policy");tap("Back")
             tap("Third-party licences");tap("Fairy-Stockfish · GNU GPL v3")
             val deadline=SystemClock.uptimeMillis()+5_000
-            while(find(instrumentation.uiAutomation.rootInActiveWindow) { it.text?.contains("GNU GENERAL PUBLIC LICENSE")==true }==null && SystemClock.uptimeMillis()<deadline) SystemClock.sleep(100)
-            assertNotNull(find(instrumentation.uiAutomation.rootInActiveWindow) { it.text?.contains("GNU GENERAL PUBLIC LICENSE")==true })
+            while(find(activeRoot()) { it.text?.contains("GNU GENERAL PUBLIC LICENSE")==true }==null && SystemClock.uptimeMillis()<deadline) SystemClock.sleep(100)
+            assertNotNull(find(activeRoot()) { it.text?.contains("GNU GENERAL PUBLIC LICENSE")==true })
             tap("Back");tap("Back")
             tap("Suggest a feature")
             fill("What would you like to see? (required)","Export æøå 中文\nKeep e2e4 as text")

@@ -1,8 +1,9 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
+        <!-- Android 8.0 ignores it; its navigation bar is always dark. -->
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
         <item name="android:colorAccent">#DCC399</item>
     </style>
 </resources>
