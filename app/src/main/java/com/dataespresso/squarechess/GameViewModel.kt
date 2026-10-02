@@ -360,10 +360,11 @@ class GameViewModel private constructor(
         invalidate()
         viewModelScope.launch { commitLock.withLock { pauseClockLocked(interrupted=true) } }
     }
-    fun pauseForNavigation() {
+    /** Returns the save job, so the app can wait for it before it closes. */
+    fun pauseForNavigation(): Job {
         foreground=false
         invalidate()
-        viewModelScope.launch { commitLock.withLock { pauseClockLocked(interrupted=false) } }
+        return viewModelScope.launch { commitLock.withLock { pauseClockLocked(interrupted=false) } }
     }
     fun foreground() { foreground=true; ensureClockCheckpointing(); maybeEngine() }
     private fun ensureClockCheckpointing() {

@@ -83,6 +83,21 @@ changes above, `PuzzleDeviceTest` and `LayoutDeviceTest` passed again on both (7
 The failures above came from overloaded emulators: several emulators and two sessions ran
 at the same time.
 
+## Physical device: ONYX BOOX Note3
+
+Later the same evening the full suite ran on a real BOOX Note3 (Android 10, e-ink,
+1404 × 1872, arm64 processor that also runs 32-bit ARM apps), with the e-ink requests
+(close app, face-to-face pieces, grey board) included:
+
+| Install | Result |
+|---|---|
+| Normal (`primaryCpuAbi=arm64-v8a`) | 57 of 57 passed |
+| Forced 32-bit (`adb install --abi armeabi-v7a`, `primaryCpuAbi=armeabi-v7a`) | 56 of 57; the share test failed once on a slow BOOX app, then passed twice |
+
+The 32-bit run used the real ARMv7 engine library on ARM hardware, so the
+"no physical ARMv7 check" limit below is now covered for the engine and the app.
+Android 8 itself was tested on emulators only.
+
 ## Local build artifact
 
 The workspace `outputs/android8-validation-20261002/` contains inspected screenshots

@@ -48,6 +48,10 @@ private val CoordinateStyle=TextStyle(
     platformStyle=PlatformTextStyle(includeFontPadding=false)
 )
 
+/** Face to face: the player at the top of the board sits across the table, so their pieces turn round. */
+fun pieceTurnedRound(side: Side, flip: Boolean, faceToFace: Boolean): Boolean =
+    faceToFace && side==(if(flip) Side.WHITE else Side.BLACK)
+
 /**
  * The interactive board shared by games and puzzles. [interactive] says whether the side to move
  * may move now; the caller decides that (a game's turn and clock, a puzzle's state). [lastMove]
@@ -55,7 +59,8 @@ private val CoordinateStyle=TextStyle(
  * decides what a move means.
  */
 @Composable fun ChessBoard(position: ChessPosition, flip: Boolean, interactive: Boolean, lastMove: String?, modifier: Modifier,
-                           prefs: AppSettings = AppSettings(), cancelDraft: () -> Boolean = { false }, onMove: (String) -> Unit) {
+                           prefs: AppSettings = AppSettings(), faceToFace: Boolean = false,
+                           cancelDraft: () -> Boolean = { false }, onMove: (String) -> Unit) {
     var selected by remember(position.initialFen,position.moves) { mutableStateOf<Square?>(null) }
     var promotion by remember { mutableStateOf<List<String>>(emptyList()) }
     // Drag-and-drop: the dragged piece follows the finger; tap-tap still works.
@@ -67,6 +72,8 @@ private val CoordinateStyle=TextStyle(
     val eink=palette.eink
     val res=appResources()
     val lightSquare=prefs.boardTheme.light; val darkSquare=prefs.boardTheme.dark
+    val hatched=eink && !prefs.einkGreySquares
+    fun turned(piece: Piece)=if(pieceTurnedRound(piece.pieceSide,flip,faceToFace)) Modifier.graphicsLayer(rotationZ=180f) else Modifier
     fun squareAt(offset: Offset, boardPx: Float): Square? {
         val cell=boardPx/8f
         val col=(offset.x/cell).toInt(); val row=(offset.y/cell).toInt()
@@ -111,9 +118,9 @@ private val CoordinateStyle=TextStyle(
                 val recent=last.startsWith(square.name.lowercase()) || last.drop(2).startsWith(square.name.lowercase())
                 val check=piece!=Piece.NONE && piece.pieceType.name=="KING" && piece.pieceSide==position.board.sideToMove && position.board.isKingAttacked
                 val lightCell=(rank+file)%2==1
-                val color=when { eink->Color.White;selected==square->palette.selectedSquare;check->palette.checkSquare;recent->palette.recentSquare;lightCell->lightSquare;else->darkSquare }
+                val color=when { eink->if(!lightCell && !hatched) EinkGreySquare else Color.White;selected==square->palette.selectedSquare;check->palette.checkSquare;recent->palette.recentSquare;lightCell->lightSquare;else->darkSquare }
                 Box(Modifier.weight(1f).fillMaxHeight().background(color).then(if(eink) Modifier.drawBehind {
-                    if(!lightCell) hatch()
+                    if(!lightCell && hatched) hatch()
                     if(recent) cornerMarks()
                     if(check) drawCircle(Color.Black,size.minDimension*0.44f,style=Stroke(size.minDimension*0.08f))
                     if(selected==square) {
@@ -136,18 +143,18 @@ private val CoordinateStyle=TextStyle(
                 },contentAlignment=Alignment.Center) {
                     if(piece!=Piece.NONE) {
                         // On hatched squares a white halo keeps the piece outline apart from the lines.
-                        if(eink && !lightCell) Image(
+                        if(hatched && !lightCell) Image(
                             painter = painterResource(pieceDrawable(piece)),
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(Color.White),
-                            modifier = Modifier.fillMaxSize().padding(3.dp).graphicsLayer(scaleX=1.14f,scaleY=1.14f)
+                            modifier = Modifier.fillMaxSize().padding(3.dp).then(turned(piece)).graphicsLayer(scaleX=1.14f,scaleY=1.14f)
                                 .alpha(if(dragFrom==square) 0.3f else 1f)
                         )
                         // Chessnut uses simple silhouettes and contrasting internal lines.
                         Image(
                             painter = painterResource(pieceDrawable(piece)),
                             contentDescription = null,
-                            modifier = Modifier.fillMaxSize().padding(3.dp).alpha(if(dragFrom==square) 0.3f else 1f)
+                            modifier = Modifier.fillMaxSize().padding(3.dp).then(turned(piece)).alpha(if(dragFrom==square) 0.3f else 1f)
                         )
                     }
                     // Drawn over the piece: a dot for a quiet move, a ring for a capture.
@@ -192,7 +199,7 @@ private val CoordinateStyle=TextStyle(
             Image(painterResource(pieceDrawable(piece)),null,Modifier.size(size).offset {
                 val half=with(density) { size.toPx() }/2f
                 IntOffset((dragPosition.x-half).roundToInt(),(dragPosition.y-half).roundToInt())
-            })
+            }.then(turned(piece)))
         }
     }
     }
