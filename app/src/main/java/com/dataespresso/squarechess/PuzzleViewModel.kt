@@ -54,7 +54,7 @@ class PuzzleViewModel internal constructor(
     private val now: () -> Long,
     private val replyDelayMs: Long
 ): AndroidViewModel(app) {
-    constructor(app: Application, saved: SavedStateHandle): this(app,saved,openChessDatabase(app),
+    constructor(app: Application, saved: SavedStateHandle): this(app,saved,appChessDatabase(app),
         { PuzzleCatalog.puzzles(app) },Random.Default,System::currentTimeMillis,REPLY_DELAY_MS)
 
     val state=MutableStateFlow(PuzzleUi())

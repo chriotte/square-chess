@@ -72,7 +72,7 @@ To move between builds:
 
 Square Chess requires:
 
-- Android 10 (API 29) or newer
+- Android 8.0 (API 26) or newer
 - ARM64
 
 It is developed and tested on the **Unihertz Titan 2 Elite** and an **Onyx Boox Note3** e-ink tablet, with additional testing for other screen sizes and physical-keyboard devices.
