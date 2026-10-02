@@ -63,25 +63,36 @@ class BackNavigationDeviceTest {
         SystemClock.sleep(300)
     }
 
-    private fun waitUntilClosed(scenario: ActivityScenario<MainActivity>) {
+    /**
+     * Waits until the app finishes its activity. Android may destroy it only later, for example
+     * while another app's task behind it resumes, so "finishing" is the close the app controls.
+     */
+    private fun waitUntilClosed(activity: MainActivity, scenario: ActivityScenario<MainActivity>) {
         val deadline=SystemClock.uptimeMillis()+5_000
-        while(scenario.state!=androidx.lifecycle.Lifecycle.State.DESTROYED) {
+        while(!activity.isFinishing && scenario.state!=androidx.lifecycle.Lifecycle.State.DESTROYED) {
             check(SystemClock.uptimeMillis()<deadline) { "The app did not close: ${scenario.state}" }
             SystemClock.sleep(100)
         }
+    }
+    private fun activityOf(scenario: ActivityScenario<MainActivity>): MainActivity {
+        lateinit var activity: MainActivity
+        scenario.onActivity { activity=it }
+        return activity
     }
 
     /** E-ink devices often hide the navigation bar, so the app has its own close buttons. */
     @Test fun closeAppOnHomeClosesTheApp() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            val activity=activityOf(scenario)
             tap("Close app")
-            waitUntilClosed(scenario)
+            waitUntilClosed(activity,scenario)
         }
     }
 
     @Test fun saveAndCloseFromTheGameMenuKeepsTheGame() {
         val context=instrumentation.targetContext
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            val activity=activityOf(scenario)
             tap("Over the board")
             tap("Start game")
             node("e4, empty")
@@ -89,7 +100,7 @@ class BackNavigationDeviceTest {
             node("e4, white pawn")
             tap("Menu")
             tap("Save & close app")
-            waitUntilClosed(scenario)
+            waitUntilClosed(activity,scenario)
         }
         val db=openChessDatabase(context)
         try { assertEquals("e2e4",kotlinx.coroutines.runBlocking { db.games().latest() }!!.moves) } finally { db.close() }
