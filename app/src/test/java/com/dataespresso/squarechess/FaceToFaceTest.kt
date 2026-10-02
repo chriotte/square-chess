@@ -17,9 +17,9 @@ class FaceToFaceTest {
         assertTrue(pieceTurnedRound(Side.WHITE,flip=true,faceToFace=true))
         assertFalse(pieceTurnedRound(Side.BLACK,flip=true,faceToFace=true))
     }
-    @Test fun newSettingsAreOffByDefault() {
+    @Test fun faceToFaceIsOnAndGreySquaresOffByDefault() {
         val settings=AppSettings()
-        assertFalse(settings.faceToFace)
+        assertTrue(settings.faceToFace)
         assertFalse(settings.einkGreySquares)
     }
 }

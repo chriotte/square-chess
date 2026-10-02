@@ -44,8 +44,8 @@ data class AppSettings(
     val eink: Boolean = false,
     /** E-ink dark squares: grey instead of lines. Lines stay sharp in 1-bit fast refresh modes. */
     val einkGreySquares: Boolean = false,
-    /** Two-player games: the pieces at the top of the board are drawn upside down. */
-    val faceToFace: Boolean = false
+    /** Two-player games: the pieces at the top of the board are drawn upside down. On by default. */
+    val faceToFace: Boolean = true
 )
 
 /** Small per-device preferences; saved games stay in Room. */
@@ -59,7 +59,7 @@ class SettingsStore(context: Context) {
         boardTheme = BoardTheme.entries.firstOrNull { it.name == prefs.getString("boardTheme", null) } ?: BoardTheme.GREEN,
         eink = prefs.getBoolean("eink", isKnownEinkDevice()),
         einkGreySquares = prefs.getBoolean("einkGreySquares", false),
-        faceToFace = prefs.getBoolean("faceToFace", false)
+        faceToFace = prefs.getBoolean("faceToFace", true)
     )
     fun save(settings: AppSettings) {
         prefs.edit()

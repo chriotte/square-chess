@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.0 — 2 October 2026
+- Face-to-face pieces (Settings): in two-player games over the board, the pieces of the player at the top of the board are upside down, so both players see their own pieces upright when the phone or tablet lies flat between them. On by default; the layout and the texts do not turn.
+- Board colours: a new Grey set. In e-ink mode, the dark squares can now be grey instead of lines (Settings → Board colours). Lines stay sharper in fast refresh modes.
+- Close app: a button on Home and "Save & close app" in the game menu, for e-ink devices that hide the navigation bar. The game is saved before the app closes.
+- Android 8.0 and newer (was Android 10), and 32-bit ARM devices such as older e-ink tablets. The APK is about half the size of 1.3.0.
+- Fix: the game screen could close the database while a save was still running, which could crash the app on slow devices.
+
 ## 1.3.0 — 1 October 2026
 - Puzzles (Home → Puzzles): 10,000 offline tactics puzzles from the Lichess puzzle database (CC0). Continue training picks puzzles near your training level; Quick 5 gives five puzzles and a short summary; Review mistakes brings back puzzles you solved with a mistake or a hint (again after 3, 7 and 30 days); Choose a theme trains checkmates, forks, pins, tactical motifs or endgames. The opponent's moves come automatically; a wrong move only shows "Not quite · try again". Solve by touch, drag or keyboard notation (SAN or UCI); Hint shows the move with the usual arrow. Works in e-ink mode. Puzzle progress is stored apart from your games (database version 7) and never appears in Game history. The engine is not used.
 - Back key: Settings and Game history go back to Home; on the game screen Back clears a typed move, then leaves the review, then saves the game and goes Home.

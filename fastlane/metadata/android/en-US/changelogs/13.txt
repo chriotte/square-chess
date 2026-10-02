@@ -1,0 +1,1 @@
+New: face-to-face pieces for two players at one table, a grey board, and grey dark squares in e-ink mode. Close app on Home and in the game menu, for e-ink devices without a navigation bar. Square Chess now runs on Android 8.0 and on 32-bit devices. Fix: a possible crash when a screen closed during a save.
