@@ -21,9 +21,12 @@ class EinkDeviceTest {
     }
     private fun node(text: String): AccessibilityNodeInfo {
         val deadline=SystemClock.uptimeMillis()+10_000
+        var attempts=0
         while(SystemClock.uptimeMillis()<deadline) {
             dismissImmersiveModePrompt()
             find(activeRoot(),text)?.let { return it }
+            // After 2 s, look further down (the board choice is at the end of Settings).
+            if(++attempts%20==0) scrollForward()
             SystemClock.sleep(100)
         }
         error("Missing UI node: $text")
@@ -63,5 +66,39 @@ class EinkDeviceTest {
                 assertFalse(store.load().eink)
             }
         } finally { store.save(store.load().copy(eink=false)) }
+    }
+
+    /** Requested by an e-ink user: grey dark squares instead of lines, and pieces facing the other player. */
+    @Test fun greySquaresAndFaceToFaceAreSavedAndTheBoardWorks() {
+        val context=instrumentation.targetContext
+        check(isIsolatedTestPackage(context.packageName))
+        openChessDatabase(context).apply { clearAllTables(); close() }
+        val store=SettingsStore(context)
+        store.save(store.load().copy(eink=true,einkGreySquares=false,faceToFace=false))
+        try {
+            ActivityScenario.launch(MainActivity::class.java).use {
+                tap("Settings")
+                tap("Grey board")
+                node("Grey board, selected")
+                assertTrue(store.load().einkGreySquares)
+                tap("Lines board")
+                node("Lines board, selected")
+                assertFalse(store.load().einkGreySquares)
+                tap("Grey board")
+                tap("Face-to-face pieces")
+                assertTrue(store.load().faceToFace)
+                // Settings has scrolled down, past its Home button.
+                instrumentation.uiAutomation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                tap("Over the board")
+                tap("Start game")
+                tap("e2, white pawn")
+                tap("e4, empty, legal destination")
+                node("e4, white pawn")
+                // Black's turn: the turned black pieces still move normally.
+                tap("e7, black pawn")
+                tap("e5, empty, legal destination")
+                node("e5, black pawn")
+            }
+        } finally { store.save(store.load().copy(eink=false,einkGreySquares=false,faceToFace=false)) }
     }
 }

@@ -7,6 +7,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,8 +28,12 @@ import androidx.annotation.StringRes
 enum class BoardTheme(@StringRes val label: Int, val light: Color, val dark: Color) {
     GREEN(R.string.theme_green, Color(0xFFF2E7CF), Color(0xFF526D62)),
     WALNUT(R.string.theme_walnut, Color(0xFFF0D9B5), Color(0xFFB58863)),
-    SLATE(R.string.theme_slate, Color(0xFFDEE3E6), Color(0xFF788A94))
+    SLATE(R.string.theme_slate, Color(0xFFDEE3E6), Color(0xFF788A94)),
+    GREY(R.string.theme_grey, Color(0xFFF4F4F4), Color(0xFFBDBDBD))
 }
+
+/** Dark squares in e-ink mode when [AppSettings.einkGreySquares] is on: a light grey that e-paper shows as one flat tone. */
+val EinkGreySquare = Color(0xFFC4C4C4)
 
 data class AppSettings(
     val sound: Boolean = true,
@@ -34,7 +41,11 @@ data class AppSettings(
     val coordinates: Boolean = true,
     val legalMoves: Boolean = true,
     val boardTheme: BoardTheme = BoardTheme.GREEN,
-    val eink: Boolean = false
+    val eink: Boolean = false,
+    /** E-ink dark squares: grey instead of lines. Lines stay sharp in 1-bit fast refresh modes. */
+    val einkGreySquares: Boolean = false,
+    /** Two-player games: the pieces at the top of the board are drawn upside down. */
+    val faceToFace: Boolean = false
 )
 
 /** Small per-device preferences; saved games stay in Room. */
@@ -46,7 +57,9 @@ class SettingsStore(context: Context) {
         coordinates = prefs.getBoolean("coordinates", true),
         legalMoves = prefs.getBoolean("legalMoves", true),
         boardTheme = BoardTheme.entries.firstOrNull { it.name == prefs.getString("boardTheme", null) } ?: BoardTheme.GREEN,
-        eink = prefs.getBoolean("eink", isKnownEinkDevice())
+        eink = prefs.getBoolean("eink", isKnownEinkDevice()),
+        einkGreySquares = prefs.getBoolean("einkGreySquares", false),
+        faceToFace = prefs.getBoolean("faceToFace", false)
     )
     fun save(settings: AppSettings) {
         prefs.edit()
@@ -56,6 +69,8 @@ class SettingsStore(context: Context) {
             .putBoolean("legalMoves", settings.legalMoves)
             .putString("boardTheme", settings.boardTheme.name)
             .putBoolean("eink", settings.eink)
+            .putBoolean("einkGreySquares", settings.einkGreySquares)
+            .putBoolean("faceToFace", settings.faceToFace)
             .apply()
     }
 }
@@ -85,36 +100,27 @@ class SettingsStore(context: Context) {
         }
         Spacer(Modifier.height(12.dp))
         Text(stringResource(R.string.board_colours), fontSize = 16.sp)
-        if (settings.eink) Text(stringResource(R.string.eink_board_note),
-            fontSize = 12.sp, color = LocalPalette.current.muted, modifier = Modifier.padding(vertical = 8.dp))
-        else Row(Modifier.padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            BoardTheme.entries.forEach { theme ->
-                val selected = settings.boardTheme == theme
-                val label = stringResource(theme.label)
-                val description = stringResource(R.string.board_theme_description, label) +
-                    if (selected) stringResource(R.string.selected_suffix) else ""
-                Column(
-                    Modifier.clickable(role = Role.RadioButton) { onChange(settings.copy(boardTheme = theme)) }
-                        .semantics { contentDescription = description }
-                        .padding(4.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Row(Modifier.size(56.dp).background(
-                        if (selected) MaterialTheme.colorScheme.primary else Color.Transparent, RoundedCornerShape(8.dp)
-                    ).padding(3.dp)) {
-                        Column(Modifier.weight(1f)) {
-                            Box(Modifier.weight(1f).fillMaxWidth().background(theme.light))
-                            Box(Modifier.weight(1f).fillMaxWidth().background(theme.dark))
-                        }
-                        Column(Modifier.weight(1f)) {
-                            Box(Modifier.weight(1f).fillMaxWidth().background(theme.dark))
-                            Box(Modifier.weight(1f).fillMaxWidth().background(theme.light))
-                        }
-                    }
-                    Text(label, fontSize = 13.sp)
+        if (settings.eink) {
+            Text(stringResource(R.string.eink_board_note),
+                fontSize = 12.sp, color = LocalPalette.current.muted, modifier = Modifier.padding(vertical = 8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                BoardSwatch(stringResource(R.string.eink_squares_lines), !settings.einkGreySquares, Color.White, null) {
+                    onChange(settings.copy(einkGreySquares = false))
+                }
+                BoardSwatch(stringResource(R.string.eink_squares_grey), settings.einkGreySquares, Color.White, EinkGreySquare) {
+                    onChange(settings.copy(einkGreySquares = true))
                 }
             }
         }
+        // Four swatches need about 300 dp; on narrower screens the row scrolls.
+        else Row(Modifier.padding(vertical = 8.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            BoardTheme.entries.forEach { theme ->
+                BoardSwatch(stringResource(theme.label), settings.boardTheme == theme, theme.light, theme.dark) {
+                    onChange(settings.copy(boardTheme = theme))
+                }
+            }
+        }
+        SettingSwitch(stringResource(R.string.face_to_face), stringResource(R.string.face_to_face_help), settings.faceToFace) { onChange(settings.copy(faceToFace = it)) }
     }
     if (languageDialog) AppAlertDialog(onDismissRequest = { languageDialog = false },
         title = { Text(stringResource(R.string.language)) },
@@ -139,6 +145,36 @@ class SettingsStore(context: Context) {
         },
         confirmButton = { TextButton(onClick = { languageDialog = false }) { Text(stringResource(R.string.cancel)) } })
 }
+/** A 2 × 2 board sample; [dark] null shows the e-ink line pattern. */
+@Composable private fun BoardSwatch(label: String, selected: Boolean, light: Color, dark: Color?, onSelect: () -> Unit) {
+    val description = stringResource(R.string.board_theme_description, label) +
+        if (selected) stringResource(R.string.selected_suffix) else ""
+    Column(
+        Modifier.clickable(role = Role.RadioButton, onClick = onSelect)
+            .semantics { contentDescription = description }
+            .padding(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // On e-ink a black edge keeps the white squares apart from the white page.
+        val edge = if (LocalPalette.current.eink) Modifier.border(1.dp, Color.Black) else Modifier
+        Row(Modifier.size(56.dp).background(
+            if (selected) MaterialTheme.colorScheme.primary else Color.Transparent, RoundedCornerShape(8.dp)
+        ).padding(3.dp).then(edge)) {
+            @Composable fun DarkCell(modifier: Modifier) = Box(
+                if (dark != null) modifier.background(dark) else modifier.background(Color.White).drawBehind { hatch() })
+            Column(Modifier.weight(1f)) {
+                Box(Modifier.weight(1f).fillMaxWidth().background(light))
+                DarkCell(Modifier.weight(1f).fillMaxWidth())
+            }
+            Column(Modifier.weight(1f)) {
+                DarkCell(Modifier.weight(1f).fillMaxWidth())
+                Box(Modifier.weight(1f).fillMaxWidth().background(light))
+            }
+        }
+        Text(label, fontSize = 13.sp)
+    }
+}
+
 @Composable private fun SettingSwitch(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(
         Modifier.fillMaxWidth().clickable(role = Role.Switch) { onChange(!checked) }.padding(vertical = 10.dp),

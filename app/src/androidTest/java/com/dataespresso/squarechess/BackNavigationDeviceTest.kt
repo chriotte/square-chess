@@ -33,9 +33,12 @@ class BackNavigationDeviceTest {
     }
     private fun node(text: String): AccessibilityNodeInfo {
         val deadline=SystemClock.uptimeMillis()+10_000
+        var attempts=0
         while(SystemClock.uptimeMillis()<deadline) {
             dismissImmersiveModePrompt()
             find(activeRoot(),text)?.let { return it }
+            // After 2 s, look further down (the game menu is taller than small screens).
+            if(++attempts%20==0) scrollForward()
             SystemClock.sleep(100)
         }
         error("Missing UI node: $text")
@@ -58,6 +61,38 @@ class BackNavigationDeviceTest {
         assertTrue(instrumentation.uiAutomation.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK))
         instrumentation.waitForIdleSync()
         SystemClock.sleep(300)
+    }
+
+    private fun waitUntilClosed(scenario: ActivityScenario<MainActivity>) {
+        val deadline=SystemClock.uptimeMillis()+5_000
+        while(scenario.state!=androidx.lifecycle.Lifecycle.State.DESTROYED) {
+            check(SystemClock.uptimeMillis()<deadline) { "The app did not close: ${scenario.state}" }
+            SystemClock.sleep(100)
+        }
+    }
+
+    /** E-ink devices often hide the navigation bar, so the app has its own close buttons. */
+    @Test fun closeAppOnHomeClosesTheApp() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            tap("Close app")
+            waitUntilClosed(scenario)
+        }
+    }
+
+    @Test fun saveAndCloseFromTheGameMenuKeepsTheGame() {
+        val context=instrumentation.targetContext
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            tap("Over the board")
+            tap("Start game")
+            node("e4, empty")
+            instrumentation.sendStringSync("e4"); instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_ENTER)
+            node("e4, white pawn")
+            tap("Menu")
+            tap("Save & close app")
+            waitUntilClosed(scenario)
+        }
+        val db=openChessDatabase(context)
+        try { assertEquals("e2e4",kotlinx.coroutines.runBlocking { db.games().latest() }!!.moves) } finally { db.close() }
     }
 
     @Test fun settingsAndHistoryReturnHome() {

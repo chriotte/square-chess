@@ -76,6 +76,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.github.bhlangonijr.chesslib.Square
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -251,7 +252,10 @@ class MainActivity: ComponentActivity() {
                                     Image(painterResource(R.drawable.ic_square_chess),contentDescription=null,
                                         modifier=Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)))
                                     Spacer(Modifier.width(12.dp))
-                                    Text(stringResource(R.string.app_name_title),color=palette.text,fontSize=24.sp,fontWeight=FontWeight.Medium)
+                                    Text(stringResource(R.string.app_name_title),color=palette.text,fontSize=24.sp,fontWeight=FontWeight.Medium,
+                                        modifier=Modifier.weight(1f))
+                                    // For e-ink devices with the navigation bar hidden; a game is already saved on Home.
+                                    TextButton(onClick={finish()}) { Text(stringResource(R.string.close_app)) }
                                 }
                                 if(s.game!=null) Button(
                                     onClick={ flip=defaultFlipFor(s.game); reviewPly=null; screen="game"; vm.foreground() },
@@ -402,7 +406,8 @@ class MainActivity: ComponentActivity() {
                                     // E-ink keeps the last-move marks until the next move: a timed fade would cost a screen refresh.
                                     ChessBoard(display.position,flip,display.boardInteractive(),
                                         if(palette.eink) display.position.moves.lastOrNull() else display.highlightMove,
-                                        Modifier.fillMaxSize(),prefs, cancelDraft={
+                                        Modifier.fillMaxSize(),prefs,
+                                        faceToFace=prefs.faceToFace && s.game?.mode==GameMode.LOCAL_TWO_PLAYER.name, cancelDraft={
                                         if(draft.text.isNotEmpty()) { draft=NotationDraft(); true } else false
                                     }) { move -> vm.enter(move) }
                                     // Drawn over the board but without pointer input, so moves still reach it.
@@ -526,6 +531,8 @@ class MainActivity: ComponentActivity() {
                     }
                     HorizontalDivider(Modifier.padding(vertical=4.dp))
                     TextButton(onClick={screen="home";dialog="";vm.pauseForNavigation()}){Text(stringResource(R.string.save_home))}
+                    // For e-ink devices with the navigation bar hidden. The clock pause is saved before the app closes.
+                    TextButton(onClick={dialog="";lifecycleScope.launch { vm.pauseForNavigation().join(); finish() }}){Text(stringResource(R.string.save_close))}
                 }},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.back_to_board))}})
                 if(dialog=="resign") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.resign_title))},
                     text={Text(stringResource(R.string.resign_text))},
