@@ -58,13 +58,34 @@ class ClockDeviceTest {
         var attempts=0
         while(SystemClock.uptimeMillis()<deadline) {
             dismissImmersiveModePrompt()
-            root=instrumentation.uiAutomation.rootInActiveWindow
+            root=activeRoot()
             find(root,text)?.let { return it }
             // After 2 s, look further down scrolling lists (small screens).
             if(++attempts%20==0) scrollForward()
             SystemClock.sleep(100)
         }
         error("Missing UI node: $text\n${describe(root)}")
+    }
+
+    /**
+     * Sharing opens the system share sheet, whose look differs between Android versions (only some
+     * show "Sharing text"), or on Android 8 and 9 the only app that can receive text. So the test
+     * checks that sharing left the app, then goes back.
+     */
+    private fun closeShareSheet() {
+        val app=instrumentation.targetContext.packageName
+        var deadline=SystemClock.uptimeMillis()+10_000
+        while (activeRoot()?.packageName.let { it == null || it == app }) {
+            check(SystemClock.uptimeMillis()<deadline) { "Sharing did not open another app" }
+            SystemClock.sleep(100)
+        }
+        // A test may not send keys into another app; the system Back action may.
+        instrumentation.uiAutomation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+        deadline=SystemClock.uptimeMillis()+10_000
+        while (activeRoot()?.packageName != app) {
+            check(SystemClock.uptimeMillis()<deadline) { "Back did not return to the app" }
+            SystemClock.sleep(100)
+        }
     }
 
     private fun tap(text: String) {
@@ -133,15 +154,13 @@ class ClockDeviceTest {
                     assertTrue(requireNotNull(shareIntent.getStringExtra(Intent.EXTRA_TEXT)).endsWith("1. e4 *"))
                     tap("Menu")
                     tap("Share PGN")
-                    node("Sharing text")
-                    instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
+                    closeShareSheet()
                     val currentPosition=ChessPosition(game.initialFen,game.moves.split(" ").filter(String::isNotBlank))
                     val fenIntent=fenShareIntent(currentPosition)
                     assertEquals(currentPosition.board.fen,fenIntent.getStringExtra(Intent.EXTRA_TEXT))
                     tap("Menu")
                     tap("Share FEN")
-                    node("Sharing text")
-                    instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
+                    closeShareSheet()
                 }
             } finally {
                 db.close()

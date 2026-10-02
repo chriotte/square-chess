@@ -13,19 +13,30 @@
 
 ## Emulator profiles
 
-Create them with `scripts/setup-emulators.ps1` (add `-InstallMissingComponents` to install the emulator and the API 36 image). They approximate screen size, density and keyboard only — not cutouts, fold transitions or vendor software.
+Create them with `scripts/setup-emulators.ps1` (add `-InstallMissingComponents` to install the emulator and the system images). They approximate screen size, density and keyboard only — not cutouts, fold transitions or vendor software.
 
-| AVD | Resolution | Density | Keyboard |
-|---|---:|---:|---|
-| `SquareChess_Titan_2_Elite` | 1080 × 1200 | 300 dpi | Yes |
-| `SquareChess_Titan_2` | 1440 × 1440 | 480 dpi | Yes |
-| `SquareChess_Clicks_Communicator` | 1080 × 1200 | 400 dpi | Yes |
-| `SquareChess_Light_Phone_III` | 1080 × 1240 | 420 dpi | No |
-| `SquareChess_Fold_Outer` | 1080 × 2092 | 420 dpi | No |
-| `SquareChess_Fold_Inner` | 1840 × 2208 | 420 dpi | No |
-| `SquareChess_Eink_Tablet` | 1404 × 1872 | 227 dpi | No |
+| AVD | Resolution | Density | Keyboard | Android |
+|---|---:|---:|---|---|
+| `SquareChess_Titan_2_Elite` | 1080 × 1200 | 300 dpi | Yes | 16 (API 36) |
+| `SquareChess_Titan_2` | 1440 × 1440 | 480 dpi | Yes | 16 (API 36) |
+| `SquareChess_Clicks_Communicator` | 1080 × 1200 | 400 dpi | Yes | 16 (API 36) |
+| `SquareChess_Light_Phone_III` | 1080 × 1240 | 420 dpi | No | 16 (API 36) |
+| `SquareChess_Fold_Outer` | 1080 × 2092 | 420 dpi | No | 16 (API 36) |
+| `SquareChess_Fold_Inner` | 1840 × 2208 | 420 dpi | No | 16 (API 36) |
+| `SquareChess_Eink_Tablet` | 1404 × 1872 | 227 dpi | No | 16 (API 36) |
+| `SquareChess_BlackBerry_Priv` | 1440 × 2560 | 560 dpi | Yes | 8.0 (API 26) |
+| `SquareChess_Eink_Android8` | 1404 × 1872 | 300 dpi | No | 8.0 (API 26), 32-bit x86, 2 GB |
+| `SquareChess_Boox_Go_6` | 1072 × 1448 | 300 dpi | No | 13 (API 33), 2 GB |
 
 The e-ink tablet profile has the size and density of a 10.3-inch e-reader such as the BOOX Note3; it shows layout only, not e-paper refresh. Turn on Settings → E-ink mode in the app.
+
+The two Android 8.0 profiles test the oldest supported Android version (minSdk 26):
+
+- `SquareChess_Eink_Android8` is an older 7.8-inch e-ink tablet. Its 32-bit image runs the app's
+  32-bit engine (the debug build adds `x86` for it; release builds ship `armeabi-v7a`). An x86 PC
+  cannot run 32-bit ARM code, so test a real 32-bit ARM device before a release.
+- `SquareChess_BlackBerry_Priv` has the Priv's screen and keyboard. The real Priv stops at Android 6,
+  which the app does not support; the profile runs Android 8.0 instead.
 
 The Light Phone III profile matches its 3.92-inch 1080 × 1240 AMOLED screen (about 419 ppi); it is plain Android, not LightOS.
 

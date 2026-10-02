@@ -18,10 +18,10 @@ Set `ANDROID_HOME` (or `sdk.dir` in an untracked `local.properties`) and `JAVA_H
 
 ```sh
 ./gradlew testDebugUnitTest            # JVM unit tests
-./gradlew assembleDebug                # debug APK: arm64-v8a + x86_64 (emulators)
+./gradlew assembleDebug                # debug APK: arm64-v8a, armeabi-v7a, x86_64, x86 (emulators)
 ./gradlew check                        # unit tests, lint and verifyReleasePolicy
 ./gradlew verifyReleasePolicy          # no proprietary Google libraries; allow-listed permissions only
-./gradlew assembleRelease              # release APK, arm64-v8a
+./gradlew assembleRelease              # release APK, arm64-v8a + armeabi-v7a
 ./gradlew bundleRelease                # release AAB for Google Play
 ```
 

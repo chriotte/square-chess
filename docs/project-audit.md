@@ -24,8 +24,8 @@ No `.github/` directory: there is **no CI** yet.
 
 - Gradle modules: `:app`, `:chesslib` (`settings.gradle.kts`). Repositories: Google Maven and Maven Central only.
 - Application ID `com.dataespresso.squarechess`; `-Pdev=true` adds `.dev` for the test app. No product flavours, and none are needed (see 4).
-- Toolchain: JDK 17, Gradle 8.13 (wrapper committed), compile/target SDK 36, min SDK 29, NDK 28.2.13676358, CMake 3.22.1.
-- ABIs: release `arm64-v8a`; debug adds `x86_64` for emulators. 16 KB page alignment is set in CMake.
+- Toolchain: JDK 17, Gradle 8.13 (wrapper committed), compile/target SDK 36, min SDK 26 (Android 8.0), NDK 28.2.13676358, CMake 3.22.1.
+- ABIs: release `arm64-v8a` and `armeabi-v7a` (32-bit Android 8 devices); debug adds `x86_64` and `x86` for emulators. 16 KB page alignment is set in CMake.
 - Signing: `docs/releases/signing.md` (Play upload key; separate standalone release key; keys outside the repository).
 
 ## 3. Dependencies (release runtime classpath)

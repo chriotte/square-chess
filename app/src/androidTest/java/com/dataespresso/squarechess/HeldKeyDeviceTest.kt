@@ -35,7 +35,7 @@ class HeldKeyDeviceTest {
         val deadline=SystemClock.uptimeMillis()+10_000
         while(SystemClock.uptimeMillis()<deadline) {
             dismissImmersiveModePrompt()
-            find(instrumentation.uiAutomation.rootInActiveWindow,text)?.let { return it }
+            find(activeRoot(),text)?.let { return it }
             SystemClock.sleep(100)
         }
         error("Missing UI node: $text")

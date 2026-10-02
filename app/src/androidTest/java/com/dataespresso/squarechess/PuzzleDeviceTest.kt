@@ -41,7 +41,7 @@ class PuzzleDeviceTest {
         val deadline=SystemClock.uptimeMillis()+10_000
         while(SystemClock.uptimeMillis()<deadline) {
             dismissImmersiveModePrompt()
-            find(instrumentation.uiAutomation.rootInActiveWindow,match)?.let { return it }
+            find(activeRoot(),match)?.let { return it }
             SystemClock.sleep(100)
         }
         error("Missing UI node: $description")
@@ -51,7 +51,7 @@ class PuzzleDeviceTest {
     private fun gone(text: String) {
         val deadline=SystemClock.uptimeMillis()+5_000
         while(SystemClock.uptimeMillis()<deadline) {
-            if(find(instrumentation.uiAutomation.rootInActiveWindow) { it==text }==null) return
+            if(find(activeRoot()) { it==text }==null) return
             SystemClock.sleep(100)
         }
         error("Still shown: $text")
@@ -73,8 +73,11 @@ class PuzzleDeviceTest {
     }
     private fun drag(from: String, to: String) {
         val a=bounds(square(from)); val b=bounds(square(to))
-        instrumentation.uiAutomation.executeShellCommand("input swipe ${a.centerX()} ${a.centerY()} ${b.centerX()} ${b.centerY()} 500").close()
-        SystemClock.sleep(900)
+        // Shell input can start slowly on a loaded emulator. Wait for the actual
+        // gesture to finish instead of closing its pipe and guessing a delay.
+        android.os.ParcelFileDescriptor.AutoCloseInputStream(
+            instrumentation.uiAutomation.executeShellCommand("input swipe ${a.centerX()} ${a.centerY()} ${b.centerX()} ${b.centerY()} 500")
+        ).use { it.readBytes() }
         instrumentation.waitForIdleSync()
     }
 
@@ -172,6 +175,8 @@ class PuzzleDeviceTest {
 
     @Test fun recreationKeepsThePuzzleAndMove() = runBlocking<Unit> {
         withPuzzle("0Xh1Y") { scenario ->
+            // Keys typed before the puzzle is ready belong to the old position and are dropped.
+            nodeStarting("Puzzle · White to move")
             type("Rxh2")
             nodeStarting("h2, black rook")
             scenario.recreate()
