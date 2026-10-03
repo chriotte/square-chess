@@ -30,6 +30,8 @@ The native engine (`native/`, Fairy-Stockfish) is compiled from source by CMake 
 ## Build options
 
 - `-Pdev=true` builds the separate test app `com.dataespresso.squarechess.dev` ("Square Chess Dev"). Device tests clear saved games and refuse to run in any other app, so run them only against this build.
+- Release builds use R8 code optimization and resource shrinking. JNI names are kept by `app/proguard-rules.pro`; Room supplies its own consumer rules. The mapping file is `app/build/outputs/mapping/release/mapping.txt`. Keep the mapping from each published build to decode crash traces.
+- `-Pdev=true -Pr8Test=true` selects the optimized release build for black-box device checks, uses the debug signing key, and adds x86 and x86_64 for emulators. It does not make the target app debuggable or add keep rules. These APKs are for tests only. Normal releases keep only the two ARM ABIs.
 - Release signing is optional. A release build is signed when a properties file exists (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`); otherwise it is unsigned. The default is `~/SquareChessSigning/keystore.properties` (Play upload key); `-PsigningProperties=<path>` or `SQUARECHESS_SIGNING` selects another, such as the standalone release key. See `docs/releases/signing.md`.
 
 ## Device tests
@@ -42,3 +44,16 @@ adb shell am instrument -w com.dataespresso.squarechess.dev.test/androidx.test.r
 ```
 
 Emulator profiles for the target devices: `docs/testing/test-plan.md`.
+
+Run the black-box checks against R8 before a release, as well as the full debug device suite above. The platform-only runner has no references to app classes: it does not need to preserve internal APIs that R8 can remove or change.
+
+```sh
+./gradlew -Pdev=true -Pr8Test=true assembleRelease assembleReleaseAndroidTest
+adb install -r app/build/outputs/apk/release/app-release.apk
+adb install -r app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
+adb shell pm clear com.dataespresso.squarechess.dev
+adb shell am instrument -w com.dataespresso.squarechess.dev.test/com.dataespresso.squarechess.smoke.R8SmokeRunner
+```
+
+Run `check` separately without `-Pdev=true`; the release permission policy checks the production package name.
+The R8 checks cover startup, migration of a version 1 database, legal moves, saving and reopening a game, history and the export dialog, a native engine reply, puzzles and hints, the standalone clock, and language switching. The Dev app must use English at the start. `pm clear` above clears only its test data.

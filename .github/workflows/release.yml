@@ -78,6 +78,14 @@ jobs:
         if: always()
         run: rm -f "$RUNNER_TEMP/release.jks" "$RUNNER_TEMP/signing.properties"
 
+      - name: Save R8 mapping for crash reports
+        uses: actions/upload-artifact@v7
+        with:
+          name: r8-mapping-${{ env.TAG }}
+          path: app/build/outputs/mapping/release/
+          if-no-files-found: error
+          retention-days: 90
+
       - name: Verify signature and prepare files
         run: |
           APK=app/build/outputs/apk/release/app-release.apk

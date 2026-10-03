@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1 — 3 October 2026
+- Release builds now use R8 code and resource shrinking. The APK is about half the size of the previous release, with the same app features.
+- Added release checks for the optimized app and retained mapping files for crash reports.
+
 ## 1.4.0 — 2 October 2026
 - Face-to-face pieces (Settings): in two-player games over the board, the pieces of the player at the top of the board are upside down, so both players see their own pieces upright when the phone or tablet lies flat between them. On by default; the layout and the texts do not turn.
 - Board colours: a new Grey set. In e-ink mode, the dark squares can now be grey instead of lines (Settings → Board colours). Lines stay sharper in fast refresh modes.

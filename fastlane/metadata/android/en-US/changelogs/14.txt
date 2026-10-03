@@ -1,0 +1,1 @@
+Release builds now use R8 code and resource shrinking. The APK is about half the size of the previous release, with the same app features.
