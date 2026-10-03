@@ -10,6 +10,9 @@ plugins {
 kapt { arguments { arg("room.schemaLocation", "$projectDir/schemas") } }
 // -Pdev=true builds the separate test app that fixture tests require.
 val devBuild = providers.gradleProperty("dev").orNull == "true"
+// Run black-box UI checks against optimized code in the isolated dev app.
+val r8Test = providers.gradleProperty("r8Test").orNull == "true"
+require(!r8Test || devBuild) { "R8 device tests require -Pdev=true" }
 // Release signing key, kept outside the repository. The default is the Play upload
 // key; the standalone (GitHub/F-Droid) release passes its own properties file with
 // -PsigningProperties=<path> or the SQUARECHESS_SIGNING environment variable.
@@ -19,6 +22,7 @@ val signingFile = file(providers.gradleProperty("signingProperties").orNull
 val signing = Properties().apply { if (signingFile.exists()) signingFile.inputStream().use { load(it) } }
 android {
     namespace = "com.dataespresso.squarechess"
+    testBuildType = if (r8Test) "release" else "debug"
     signingConfigs {
         if (signingFile.exists()) create("release") {
             storeFile = file(signing.getProperty("storeFile"))
@@ -35,9 +39,10 @@ android {
         manifestPlaceholders["appLabel"] = if (devBuild) "Square Chess Dev" else "Square Chess"
         minSdk = 26
         targetSdk = 36
-        versionCode = 13
-        versionName = "1.4.0"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        versionCode = 14
+        versionName = "1.4.1"
+        testInstrumentationRunner = if (r8Test) "com.dataespresso.squarechess.smoke.R8SmokeRunner"
+            else "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild { cmake { cppFlags += "-std=c++17" } }
     }
     buildTypes {
@@ -46,10 +51,18 @@ android {
             ndk { abiFilters += setOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86") }
         }
         getByName("release") {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // armeabi-v7a: 32-bit Android 8 devices such as older e-ink tablets.
             // Symbol tables let Play Console show readable native crash reports.
             ndk { abiFilters += setOf("arm64-v8a", "armeabi-v7a"); debugSymbolLevel = "SYMBOL_TABLE" }
             signingConfig = signingConfigs.findByName("release")
+            if (r8Test) {
+                // Test APK and target must share a key. Never use the release key for fixtures.
+                signingConfig = signingConfigs.getByName("debug")
+                ndk { abiFilters += setOf("x86", "x86_64") }
+            }
         }
     }
     buildFeatures { compose = true; buildConfig = true }
@@ -63,6 +76,7 @@ android {
     // The Play bundle keeps it.
     dependenciesInfo { includeInApk = false; includeInBundle = true }
     testOptions { unitTests.isReturnDefaultValues = true }
+    if (r8Test) sourceSets.getByName("androidTest").java.setSrcDirs(listOf("src/r8Test/java"))
 }
 dependencies {
     implementation(project(":chesslib"))
@@ -77,8 +91,10 @@ dependencies {
     implementation("androidx.room:room-ktx:2.7.2")
     kapt("androidx.room:room-compiler:2.7.2")
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test:runner:1.6.2")
+    if (!r8Test) {
+        androidTestImplementation("androidx.test.ext:junit:1.2.1")
+        androidTestImplementation("androidx.test:runner:1.6.2")
+    }
 }
 
 // Release policy: Square Chess must work without Google Play Services and must not
