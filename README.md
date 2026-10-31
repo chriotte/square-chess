@@ -15,9 +15,7 @@
 </tr>
 </table>
 
-<a href="https://play.google.com/store/apps/details?id=com.dataespresso.squarechess"><img src="docs/images/badges/google-play.png" alt="Get it on Google Play" height="64"></a> <a href="https://github.com/chriotte/square-chess/releases/latest"><img src="docs/images/badges/github.png" alt="Get the latest APK on GitHub" height="64"></a>
-
-F-Droid: coming soon
+<a href="https://play.google.com/store/apps/details?id=com.dataespresso.squarechess"><img src="docs/images/badges/google-play.png" alt="Get it on Google Play" height="64"></a> <a href="https://github.com/chriotte/square-chess/releases/latest"><img src="docs/images/badges/github.png" alt="Get the latest APK on GitHub" height="64"></a> <a href="https://f-droid.org/packages/com.dataespresso.squarechess/"><img src="docs/images/badges/f-droid.png" alt="Get it on F-Droid" height="64"></a>
 
 ## Why Square Chess?
 
@@ -58,7 +56,7 @@ See the [privacy policy](PRIVACY_POLICY.md).
 
 - **Google Play:** [Square Chess on Google Play](https://play.google.com/store/apps/details?id=com.dataespresso.squarechess)
 - **GitHub:** [Download the latest release](https://github.com/chriotte/square-chess/releases/latest) — signed APK with its SHA-256 checksum
-- **F-Droid:** planned
+- **F-Droid:** [Square Chess on F-Droid](https://f-droid.org/packages/com.dataespresso.squarechess/)
 
 Google Play and GitHub/F-Droid builds are signed with different keys, so they cannot update one another directly.
 
