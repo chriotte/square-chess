@@ -17,7 +17,7 @@ class LayoutDeviceTest {
     private val instrumentation=InstrumentationRegistry.getInstrumentation()
     private fun find(n: AccessibilityNodeInfo?,text: String): AccessibilityNodeInfo? {
         if(n==null || !n.refresh()) return null
-        if(n.text?.toString()==text || n.contentDescription?.toString()==text) return n
+        if(n.text?.toString()==text || labelMatches(n.contentDescription?.toString(),text)) return n
         for(i in 0 until n.childCount) find(n.getChild(i),text)?.let {return it}
         return null
     }

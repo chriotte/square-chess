@@ -64,6 +64,18 @@
     <string name="square_description">%1$s, %2$s</string>
     <string name="square_legal_suffix">, erlaubtes Zielfeld</string>
     <string name="square_check_suffix">, Schach</string>
+    <string name="square_last_move">letzter Zug</string>
+    <string name="square_selected">ausgewählt</string>
+    <string name="move_announcement">%1$s spielte %2$s</string>
+    <string name="move_words">%1$s von %2$s nach %3$s</string>
+    <string name="move_words_castle_kingside">kurze Rochade</string>
+    <string name="move_words_castle_queenside">lange Rochade</string>
+    <string name="move_words_promotion">Bauer von %1$s nach %2$s, Umwandlung in %3$s</string>
+    <string name="spoken_moves_words">Züge in Worten für Screenreader</string>
+    <string name="spoken_moves_words_help">TalkBack sagt Springer von g1 nach f3 statt Sf3</string>
+    <string name="clock_turn">Drehen</string>
+    <string name="clock_turn_white">Weiße Uhr drehen</string>
+    <string name="clock_turn_black">Schwarze Uhr drehen</string>
 
     <!-- Captured pieces -->
     <string name="captured_description">Von %1$s geschlagen: %2$s</string>

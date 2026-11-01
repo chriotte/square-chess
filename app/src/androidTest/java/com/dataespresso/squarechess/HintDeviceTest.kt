@@ -153,7 +153,7 @@ class HintDeviceTest {
         for(i in 0 until node.childCount) find(node.getChild(i),match)?.let { return it }
         return null
     }
-    private fun node(description: String, match: (String) -> Boolean = { it==description }): AccessibilityNodeInfo {
+    private fun node(description: String, match: (String) -> Boolean = { labelMatches(it,description) }): AccessibilityNodeInfo {
         val deadline=SystemClock.uptimeMillis()+15_000
         while(SystemClock.uptimeMillis()<deadline) {
             dismissImmersiveModePrompt()

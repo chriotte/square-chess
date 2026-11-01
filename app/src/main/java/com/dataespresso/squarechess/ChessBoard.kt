@@ -129,8 +129,15 @@ fun pieceTurnedRound(side: Side, flip: Boolean, faceToFace: Boolean): Boolean =
                         drawRect(Color.Black,topLeft=Offset(stroke/2,stroke/2),
                             size=androidx.compose.ui.geometry.Size(size.width-stroke,size.height-stroke),style=Stroke(stroke))
                     }
-                } else Modifier).semantics { contentDescription=res.getString(R.string.square_description,square.name.lowercase(),res.getString(squarePieceName(piece)))+
-                    (if(targets.isNotEmpty()) res.getString(R.string.square_legal_suffix) else "")+(if(check) res.getString(R.string.square_check_suffix) else "") }.clickable(enabled=canInteract,role=Role.Button) {
+                } else Modifier).semantics {
+                    // Screen readers say "selected" and "last move" after the square's name. They are part of
+                    // the text: Compose's `selected` is reported as "checked", and stateDescription did not
+                    // reach TalkBack's data reliably in tests.
+                    val states=listOfNotNull(if(selected==square) res.getString(R.string.square_selected) else null,
+                        if(recent) res.getString(R.string.square_last_move) else null)
+                    contentDescription=res.getString(R.string.square_description,square.name.lowercase(),res.getString(squarePieceName(piece)))+
+                    (if(targets.isNotEmpty()) res.getString(R.string.square_legal_suffix) else "")+(if(check) res.getString(R.string.square_check_suffix) else "")+
+                    states.joinToString("") { ", $it" } }.clickable(enabled=canInteract,role=Role.Button) {
                     if(cancelDraft()) selected=null
                     else if(targets.size>1) promotion=targets.map{it.toString()}
                     else if(targets.size==1) {onMove(targets[0].toString());selected=null}

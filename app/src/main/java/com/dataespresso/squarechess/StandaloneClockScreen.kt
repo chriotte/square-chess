@@ -132,7 +132,9 @@ internal fun StandaloneClockScreen(
     var showSetup by rememberSaveable { mutableStateOf(clock.phase == ClockPhase.READY) }
     var showResetConfirmation by remember { mutableStateOf(false) }
     var showSetupConfirmation by remember { mutableStateOf(false) }
-    var rotated by rememberSaveable { mutableStateOf(false) }
+    // Face to face by default: the top panel (White) is turned for the player across the table.
+    var whiteTurned by rememberSaveable { mutableStateOf(true) }
+    var blackTurned by rememberSaveable { mutableStateOf(false) }
     var presetMenu by remember { mutableStateOf(false) }
     var presetLabel by rememberSaveable { mutableStateOf("5+0") }
     var baseMinutes by rememberSaveable { mutableStateOf("5") }
@@ -213,12 +215,13 @@ internal fun StandaloneClockScreen(
         ) {
             TextButton(onClick=onBack) { Text(stringResource(R.string.home_back)) }
             Text(stringResource(R.string.chess_clock),fontSize=19.sp,fontWeight=FontWeight.SemiBold)
-            TextButton(onClick={rotated=!rotated}) { Text(stringResource(if(rotated) R.string.rotate_0 else R.string.rotate_180)) }
+            Spacer(Modifier.width(48.dp))
         }
         ClockSidePanel(
             side=ClockSide.WHITE,
             clock=clock,
-            rotated=rotated,
+            rotated=whiteTurned,
+            onTurn={ whiteTurned=!whiteTurned },
             modifier=Modifier.weight(1f).fillMaxWidth(),
             onPress={
                 when (clock.phase) {
@@ -233,7 +236,8 @@ internal fun StandaloneClockScreen(
         ClockSidePanel(
             side=ClockSide.BLACK,
             clock=clock,
-            rotated=rotated,
+            rotated=blackTurned,
+            onTurn={ blackTurned=!blackTurned },
             modifier=Modifier.weight(1f).fillMaxWidth(),
             onPress={
                 when (clock.phase) {
@@ -394,6 +398,7 @@ private fun ClockSidePanel(
     side: ClockSide,
     clock: ClockState,
     rotated: Boolean,
+    onTurn: () -> Unit,
     modifier: Modifier,
     onPress: () -> Unit
 ) {
@@ -416,9 +421,15 @@ private fun ClockSidePanel(
         horizontalAlignment=Alignment.CenterHorizontally,
         verticalArrangement=Arrangement.Center
     ) {
+        // The turn button turns with the panel, so it stays in its player's top-right corner.
+        val turnDescription=stringResource(if(isWhite) R.string.clock_turn_white else R.string.clock_turn_black)
+        Box(Modifier.fillMaxSize().graphicsLayer { rotationZ=if(rotated) 180f else 0f }) {
+        TextButton(onClick=onTurn,modifier=Modifier.align(Alignment.TopEnd).semantics { contentDescription=turnDescription }) {
+            Text(stringResource(R.string.clock_turn))
+        }
         Column(
             horizontalAlignment=Alignment.CenterHorizontally,
-            modifier=Modifier.graphicsLayer { rotationZ=if(rotated) 180f else 0f }
+            modifier=Modifier.align(Alignment.Center)
         ) {
             Text(stringResource(if(isWhite) R.string.white else R.string.black),fontSize=18.sp,color=if(palette.eink) LocalContentColor.current else palette.accent)
             Text(clockText(remaining),fontSize=48.sp,fontWeight=FontWeight.Bold,fontFamily=FontFamily.Monospace)
@@ -431,6 +442,7 @@ private fun ClockSidePanel(
                 clock.phase==ClockPhase.READY && clock.active==side -> Text(stringResource(R.string.ready_to_start),fontSize=13.sp)
                 clock.phase==ClockPhase.PAUSED && clock.active==side -> Text(stringResource(R.string.paused),fontSize=13.sp)
             }
+        }
         }
     }
     }

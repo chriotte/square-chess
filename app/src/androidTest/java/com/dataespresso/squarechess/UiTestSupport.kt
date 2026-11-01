@@ -40,6 +40,13 @@ private fun appWindows(automation: android.app.UiAutomation): List<Accessibility
         .sortedByDescending { it.layer }.mapNotNull { it.root }
 }
 
+/**
+ * A label matches [text] exactly, or a board square's label with its spoken states after it:
+ * "e4, white pawn" also matches "e4, white pawn, last move".
+ */
+internal fun labelMatches(actual: String?, text: String): Boolean =
+    actual == text || (actual != null && text.contains(", ") && actual.startsWith("$text, "))
+
 internal fun dismissImmersiveModePrompt() {
     val root = activeRoot() ?: return
 

@@ -68,6 +68,18 @@
     <string name="square_description">%1$s, %2$s</string>
     <string name="square_legal_suffix">, legal destination</string>
     <string name="square_check_suffix">, check</string>
+    <string name="square_last_move">last move</string>
+    <string name="square_selected">selected</string>
+    <string name="move_announcement">%1$s played %2$s</string>
+    <string name="move_words">%1$s from %2$s to %3$s</string>
+    <string name="move_words_castle_kingside">kingside castling</string>
+    <string name="move_words_castle_queenside">queenside castling</string>
+    <string name="move_words_promotion">Pawn from %1$s to %2$s, promotes to %3$s</string>
+    <string name="spoken_moves_words">Moves in words for screen readers</string>
+    <string name="spoken_moves_words_help">TalkBack says knight from g1 to f3 instead of Nf3</string>
+    <string name="clock_turn">Turn</string>
+    <string name="clock_turn_white">Turn the White clock</string>
+    <string name="clock_turn_black">Turn the Black clock</string>
 
     <!-- Captured pieces (read by TalkBack) -->
     <string name="captured_description">%1$s captured: %2$s</string>

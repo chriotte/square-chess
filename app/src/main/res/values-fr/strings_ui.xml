@@ -65,6 +65,18 @@
     <string name="square_description">%1$s, %2$s</string>
     <string name="square_legal_suffix">, case accessible</string>
     <string name="square_check_suffix">, échec</string>
+    <string name="square_last_move">dernier coup</string>
+    <string name="square_selected">sélectionné</string>
+    <string name="move_announcement">%1$s a joué %2$s</string>
+    <string name="move_words">%1$s de %2$s à %3$s</string>
+    <string name="move_words_castle_kingside">petit roque</string>
+    <string name="move_words_castle_queenside">grand roque</string>
+    <string name="move_words_promotion">Pion de %1$s à %2$s, promotion en %3$s</string>
+    <string name="spoken_moves_words">Coups en toutes lettres pour la lecture vocale</string>
+    <string name="spoken_moves_words_help">TalkBack dit cavalier de g1 à f3 au lieu de Cf3</string>
+    <string name="clock_turn">Tourner</string>
+    <string name="clock_turn_white">Tourner la pendule des Blancs</string>
+    <string name="clock_turn_black">Tourner la pendule des Noirs</string>
 
     <!-- Captured pieces -->
     <string name="captured_description">Pris par les %1$s : %2$s</string>

@@ -65,6 +65,18 @@
     <string name="square_description">%1$s, %2$s</string>
     <string name="square_legal_suffix">, destino legal</string>
     <string name="square_check_suffix">, jaque</string>
+    <string name="square_last_move">última jugada</string>
+    <string name="square_selected">seleccionado</string>
+    <string name="move_announcement">%1$s jugó %2$s</string>
+    <string name="move_words">%1$s de %2$s a %3$s</string>
+    <string name="move_words_castle_kingside">enroque corto</string>
+    <string name="move_words_castle_queenside">enroque largo</string>
+    <string name="move_words_promotion">Peón de %1$s a %2$s, promociona a %3$s</string>
+    <string name="spoken_moves_words">Jugadas en palabras para lectores de pantalla</string>
+    <string name="spoken_moves_words_help">TalkBack dice caballo de g1 a f3 en lugar de Cf3</string>
+    <string name="clock_turn">Girar</string>
+    <string name="clock_turn_white">Girar el reloj de las blancas</string>
+    <string name="clock_turn_black">Girar el reloj de las negras</string>
 
     <!-- Captured pieces -->
     <string name="captured_description">Capturado por %1$s: %2$s</string>

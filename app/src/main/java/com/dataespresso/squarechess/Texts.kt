@@ -109,6 +109,19 @@ fun hintText(res: Resources, hint: HintMove): HintText {
     return HintText(hint.san, detail, spoken)
 }
 
+/** The last move for screen readers: in words ("Knight from g1 to f3") or as [san] ("Nf3"). */
+fun spokenMove(res: Resources, position: ChessPosition, san: String, words: Boolean): String {
+    val uci = position.moves.lastOrNull() ?: return san
+    if (!words) return san
+    val move = hintMove(ChessPosition(position.initialFen, position.moves.dropLast(1)), uci) ?: return san
+    return when {
+        move.castle == Castle.KINGSIDE -> res.getString(R.string.move_words_castle_kingside)
+        move.castle == Castle.QUEENSIDE -> res.getString(R.string.move_words_castle_queenside)
+        move.promotion != null -> res.getString(R.string.move_words_promotion, move.from, move.to, res.getString(pieceName(move.promotion)))
+        else -> res.getString(R.string.move_words, res.getString(pieceName(move.piece)), move.from, move.to)
+    }
+}
+
 @StringRes fun qualityText(quality: MoveQuality): Int = when (quality) {
     MoveQuality.BEST -> R.string.quality_best
     MoveQuality.GOOD -> R.string.quality_good
