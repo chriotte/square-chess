@@ -22,7 +22,7 @@ class InputDeviceTest {
         // UiAutomation may retain a cached Compose node between content events.
         // Read its current semantics instead of comparing a previous frame.
         if(!node.refresh()) return null
-        if(node.text?.toString()==text || node.contentDescription?.toString()==text) return node
+        if(node.text?.toString()==text || labelMatches(node.contentDescription?.toString(),text)) return node
         for(i in 0 until node.childCount) find(node.getChild(i),text)?.let { return it }
         return null
     }

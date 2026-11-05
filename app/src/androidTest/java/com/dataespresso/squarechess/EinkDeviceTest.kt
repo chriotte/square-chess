@@ -15,7 +15,7 @@ class EinkDeviceTest {
     private val instrumentation=InstrumentationRegistry.getInstrumentation()
     private fun find(node: AccessibilityNodeInfo?, text: String): AccessibilityNodeInfo? {
         if(node==null || !node.refresh()) return null
-        if(node.text?.toString()==text || node.contentDescription?.toString()==text) return node
+        if(node.text?.toString()==text || labelMatches(node.contentDescription?.toString(),text)) return node
         for(i in 0 until node.childCount) find(node.getChild(i),text)?.let { return it }
         return null
     }

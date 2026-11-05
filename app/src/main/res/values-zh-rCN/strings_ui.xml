@@ -63,6 +63,18 @@
     <string name="square_description">%1$s，%2$s</string>
     <string name="square_legal_suffix">，可走</string>
     <string name="square_check_suffix">，被将军</string>
+    <string name="square_last_move">上一步</string>
+    <string name="square_selected">已选择</string>
+    <string name="move_announcement">%1$s走了%2$s</string>
+    <string name="move_words">%1$s从%2$s到%3$s</string>
+    <string name="move_words_castle_kingside">王翼易位</string>
+    <string name="move_words_castle_queenside">后翼易位</string>
+    <string name="move_words_promotion">兵从%1$s到%2$s，升变为%3$s</string>
+    <string name="spoken_moves_words">为读屏软件用文字读出走法</string>
+    <string name="spoken_moves_words_help">TalkBack 读作马从g1到f3，而不是Nf3</string>
+    <string name="clock_turn">旋转</string>
+    <string name="clock_turn_white">旋转白方计时器</string>
+    <string name="clock_turn_black">旋转黑方计时器</string>
 
     <!-- Captured pieces -->
     <string name="captured_description">%1$s吃掉：%2$s</string>

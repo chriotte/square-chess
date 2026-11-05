@@ -55,6 +55,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.TextStyle
@@ -351,6 +353,14 @@ class MainActivity: ComponentActivity() {
                                 val fenFields=s.position.initialFen.split(" ")
                                 val whiteFirst=fenFields.getOrNull(1)!="b"
                                 val firstMoveNumber=fenFields.getOrNull(5)?.toIntOrNull() ?: 1
+                                // Screen readers announce each new move, also the computer's reply.
+                                san.lastOrNull()?.let { last ->
+                                    val whiteMoved=((san.size-1)%2==0)==whiteFirst
+                                    val announcement=stringResource(R.string.move_announcement,
+                                        stringResource(if(whiteMoved) R.string.white else R.string.black),
+                                        spokenMove(resources,s.position,last,prefs.spokenMovesInWords))
+                                    Box(Modifier.size(1.dp).semantics { liveRegion=LiveRegionMode.Polite; contentDescription=announcement })
+                                }
                                 var moveStripShown by remember { mutableStateOf(false) }
                                 val stepReview={ ply: Int -> reviewPly=ply.coerceIn(0,s.position.moves.size) }
                                 GameHeader {

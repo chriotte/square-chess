@@ -39,8 +39,8 @@ android {
         manifestPlaceholders["appLabel"] = if (devBuild) "Square Chess Dev" else "Square Chess"
         minSdk = 26
         targetSdk = 36
-        versionCode = 14
-        versionName = "1.4.1"
+        versionCode = 15
+        versionName = "1.5.0"
         testInstrumentationRunner = if (r8Test) "com.dataespresso.squarechess.smoke.R8SmokeRunner"
             else "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild { cmake { cppFlags += "-std=c++17" } }

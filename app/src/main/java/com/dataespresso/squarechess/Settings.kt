@@ -45,7 +45,9 @@ data class AppSettings(
     /** E-ink dark squares: grey instead of lines. Lines stay sharp in 1-bit fast refresh modes. */
     val einkGreySquares: Boolean = false,
     /** Two-player games: the pieces at the top of the board are drawn upside down. On by default. */
-    val faceToFace: Boolean = true
+    val faceToFace: Boolean = true,
+    /** Screen readers say each new move in words ("Knight from g1 to f3") instead of notation ("Nf3"). */
+    val spokenMovesInWords: Boolean = true
 )
 
 /** Small per-device preferences; saved games stay in Room. */
@@ -59,7 +61,8 @@ class SettingsStore(context: Context) {
         boardTheme = BoardTheme.entries.firstOrNull { it.name == prefs.getString("boardTheme", null) } ?: BoardTheme.GREEN,
         eink = prefs.getBoolean("eink", isKnownEinkDevice()),
         einkGreySquares = prefs.getBoolean("einkGreySquares", false),
-        faceToFace = prefs.getBoolean("faceToFace", true)
+        faceToFace = prefs.getBoolean("faceToFace", true),
+        spokenMovesInWords = prefs.getBoolean("spokenMovesInWords", true)
     )
     fun save(settings: AppSettings) {
         prefs.edit()
@@ -71,6 +74,7 @@ class SettingsStore(context: Context) {
             .putBoolean("eink", settings.eink)
             .putBoolean("einkGreySquares", settings.einkGreySquares)
             .putBoolean("faceToFace", settings.faceToFace)
+            .putBoolean("spokenMovesInWords", settings.spokenMovesInWords)
             .apply()
     }
 }
@@ -121,6 +125,7 @@ class SettingsStore(context: Context) {
             }
         }
         SettingSwitch(stringResource(R.string.face_to_face), stringResource(R.string.face_to_face_help), settings.faceToFace) { onChange(settings.copy(faceToFace = it)) }
+        SettingSwitch(stringResource(R.string.spoken_moves_words), stringResource(R.string.spoken_moves_words_help), settings.spokenMovesInWords) { onChange(settings.copy(spokenMovesInWords = it)) }
     }
     if (languageDialog) AppAlertDialog(onDismissRequest = { languageDialog = false },
         title = { Text(stringResource(R.string.language)) },
