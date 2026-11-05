@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.0 — 1 November 2026
+- Chess clock: each panel has its own Turn button, so both players can read their own time. By default the top panel faces the player across the table.
+- Screen readers: a board square says "selected" and "last move" after its name, and each new move is announced, also the computer's reply.
+- Settings → Moves in words for screen readers: on by default ("White played Knight from g1 to f3"); off gives chess notation ("White played Nf3").
+
 ## 1.4.1 — 3 October 2026
 - Release builds now use R8 code and resource shrinking. The APK is about half the size of the previous release, with the same app features.
 - Added release checks for the optimized app and retained mapping files for crash reports.

@@ -1,0 +1,1 @@
+New: the chess clock panels turn separately, so both players can read their own time. Screen readers now say the selected piece and the last move, and announce each move in words or in chess notation (Settings).
