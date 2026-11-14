@@ -13,3 +13,6 @@ standalone.properties
 *.nnue
 *.hprof
 
+# KOReader plugin: engine binaries and zips are build outputs (koreader/tools/).
+koreader/squarechess.koplugin/bin/
+koreader/dist/
