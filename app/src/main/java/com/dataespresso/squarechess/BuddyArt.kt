@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.painter.Painter
@@ -154,11 +155,6 @@ private object Ink {
 /** Parsed shapes by path text. The figure uses a few hundred distinct paths at most. */
 private val parsedPaths = java.util.concurrent.ConcurrentHashMap<String, Path>()
 
-/** Shoulders sit inside the top corners of the body, hidden behind it. */
-private const val SHOULDER_L = 44f
-private const val SHOULDER_R = 56f
-private const val SHOULDER_Y = 58f
-
 private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color) {
     val ink = if (mono) Color.Black else Ink.line
     /** How much of each motion to draw: 1 while moving, down to 0 as a burst ends. */
@@ -193,10 +189,6 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
     fun painter(p: Painter, x: Float, y: Float, size: Float) {
         with(scope) { translate(x, y) { with(p) { draw(Size(size, size)) } } }
     }
-
-    /** An outlined sleeve from the shoulder at ([sx], SHOULDER_Y) to the hand, bent at [elbow] if given. */
-    fun arm(sx: Float, hx: Float, hy: Float, elbow: Pair<Float, Float>?, thick: Float, fill: Color) =
-        tube(sx, SHOULDER_Y, hx, hy, elbow, thick, fill)
 
     /** An outlined limb from ([x1], [y1]) to ([x2], [y2]). */
     fun tube(x1: Float, y1: Float, x2: Float, y2: Float, elbow: Pair<Float, Float>?, thick: Float, fill: Color) {
@@ -234,6 +226,12 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
             BuddyPose.PANCAKES -> listOf(40f to 68f, 60f to 68f)
         }
         val (lx0, ly0) = arms[0]; val (rx0, ry0) = arms[1]
+        // Shoulders, hidden behind the body: inside the top corners of a rounded body, and at the very
+        // corners of Little Robot's wide box, so the arms leave the body high on its sides.
+        val robot = buddy == Buddy.ROBOT
+        val shoulderL = if (robot) 38f else 44f
+        val shoulderR = if (robot) 62f else 56f
+        val shoulderY = if (robot) 54f else 58f
         val w = if (moving) t else 0f
         /** The hand at ([x], [y]) turned [deg] degrees about the shoulder at ([sx], [sy]). */
         fun swing(sx: Float, sy: Float, x: Float, y: Float, deg: Float): Pair<Float, Float> {
@@ -242,15 +240,15 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
         }
         val armBob = osc(w * 4f) * 1.5f
         val (lx, ly) = when (pose) {
-            BuddyPose.CHEER -> swing(SHOULDER_L, SHOULDER_Y, lx0, ly0, osc(w * 5f) * 12f)
+            BuddyPose.CHEER -> swing(shoulderL, shoulderY, lx0, ly0, osc(w * 5f) * 12f)
             BuddyPose.SHRUG -> lx0 to ly0 + osc(w * 3f) * 2f
             BuddyPose.PANCAKES -> lx0 to ly0 + armBob
             else -> lx0 to ly0
         }
         val (rx, ry) = when (pose) {
-            BuddyPose.WAVE -> swing(SHOULDER_R, SHOULDER_Y, rx0, ry0, osc(w * 7f) * 24f)
-            BuddyPose.CHEER -> swing(SHOULDER_R, SHOULDER_Y, rx0, ry0, -osc(w * 5f) * 12f)
-            BuddyPose.EUREKA -> swing(SHOULDER_R, SHOULDER_Y, rx0, ry0, osc(w * 3f) * 6f)
+            BuddyPose.WAVE -> swing(shoulderR, shoulderY, rx0, ry0, osc(w * 7f) * 24f)
+            BuddyPose.CHEER -> swing(shoulderR, shoulderY, rx0, ry0, -osc(w * 5f) * 12f)
+            BuddyPose.EUREKA -> swing(shoulderR, shoulderY, rx0, ry0, osc(w * 3f) * 6f)
             BuddyPose.SHRUG -> rx0 to ry0 + osc(w * 3f) * 2f
             BuddyPose.PANCAKES -> rx0 to ry0 + armBob
             else -> rx0 to ry0
@@ -305,15 +303,16 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
             if (buddy != Buddy.BOB) {
                 val sleeve = if (buddy == Buddy.MONKEY || buddy == Buddy.SLOTH) skin else shirt
                 val thick = if (buddy == Buddy.ROBOT) 6f else 5f
-                arm(SHOULDER_L, lx, ly, null, thick, f(sleeve))
-                if (pose == BuddyPose.THINK) arm(SHOULDER_R, rx, ry, 68f to 66f, thick, f(sleeve))
-                else arm(SHOULDER_R, rx, ry, null, thick, f(sleeve))
+                tube(shoulderL, shoulderY, lx, ly, null, thick, f(sleeve))
+                tube(shoulderR, shoulderY, rx, ry, if (pose == BuddyPose.THINK) 68f to 66f else null, thick, f(sleeve))
             }
             // Body.
             when (buddy) {
                 Buddy.ROBOT -> {
                     rect(36f, 50f, 28f, 31f, 2f, f(skin))
                     rect(42f, 56f, 16f, 11f, 1.5f, dark(Color(0xFF22304A)))
+                    // Bolts where the arms join.
+                    circle(shoulderL, shoulderY, 2.2f, f(Color(0xFF6E767D)), 1.2f); circle(shoulderR, shoulderY, 2.2f, f(Color(0xFF6E767D)), 1.2f)
                     // The chest light glows on and off while Little Robot waits.
                     val glow = if (moving && pose != BuddyPose.CRY && !jumping) 1f - 0.45f * amp * (1f - abs(sin(t * 2f))) else 1f
                     circle(50f, 61.5f, 2.8f, if (mono) Color.White else light, stroke = 0f, alpha = glow)
@@ -342,8 +341,15 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
             }
             if (buddy == Buddy.MAGNUS) { ellipse(40f, 55f, 5f, 3.5f, f(Ink.red)); ellipse(60f, 55f, 5f, 3.5f, f(Ink.red)) }
             when (outfit[Slot.NECK]) {
-                Item.SCARF -> { rect(39f, 49f, 22f, 6f, 3f, f(Color(0xFFE0A23C))); d("M56 54 L58 66 L52 65Z", f(Color(0xFFE0A23C))) }
-                Item.AMULET -> {
+                Item.SCARF -> if (robot) {
+                    // Wrapped round the gap between his head and his box, the end hanging beside the chest screen.
+                    rect(35f, 47.5f, 30f, 7.5f, 3f, f(Color(0xFFE0A23C))); d("M58 54 L62 69 L55 68Z", f(Color(0xFFE0A23C)))
+                } else { rect(39f, 49f, 22f, 6f, 3f, f(Color(0xFFE0A23C))); d("M56 54 L58 66 L52 65Z", f(Color(0xFFE0A23C))) }
+                Item.AMULET -> if (robot) {
+                    // A gold chain past the chest screen, so the amulet hangs below it, not on it.
+                    line("M39 51 Q38 74 50 74 Q62 74 61 51", 1.4f, if (mono) ink else Ink.gold)
+                    circle(50f, 74f, 4.2f, f(Ink.gold)); circle(50f, 74f, 1.7f, dark(Color(0xFF2EC4D6)), stroke = 0f)
+                } else {
                     line("M42 51 Q50 60 58 51", 1.3f)
                     circle(50f, 58f, 4f, f(Ink.gold)); circle(50f, 58f, 1.6f, dark(Color(0xFF2EC4D6)), stroke = 0f)
                 }
@@ -388,10 +394,16 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
                 }
             }
             if (outfit[Slot.FACE] == Item.SUNGLASSES) {
-                line("M${eyes[0] - 6} ${eyeY - 2} L${eyes[1] + 6} ${eyeY - 2}")
-                rect(eyes[0] - 5.5f, eyeY - 3f, 11f, 7f, 2.5f, ink); rect(eyes[1] - 5.5f, eyeY - 3f, 11f, 7f, 2.5f, ink)
+                // On Little Robot's dark visor the frame is light, or the glasses would vanish.
+                val frame = if (!robot) ink else if (mono) Color.White else Color(0xFFDDE3EE)
+                line("M${eyes[0] - 6} ${eyeY - 2} L${eyes[1] + 6} ${eyeY - 2}", color = frame)
+                listOf(eyes[0], eyes[1]).forEach { x ->
+                    shape(Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(Rect(x - 5.5f, eyeY - 3f, x + 5.5f, eyeY + 4f), androidx.compose.ui.geometry.CornerRadius(2.5f, 2.5f))) },
+                        if (mono) Color.Black else Color(0xFF15181C), strokeColor = frame)
+                    if (robot && !mono) line("M${x - 3} ${eyeY - 1} l2.2 0", 1.1f, Color.White, 0.8f)
+                }
             }
-            drawHat(if (magnusCrown) null else head, magnusCrown, top)
+            drawHat(if (magnusCrown) null else head, magnusCrown, top, robot)
             if (pose == BuddyPose.CRY) {
                 val tear = if (mono) Color.White else Color(0xFF6EC6F0)
                 eyes.forEachIndexed { i, x ->
@@ -434,7 +446,13 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
         drawPet(outfit[Slot.PET], petPiece, w)
     }
 
-    private fun drawHat(head: Item?, magnusCrown: Boolean, top: Float) {
+    /** Hats are drawn for a round head; Little Robot's box head is wider, so they are widened to fit it. */
+    private fun drawHat(head: Item?, magnusCrown: Boolean, top: Float, robot: Boolean) {
+        if (robot && head != Item.ADMIRAL_HAT) scope.scale(1.24f, 1f, Offset(50f, top)) { drawHatShape(head, magnusCrown, top, robot) }
+        else drawHatShape(head, magnusCrown, top, robot)
+    }
+
+    private fun drawHatShape(head: Item?, magnusCrown: Boolean, top: Float, robot: Boolean) {
         val t = top
         if (magnusCrown) {
             d("M38 ${t + 2} L39 ${t - 10} L45 ${t - 4} L50 ${t - 12} L55 ${t - 4} L61 ${t - 10} L62 ${t + 2}Z", f(Ink.gold))
@@ -442,7 +460,8 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
             return
         }
         when (head) {
-            Item.BEANIE -> { d("M33 ${t + 12} Q33 ${t - 6} 50 ${t - 6} Q67 ${t - 6} 67 ${t + 12}Z", f(Color(0xFF4E9A5B))); circle(50f, t - 8, 3.5f, f(Color(0xFFF3EEDF))) }
+            Item.BEANIE -> { val b = if (robot) t + 5 else t + 12
+                d("M33 $b Q33 ${t - 6} 50 ${t - 6} Q67 ${t - 6} 67 ${b}Z", f(Color(0xFF4E9A5B))); circle(50f, t - 8, 3.5f, f(Color(0xFFF3EEDF))) }
             Item.PARTY_HAT -> { d("M42 ${t + 1} L50 ${t - 20} L58 ${t + 1}Z", f(Color(0xFFE0812C))); circle(50f, t - 21, 2.5f, f(Color(0xFFF2C14E))) }
             Item.CROWN -> d("M39 ${t + 2} L41 ${t - 9} L46 ${t - 3} L50 ${t - 11} L54 ${t - 3} L59 ${t - 9} L61 ${t + 2}Z", f(Color(0xFFF2C14E)))
             Item.WIZARD_HAT -> {
