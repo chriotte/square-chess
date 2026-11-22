@@ -15,7 +15,9 @@
 </tr>
 </table>
 
-<a href="https://play.google.com/store/apps/details?id=com.dataespresso.squarechess"><img src="docs/images/badges/google-play.png" alt="Get it on Google Play" height="64"></a> <a href="https://github.com/chriotte/square-chess/releases/latest"><img src="docs/images/badges/github.png" alt="Get the latest APK on GitHub" height="64"></a> <a href="https://f-droid.org/packages/com.dataespresso.squarechess/"><img src="docs/images/badges/f-droid.png" alt="Get it on F-Droid" height="64"></a>
+<a href="https://play.google.com/store/apps/details?id=com.dataespresso.squarechess"><img src="docs/images/badges/google-play.png" alt="Get it on Google Play" height="64"></a> <a href="https://github.com/chriotte/square-chess/releases/latest"><img src="docs/images/badges/github.png" alt="Get the latest APK on GitHub" height="64"></a> <a href="https://f-droid.org/packages/com.dataespresso.squarechess/"><img src="docs/images/badges/f-droid.png" alt="Get it on F-Droid" height="64"></a> <a href="https://github.com/chriotte/squarechess.koplugin"><img src="docs/images/badges/koreader.png" alt="Get it for KOReader" height="64"></a>
+
+The KOReader badge leads to the same game for e-readers that cannot run Android apps: jailbroken Kindles, Kobo, PocketBook and reMarkable.
 
 ## Why Square Chess?
 
@@ -57,6 +59,7 @@ See the [privacy policy](PRIVACY_POLICY.md).
 - **Google Play:** [Square Chess on Google Play](https://play.google.com/store/apps/details?id=com.dataespresso.squarechess)
 - **GitHub:** [Download the latest release](https://github.com/chriotte/square-chess/releases/latest) — signed APK with its SHA-256 checksum
 - **F-Droid:** [Square Chess on F-Droid](https://f-droid.org/packages/com.dataespresso.squarechess/)
+- **E-readers (KOReader):** [Square Chess for KOReader](https://github.com/chriotte/squarechess.koplugin) — for jailbroken Kindles, Kobo, PocketBook and reMarkable, which cannot run Android apps
 
 Google Play and GitHub/F-Droid builds are signed with different keys, so they cannot update one another directly.
 
@@ -78,6 +81,12 @@ It is developed and tested on the **Unihertz Titan 2 Elite** and an **Onyx Boox 
 It also works on conventional Android phones and tablets.
 
 See the [device testing plan](docs/testing/test-plan.md).
+
+### E-readers that cannot run Android
+
+Kindles, Kobo, PocketBook and reMarkable run Linux rather than Android, so the app cannot be installed on them. **[Square Chess for KOReader](https://github.com/chriotte/squarechess.koplugin)** is a port of it as a [KOReader](https://koreader.rocks) plugin, with the same engine and levels, the same 10,000 puzzles and the same e-ink board. It adds a chess clock for games on a real board, and takes pen input as well as touch.
+
+It is developed in [koreader/](koreader/) in this repository and published from that one, where you can install it from a release zip, from the Storefront plugin store on the device, or on a jailbroken Kindle with `kpm install squarechess`.
 
 ## Building from source
 

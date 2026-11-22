@@ -1,0 +1,18 @@
+{
+  "manifest_version": 2,
+  "id": "squarechess",
+  "name": "Square Chess",
+  "author": "chriotte",
+  "description": "Offline chess for KOReader: Fairy-Stockfish at ten levels, two players on one device, 10,000 puzzles and a chess clock, drawn for e-ink.",
+  "version": [
+    1,
+    0,
+    0
+  ],
+  "dependencies": [
+    {
+      "id": "koreader"
+    }
+  ],
+  "supported_platforms": null
+}
