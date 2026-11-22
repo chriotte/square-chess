@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.0 — unreleased
+- Playful extras (Settings, off by default): colourful worlds (Forest, Banana Jungle, Ocean and Space) that colour the board and the screens, and a buddy to choose: Little Robot, Magnus, the Girl, the Princess, Monkey, Sloth or Bob. The buddy cheers when you solve a puzzle, cries and says "try again" after a wrong move, and on bigger screens comments on games against the computer ("The computer played Nf3. Your move."). It sits beside or below the board and never makes the board smaller.
+- Stickers for things you do (your first checkmate, puzzle streaks, winning against higher levels and more) unlock hats, things to hold, pets (every chess piece, the Lava Monster, Little Frosty and more) and other items. Magnus, the Girl and the Princess can have their skin tone and hair colour chosen; colours are never locked. "Unlock all items" lets you wear everything at once.
+- Home on colour screens: tiles instead of a long list, a Continue card with the board, and your recent games. E-ink devices keep the plain list.
+- Set up a position (Home, or "Set up from this position" in the game menu): place and remove pieces, choose who moves first, then play it against the computer or over the board.
+- E-ink mode is unchanged: no worlds, the buddy in black and white without animation.
+- Help & About: a link to squarechess.org.
+- Fix: switching e-ink mode on, off and on again closed the app.
+
 ## 1.5.0 — 1 November 2026
 - Chess clock: each panel has its own Turn button, so both players can read their own time. By default the top panel faces the player across the table.
 - Screen readers: a board square says "selected" and "last move" after its name, and each new move is announced, also the computer's reply.
