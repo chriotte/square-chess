@@ -10,7 +10,9 @@
     0
   ],
   "dependencies": [
-    "koreader"
+    {
+      "id": "koreader"
+    }
   ],
   "supported_platforms": null
 }
