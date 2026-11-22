@@ -65,9 +65,13 @@ class PlayroomDeviceTest {
             assertNotNull("Buddy hello",node("Beep boop. That means hello."))
             // The finished game earned stickers that are new until the buddy screen is opened.
             assertNotNull("New sticker",node("New sticker: First game"))
-            // The list sits below the menu; finding it scrolls down, so it comes last on Home.
-            assertNotNull("Recent games heading",node("RECENT GAMES"))
-            assertNotNull("Recent game",node("You won · Level 3"))
+            // Recent games sit at the bottom and scroll sideways. Swipe the page up by hand: the shared
+            // scroll helper would also scroll the sideways row and move the first game out of view.
+            val metrics=context.resources.displayMetrics
+            val x=metrics.widthPixels/2; val from=metrics.heightPixels*8/10; val to=metrics.heightPixels*2/10
+            repeat(4) { instrumentation.uiAutomation.executeShellCommand("input swipe $x $from $x $to 300").close(); SystemClock.sleep(600) }
+            assertNotNull("Recent games heading",node("RECENT GAMES",timeoutMs=1_900))
+            assertNotNull("Recent game",node("You won · Level 3",timeoutMs=1_900))
         }
         ActivityScenario.launch(MainActivity::class.java).use {
             tap("Beep boop. That means hello.")

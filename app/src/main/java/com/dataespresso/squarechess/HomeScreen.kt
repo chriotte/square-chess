@@ -101,7 +101,7 @@ class HomeActions(
     }
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         SmallTile(stringResource(R.string.record_physical_game), Modifier.weight(1f), actions.onRecord) { PieceIcon(Piece.BLACK_BISHOP, 28.dp) }
-        SmallTile(stringResource(R.string.chess_clock), Modifier.weight(1f), actions.onClock) { ClockIcon() }
+        SmallTile(stringResource(R.string.chess_clock), Modifier.weight(1f), actions.onClock, stringResource(R.string.chess_clock_subtitle)) { ClockIcon() }
     }
 }
 
@@ -150,7 +150,7 @@ class HomeActions(
 }
 
 /** An occasional option: an icon and its name on one line. */
-@Composable private fun SmallTile(title: String, modifier: Modifier, onClick: () -> Unit, icon: @Composable () -> Unit) {
+@Composable private fun SmallTile(title: String, modifier: Modifier, onClick: () -> Unit, subtitle: String? = null, icon: @Composable () -> Unit) {
     val palette = LocalPalette.current
     Row(
         modifier.heightIn(min = 56.dp).clip(RoundedCornerShape(14.dp)).card(palette).clickable(role = Role.Button, onClick = onClick)
@@ -159,7 +159,10 @@ class HomeActions(
     ) {
         icon()
         Spacer(Modifier.width(8.dp))
-        Text(title, fontSize = 14.sp, fontWeight = FontWeight.Medium, lineHeight = 17.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Column {
+            Text(title, fontSize = 14.sp, fontWeight = FontWeight.Medium, lineHeight = 17.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            subtitle?.let { Text(it, fontSize = 11.sp, lineHeight = 13.sp, color = palette.muted, maxLines = 2, overflow = TextOverflow.Ellipsis) }
+        }
     }
 }
 
