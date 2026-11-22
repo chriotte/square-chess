@@ -65,15 +65,16 @@ class PlayroomDeviceTest {
             assertNotNull("Buddy hello",node("Beep boop. That means hello."))
             // The finished game earned stickers that are new until the buddy screen is opened.
             assertNotNull("New sticker",node("New sticker: First game"))
-            if(context.resources.configuration.screenHeightDp>=700) {
-                assertNotNull("Recent games heading",node("RECENT GAMES"))
-                assertNotNull("Recent game",node("You won · Level 3"))
-            }
+            // The list sits below the menu; finding it scrolls down, so it comes last on Home.
+            assertNotNull("Recent games heading",node("RECENT GAMES"))
+            assertNotNull("Recent game",node("You won · Level 3"))
+        }
+        ActivityScenario.launch(MainActivity::class.java).use {
             tap("Beep boop. That means hello.")
             assertNotNull(node("Your buddy"))
             assertNotNull(node("Grey, boxy and pancake-powered."))
             // Last: finding it scrolls the screen down to the sticker book.
-            assertNotNull(node("STICKER BOOK"))
+            assertNotNull(node("STICKER BOOK",timeoutMs=40_000))
         }
         // Opening the buddy screen marked the stickers as seen.
         val seen=SettingsStore(context).load().seenStickers

@@ -55,8 +55,13 @@ data class AppSettings(
     val buddy: Buddy = Buddy.ROBOT,
     val outfit: Outfit = Outfit(),
     /** Stickers the player has already been told about. */
-    val seenStickers: Set<Sticker> = emptySet()
+    val seenStickers: Set<Sticker> = emptySet(),
+    /** Every item can be worn without its sticker. Stickers are still earned and counted as usual. */
+    val unlockAll: Boolean = false
 )
+
+/** The stickers that decide which items can be worn: all of them with Unlock all items on. */
+fun AppSettings.wearable(earned: Set<Sticker>): Set<Sticker> = if (unlockAll) Sticker.entries.toSet() else earned
 
 /** The board's square colours: the world's own, or the chosen board colours in Classic. */
 val AppSettings.lightSquare: Color get() = if (world == World.CLASSIC) boardTheme.light else world.light
@@ -79,7 +84,8 @@ class SettingsStore(context: Context) {
         playful = prefs.getBoolean("playful", false),
         buddy = Buddy.entries.firstOrNull { it.name == prefs.getString("buddy", null) } ?: Buddy.ROBOT,
         outfit = Outfit.decode(prefs.getString("outfit", null)),
-        seenStickers = decodeStickers(prefs.getString("seenStickers", null))
+        seenStickers = decodeStickers(prefs.getString("seenStickers", null)),
+        unlockAll = prefs.getBoolean("unlockAll", false)
     )
     fun save(settings: AppSettings) {
         prefs.edit()
@@ -97,6 +103,7 @@ class SettingsStore(context: Context) {
             .putString("buddy", settings.buddy.name)
             .putString("outfit", settings.outfit.encode())
             .putString("seenStickers", encodeStickers(settings.seenStickers))
+            .putBoolean("unlockAll", settings.unlockAll)
             .apply()
     }
 }
@@ -214,7 +221,7 @@ class SettingsStore(context: Context) {
     }
 }
 
-@Composable private fun SettingSwitch(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+@Composable internal fun SettingSwitch(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(
         Modifier.fillMaxWidth().clickable(role = Role.Switch) { onChange(!checked) }.padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically

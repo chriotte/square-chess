@@ -193,4 +193,22 @@
     <string name="line_bob_gg">好棋。我已经在计划再战了。</string>
     <string name="line_bob_hint">一边眉毛扬起来了。我有个主意。</string>
     <string name="line_bob_think">两边眉毛都去探险了。思考中。</string>
+    <string name="unlock_all_title">解锁全部物品</string>
+    <string name="unlock_all_help">现在就能穿戴任何物品。贴纸仍需通过下棋获得。</string>
+    <string name="item_locked_title">%1$s 未解锁</string>
+    <string name="item_locked_need">获得“%1$s”贴纸：%2$s</string>
+    <string name="game_your_move">轮到你了。玩得开心！</string>
+    <string name="game_computer_played">电脑走了 %1$s。轮到你了。</string>
+    <string name="game_in_check">你的王被将军了！找一步安全的棋。</string>
+    <string name="game_check_given">将军！走得好。</string>
+    <string name="game_capture">吃得漂亮！</string>
+    <string name="game_mistake">嗯，这步棋送掉了一些东西。继续加油！</string>
+    <string name="line_robot_nice">好棋。值得一个煎饼。</string>
+    <string name="line_magnus_nice">了不起的一步！</string>
+    <string name="line_girl_nice">走得好！</string>
+    <string name="line_princess_nice">王者之棋！</string>
+    <string name="line_monkey_nice">呜呜，好棋！</string>
+    <string name="line_sloth_nice">好……棋。很……猴子。</string>
+    <string name="line_bob_nice">好棋。我的眉毛表示赞同。</string>
+    <string name="recent_all_games">全部对局 ›</string>
 </resources>

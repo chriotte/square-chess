@@ -193,4 +193,22 @@
     <string name="line_bob_gg">Buena partida. Ya estoy planeando la revancha.</string>
     <string name="line_bob_hint">Una ceja está arriba. Tengo una idea.</string>
     <string name="line_bob_think">Las dos cejas se han ido a explorar. Pensando.</string>
+    <string name="unlock_all_title">Desbloquear todo</string>
+    <string name="unlock_all_help">Ponte cualquier cosa ya. Las pegatinas se siguen consiguiendo jugando.</string>
+    <string name="item_locked_title">%1$s está bloqueado</string>
+    <string name="item_locked_need">Consigue la pegatina %1$s: %2$s</string>
+    <string name="game_your_move">Te toca. ¡Diviértete!</string>
+    <string name="game_computer_played">El ordenador jugó %1$s. Te toca.</string>
+    <string name="game_in_check">¡Tu rey está en jaque! Busca una jugada segura.</string>
+    <string name="game_check_given">¡Jaque! Muy bien.</string>
+    <string name="game_capture">¡Buena captura!</string>
+    <string name="game_mistake">Mmm, con esa jugada regalaste algo. ¡Sigue adelante!</string>
+    <string name="line_robot_nice">Buena jugada. Digna de una tortita.</string>
+    <string name="line_magnus_nice">¡Una jugada magnífica!</string>
+    <string name="line_girl_nice">¡Buena jugada!</string>
+    <string name="line_princess_nice">¡Una jugada real!</string>
+    <string name="line_monkey_nice">¡Uh uh, buena jugada!</string>
+    <string name="line_sloth_nice">Buena… jugada. Muy… de mono.</string>
+    <string name="line_bob_nice">Buena jugada. Mis cejas lo aprueban.</string>
+    <string name="recent_all_games">Todas las partidas ›</string>
 </resources>

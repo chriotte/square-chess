@@ -193,4 +193,22 @@
     <string name="line_bob_gg">Belle partie. Je prépare déjà la revanche.</string>
     <string name="line_bob_hint">Un sourcil est levé. J’ai une idée.</string>
     <string name="line_bob_think">Les deux sourcils partent en exploration. Je réfléchis.</string>
+    <string name="unlock_all_title">Tout débloquer</string>
+    <string name="unlock_all_help">Portez n’importe quel objet dès maintenant. Les autocollants s’obtiennent toujours en jouant.</string>
+    <string name="item_locked_title">%1$s est verrouillé</string>
+    <string name="item_locked_need">Obtenez l’autocollant %1$s : %2$s</string>
+    <string name="game_your_move">À toi de jouer. Amuse-toi bien !</string>
+    <string name="game_computer_played">L’ordinateur a joué %1$s. À toi de jouer.</string>
+    <string name="game_in_check">Ton roi est en échec ! Trouve un coup sûr.</string>
+    <string name="game_check_given">Échec ! Bien joué.</string>
+    <string name="game_capture">Belle prise !</string>
+    <string name="game_mistake">Hmm, ce coup a donné quelque chose. Continue !</string>
+    <string name="line_robot_nice">Bon coup. Digne d’une crêpe.</string>
+    <string name="line_magnus_nice">Un coup magnifique !</string>
+    <string name="line_girl_nice">Joli coup !</string>
+    <string name="line_princess_nice">Un coup royal !</string>
+    <string name="line_monkey_nice">Ouh ouh, joli coup !</string>
+    <string name="line_sloth_nice">Joli… coup. Très… singe.</string>
+    <string name="line_bob_nice">Bon coup. Mes sourcils approuvent.</string>
+    <string name="recent_all_games">Toutes les parties ›</string>
 </resources>

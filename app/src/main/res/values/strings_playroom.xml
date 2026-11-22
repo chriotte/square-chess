@@ -209,4 +209,22 @@
     <string name="line_bob_gg">Good game. I am already planning the rematch.</string>
     <string name="line_bob_hint">One eyebrow is up. I have an idea.</string>
     <string name="line_bob_think">Both eyebrows are exploring. Thinking.</string>
+    <string name="unlock_all_title">Unlock all items</string>
+    <string name="unlock_all_help">Wear any item now. Stickers are still earned by playing.</string>
+    <string name="item_locked_title">%1$s is locked</string>
+    <string name="item_locked_need">Earn the %1$s sticker: %2$s</string>
+    <string name="game_your_move">Your move. Have fun!</string>
+    <string name="game_computer_played">The computer played %1$s. Your move.</string>
+    <string name="game_in_check">Your king is in check! Find a safe move.</string>
+    <string name="game_check_given">Check! Nice one.</string>
+    <string name="game_capture">Nice capture!</string>
+    <string name="game_mistake">Hmm, that one gave something away. Keep going!</string>
+    <string name="line_robot_nice">Good move. Pancake-worthy.</string>
+    <string name="line_magnus_nice">A magnificent move!</string>
+    <string name="line_girl_nice">Nice one!</string>
+    <string name="line_princess_nice">A royal move!</string>
+    <string name="line_monkey_nice">Ooh ooh, nice move!</string>
+    <string name="line_sloth_nice">Nice… move. Very… monkey.</string>
+    <string name="line_bob_nice">Good move. My eyebrows approve.</string>
+    <string name="recent_all_games">All games ›</string>
 </resources>

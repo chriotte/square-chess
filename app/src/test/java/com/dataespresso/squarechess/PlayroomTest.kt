@@ -190,3 +190,40 @@ class WorldPaletteTest {
         World.entries.forEach { world -> assertTrue("$world", contrast(world.light, world.dark) >= 2f) }
     }
 }
+
+class GameRemarkTest {
+    private fun ui(moves: String, humanWhite: Boolean = true, result: String = "*", mode: GameMode = GameMode.COMPUTER, evals: Map<Int, Eval> = emptyMap()): GameUi {
+        val list = moves.split(' ').filter(String::isNotBlank)
+        return GameUi(game = game(moves, result, mode = mode, humanWhite = humanWhite), position = ChessPosition(START_FEN, list), evals = evals)
+    }
+
+    @Test fun onlyInComputerGames() {
+        assertNull(gameRemark(ui("e2e4", mode = GameMode.LOCAL_TWO_PLAYER)))
+        assertEquals(GameRemark.YOUR_MOVE, gameRemark(ui("")))
+        assertEquals(GameRemark.THINKING, gameRemark(ui("", humanWhite = false)))
+    }
+
+    @Test fun thePlayersMoveThenTheComputersReply() {
+        assertEquals(GameRemark.THINKING, gameRemark(ui("e2e4")))
+        assertEquals(GameRemark.COMPUTER_MOVED, gameRemark(ui("e2e4 e7e5")))
+        // 3. Bxf7+ is a capture with check: check wins.
+        assertEquals(GameRemark.CHECK_GIVEN, gameRemark(ui("e2e4 e7e5 f1c4 b8c6 c4f7")))
+        assertEquals(GameRemark.CAPTURE, gameRemark(ui("e2e4 d7d5 e4d5")))
+    }
+
+    @Test fun checkAgainstThePlayer() {
+        assertEquals(GameRemark.IN_CHECK, gameRemark(ui("f2f3 e7e6 e2e3 d8h4")))
+    }
+
+    @Test fun theEvaluationPraisesOrWarns() {
+        val good = mapOf(0 to Eval(20), 1 to Eval(30))
+        assertEquals(GameRemark.NICE_MOVE, gameRemark(ui("e2e4", evals = good)))
+        val bad = mapOf(0 to Eval(20), 1 to Eval(-600))
+        assertEquals(GameRemark.MISTAKE, gameRemark(ui("g2g4", evals = bad)))
+    }
+
+    @Test fun theEnd() {
+        assertEquals(GameRemark.WON, gameRemark(ui(SCHOLARS_MATE, result = "1-0")))
+        assertEquals(GameRemark.GOOD_GAME, gameRemark(ui(FOOLS_MATE, result = "0-1")))
+    }
+}

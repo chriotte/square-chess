@@ -1,6 +1,17 @@
 package com.dataespresso.squarechess
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathOperation
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,7 +32,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -30,6 +40,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -57,7 +69,7 @@ import com.github.bhlangonijr.chesslib.Square
             .semantics(mergeDescendants = true) {},
         verticalAlignment = Alignment.CenterVertically
     ) {
-        BuddyFigure(settings.buddy, settings.outfit.allowed(earned), BuddyPose.WAVE, Modifier.size(64.dp, 84.dp), mono = palette.eink,
+        BuddyFigure(settings.buddy, settings.outfit.allowed(settings.wearable(earned)), BuddyPose.WAVE, Modifier.size(64.dp, 84.dp), mono = palette.eink,
             description = name)
         Spacer(Modifier.width(8.dp))
         Column(Modifier.weight(1f)) {
@@ -68,94 +80,116 @@ import com.github.bhlangonijr.chesslib.Square
     }
 }
 
+/** Where a speech bubble's tail points: at a buddy to its left, or at one below it. */
+enum class BubbleTail { LEFT, BOTTOM }
+
 /**
- * The buddy's reaction to a puzzle move or a game, with its line. Read once, not as a live region.
- * [large] stacks a bigger figure above the line, for the wide space beside a board on tablets.
+ * The buddy's reaction to a puzzle move or a game. The buddy stands on the screen itself and
+ * speaks in a bubble, so it belongs to the board screen instead of sitting in a box. [large]
+ * puts a bigger buddy under its bubble, for the space beside a board on tablets. Read on request,
+ * not as a live region: the header and the move announcements already speak.
  */
 @Composable fun BuddyReaction(settings: AppSettings, earned: Set<Sticker>, moment: BuddyMoment, modifier: Modifier = Modifier,
-                              extra: String? = null, large: Boolean = false) {
+                              extra: String? = null, large: Boolean = false, text: String? = null,
+                              bubbleColor: Color = LocalPalette.current.card, maxHeight: Dp? = null) {
     val palette = LocalPalette.current
-    val line = stringResource(buddyLine(settings.buddy, moment))
+    val line = text ?: stringResource(buddyLine(settings.buddy, moment))
     val name = stringResource(settings.buddy.label)
-    val outfit = settings.outfit.allowed(earned)
+    val outfit = settings.outfit.allowed(settings.wearable(earned))
     val pose = buddyPose(settings.buddy, moment)
     val semantics = Modifier.clearAndSetSemantics { contentDescription = listOfNotNull("$name: $line", extra).joinToString(". ") }
-    if (large) Column(
-        modifier.clip(RoundedCornerShape(12.dp)).card(palette).padding(12.dp).then(semantics),
-        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        BuddyFigure(settings.buddy, outfit, pose, Modifier.fillMaxWidth().widthIn(max = 180.dp).aspectRatio(100f / 130f), mono = palette.eink)
-        Text(line, fontSize = 17.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
-        extra?.let { Text(it, fontSize = 13.sp, color = palette.muted, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center) }
-    } else Row(
-        modifier.clip(RoundedCornerShape(12.dp)).card(palette).padding(start = 4.dp, end = 12.dp, top = 4.dp, bottom = 4.dp).then(semantics),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        BuddyFigure(settings.buddy, outfit, pose, Modifier.size(72.dp, 94.dp), mono = palette.eink)
-        Spacer(Modifier.width(6.dp))
-        Column(Modifier.weight(1f, fill = false)) {
-            Text(line, fontSize = 15.sp, fontWeight = FontWeight.Medium)
-            extra?.let { Text(it, fontSize = 12.sp, color = palette.muted, fontWeight = FontWeight.Bold) }
-        }
+    if (large) Column(modifier.then(semantics), horizontalAlignment = Alignment.CenterHorizontally) {
+        SpeechBubble(line, extra, BubbleTail.BOTTOM, bubbleColor, Modifier.fillMaxWidth(), large = true)
+        // Width first, then the height left under the bubble, so the figure never runs off the screen.
+        val figureHeight = maxHeight?.let { (it - 90.dp).coerceIn(80.dp, 221.dp) } ?: 221.dp
+        BuddyFigure(settings.buddy, outfit, pose, Modifier.widthIn(max = 170.dp).fillMaxWidth().aspectRatio(100f / 130f).heightIn(max = figureHeight),
+            mono = palette.eink)
+    } else Row(modifier.then(semantics), verticalAlignment = Alignment.CenterVertically) {
+        BuddyFigure(settings.buddy, outfit, pose, Modifier.size(80.dp, 104.dp), mono = palette.eink)
+        SpeechBubble(line, extra, BubbleTail.LEFT, bubbleColor, Modifier.weight(1f, fill = false), large = false)
     }
 }
 
 /**
- * Places [menu], and [extra] under it only when it fits in [available] height without scrolling.
- * [extra] is told how much height is left, so it can size itself to that. Small screens therefore
- * look exactly as before.
+ * Words in a bubble with a tail. It pops in a little when the words change, except on e-paper,
+ * where every animation frame would be a screen refresh.
  */
-@Composable fun MenuWithOptionalExtra(available: Dp, gap: Dp, menu: @Composable () -> Unit, extra: @Composable (Dp) -> Unit) {
-    SubcomposeLayout { constraints ->
-        val loose = constraints.copy(minHeight = 0)
-        val menuPlaceables = subcompose("menu", menu).map { it.measure(loose) }
-        val menuHeight = menuPlaceables.maxOfOrNull { it.height } ?: 0
-        val gapPx = gap.roundToPx()
-        val left = available.roundToPx() - menuHeight - gapPx
-        val extraPlaceables = if (left > 0) subcompose("extra") { extra(left.toDp()) }.map { it.measure(loose) } else emptyList()
-        val extraHeight = extraPlaceables.maxOfOrNull { it.height } ?: 0
-        val fits = extraHeight in 1..left
-        layout(constraints.maxWidth, if (fits) menuHeight + gapPx + extraHeight else menuHeight) {
-            menuPlaceables.forEach { it.place(0, 0) }
-            if (fits) extraPlaceables.forEach { it.place(0, menuHeight + gapPx) }
-        }
+@Composable fun SpeechBubble(text: String, extra: String?, tail: BubbleTail, color: Color, modifier: Modifier = Modifier, large: Boolean = false) {
+    val palette = LocalPalette.current
+    val eink = palette.eink
+    val scale = remember { Animatable(1f) }
+    val animate = !eink && animationsOn()
+    LaunchedEffect(text) {
+        if (animate) { scale.snapTo(0.82f); scale.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = 380f)) }
+    }
+    val fill = if (eink) Color.White else color
+    val tailSize = 10.dp
+    Column(
+        modifier
+            .graphicsLayer {
+                scaleX = scale.value; scaleY = scale.value
+                transformOrigin = if (tail == BubbleTail.LEFT) TransformOrigin(0f, 0.5f) else TransformOrigin(0.5f, 1f)
+            }
+            .drawBehind {
+                val t = tailSize.toPx(); val r = 14.dp.toPx()
+                val body = if (tail == BubbleTail.LEFT) Rect(t, 0f, size.width, size.height) else Rect(0f, 0f, size.width, size.height - t)
+                val bubble = Path().apply { addRoundRect(RoundRect(body, CornerRadius(r, r))) }
+                val point = Path().apply {
+                    if (tail == BubbleTail.LEFT) { moveTo(t + 1f, size.height / 2 - t * 0.8f); lineTo(0f, size.height / 2); lineTo(t + 1f, size.height / 2 + t * 0.8f) }
+                    else { moveTo(size.width / 2 - t, size.height - t - 1f); lineTo(size.width / 2, size.height); lineTo(size.width / 2 + t, size.height - t - 1f) }
+                    close()
+                }
+                val shape = Path.combine(PathOperation.Union, bubble, point)
+                drawPath(shape, fill)
+                if (eink) drawPath(shape, Color.Black, style = Stroke(1.5.dp.toPx()))
+            }
+            .padding(
+                start = if (tail == BubbleTail.LEFT) tailSize + 12.dp else 14.dp, end = 14.dp,
+                top = 10.dp, bottom = if (tail == BubbleTail.BOTTOM) tailSize + 10.dp else 10.dp
+            ),
+        horizontalAlignment = if (large) Alignment.CenterHorizontally else Alignment.Start
+    ) {
+        Text(text, fontSize = if (large) 17.sp else 15.sp, fontWeight = FontWeight.Medium, color = palette.text,
+            textAlign = if (large) TextAlign.Center else TextAlign.Start)
+        extra?.let { Text(it, fontSize = if (large) 13.sp else 12.sp, color = palette.muted, fontWeight = FontWeight.Bold,
+            textAlign = if (large) TextAlign.Center else TextAlign.Start) }
     }
 }
 
-/** Room for a card's text and the heading, besides the board itself. */
-private val RECENT_TEXT_ROOM = 112.dp
-private val RECENT_BOARD_MAX = 156.dp
-private val RECENT_BOARD_MIN = 64.dp
+/** False when the phone's animations are turned off (Developer options or accessibility). */
+@Composable fun animationsOn(): Boolean {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    return remember(context) {
+        android.provider.Settings.Global.getFloat(context.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f
+    }
+}
 
 /**
- * The last finished games as small boards, sized to [maxHeight]. Shows nothing when the boards
- * would be too small to read. Tapping one opens it, as in Game history.
+ * Recently played games under the Home menu, each with its position, result and date. Tapping
+ * one opens it, as in Game history; the last row opens the whole history.
  */
-@Composable fun RecentGames(games: List<SavedGame>, prefs: AppSettings, maxHeight: Dp, onOpen: (SavedGame) -> Unit) {
+@Composable fun RecentGamesList(games: List<SavedGame>, prefs: AppSettings, onOpen: (SavedGame) -> Unit, onAll: () -> Unit) {
     if (games.isEmpty()) return
     val palette = LocalPalette.current
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val gap = 8.dp
-        val byWidth = (maxWidth - gap * 2) / 3 - 12.dp
-        val board = minOf(RECENT_BOARD_MAX, maxHeight - RECENT_TEXT_ROOM, byWidth)
-        if (board < RECENT_BOARD_MIN) return@BoxWithConstraints
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.recent_games).uppercase(), fontSize = 11.sp, letterSpacing = 1.sp,
-                color = if (LocalWorld.current == World.CLASSIC) palette.muted else palette.text, fontWeight = FontWeight.Medium,
-                modifier = Modifier.semantics { heading() }.then(
-                    if (LocalWorld.current == World.CLASSIC) Modifier
-                    else Modifier.clip(RoundedCornerShape(6.dp)).background(palette.card).padding(horizontal = 8.dp, vertical = 3.dp)))
-            Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
-                games.forEach { game -> RecentGameCard(game, prefs, Modifier.width(board + 12.dp)) { onOpen(game) } }
-            }
+    val drawn = LocalWorld.current != World.CLASSIC
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(R.string.recent_games).uppercase(), fontSize = 11.sp, letterSpacing = 1.sp,
+            color = if (drawn) palette.text else palette.muted, fontWeight = FontWeight.Medium,
+            modifier = Modifier.semantics { heading() }.then(
+                if (drawn) Modifier.clip(RoundedCornerShape(6.dp)).background(palette.card).padding(horizontal = 8.dp, vertical = 3.dp)
+                else Modifier.padding(start = 4.dp)))
+        games.forEach { game -> RecentGameRow(game, prefs) { onOpen(game) } }
+        TextButton(onClick = onAll, modifier = if (drawn) Modifier.clip(RoundedCornerShape(10.dp)).background(palette.card) else Modifier) {
+            Text(stringResource(R.string.recent_all_games))
         }
     }
 }
 
-@Composable private fun RecentGameCard(game: SavedGame, prefs: AppSettings, modifier: Modifier, onOpen: () -> Unit) {
+@Composable private fun RecentGameRow(game: SavedGame, prefs: AppSettings, onOpen: () -> Unit) {
     val palette = LocalPalette.current
     val computer = game.mode == GameMode.COMPUTER.name
     val result = stringResource(when {
+        game.result == "*" -> R.string.game_in_progress
         game.result == "1/2-1/2" -> R.string.draw
         computer && ((game.result == "1-0") == game.humanWhite) -> R.string.you_won
         computer -> R.string.you_lost
@@ -169,15 +203,18 @@ private val RECENT_BOARD_MIN = 64.dp
     }
     val plies = game.moves.split(' ').count { it.isNotBlank() }
     val moves = pluralStringResource(R.plurals.history_moves, (plies + 1) / 2, (plies + 1) / 2)
-    Column(
-        modifier.clip(RoundedCornerShape(10.dp)).card(palette).clickable(role = Role.Button, onClick = onOpen)
-            .padding(6.dp).semantics(mergeDescendants = true) {},
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).card(palette).clickable(role = Role.Button, onClick = onOpen)
+            .padding(8.dp).semantics(mergeDescendants = true) {},
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        MiniBoard(game, prefs, Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(4.dp)))
-        // Always two lines tall, so cards with a short and a long caption stay the same height.
-        Text("$result · $who", fontSize = 12.sp, lineHeight = 15.sp, fontWeight = FontWeight.Medium, minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
-        Text("$moves · ${historyDate(game.updated)}", fontSize = 11.sp, lineHeight = 14.sp, color = palette.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        MiniBoard(game, prefs, Modifier.size(56.dp).clip(RoundedCornerShape(4.dp)))
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text("$result · $who", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+            Text("$moves · ${historyDate(game.updated)}", fontSize = 12.sp, color = palette.muted)
+        }
+        Text("›", color = palette.accent, fontSize = 24.sp, modifier = Modifier.padding(horizontal = 8.dp))
     }
 }
 
@@ -250,7 +287,8 @@ private val RECENT_BOARD_MIN = 64.dp
  */
 @Composable fun BuddyScreen(settings: AppSettings, earned: Set<Sticker>, onChange: (AppSettings) -> Unit, onExit: () -> Unit) {
     val palette = LocalPalette.current
-    val outfit = settings.outfit.allowed(earned)
+    val wearable = settings.wearable(earned)
+    val outfit = settings.outfit.allowed(wearable)
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
     Column(Modifier.fillMaxHeight().widthIn(max = 720.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -279,14 +317,17 @@ private val RECENT_BOARD_MIN = 64.dp
                         .padding(6.dp).semantics(mergeDescendants = true) {},
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    BuddyFigure(buddy, outfit, BuddyPose.STAND, Modifier.size(56.dp, 72.dp), mono = palette.eink)
+                    BuddyFigure(buddy, outfit, BuddyPose.STAND, Modifier.size(56.dp, 72.dp), mono = palette.eink, animate = false)
                     Text(name, fontSize = 12.sp, maxLines = 1, color = if (selected && palette.eink) Color.Black else Color.Unspecified)
                 }
             }
         }
+        SettingSwitch(stringResource(R.string.unlock_all_title), stringResource(R.string.unlock_all_help), settings.unlockAll) {
+            onChange(settings.copy(unlockAll = it))
+        }
         Slot.entries.forEach { slot ->
             MenuSection(stringResource(slot.label))
-            ItemChips(slot, outfit, earned) { item -> onChange(settings.copy(outfit = outfit.with(slot, item))) }
+            ItemChips(slot, outfit, wearable) { item -> onChange(settings.copy(outfit = outfit.with(slot, item))) }
         }
         MenuSection(stringResource(R.string.sticker_book))
         Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).card(palette)) {
@@ -300,20 +341,38 @@ private val RECENT_BOARD_MIN = 64.dp
     }
 }
 
+/**
+ * One slot's items. Tapping a locked item explains, right under the chips, which sticker opens it
+ * and how to earn it, so nobody has to look it up in the sticker book.
+ */
 @OptIn(ExperimentalLayoutApi::class)
-@Composable private fun ItemChips(slot: Slot, outfit: Outfit, earned: Set<Sticker>, onPick: (Item?) -> Unit) {
+@Composable private fun ItemChips(slot: Slot, outfit: Outfit, wearable: Set<Sticker>, onPick: (Item?) -> Unit) {
     val res = appResources()
+    val palette = LocalPalette.current
+    var explained by remember(slot) { mutableStateOf<Item?>(null) }
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        FilterChip(selected = outfit[slot] == null, onClick = { onPick(null) }, label = { Text(stringResource(R.string.item_none)) })
+        FilterChip(selected = outfit[slot] == null, onClick = { explained = null; onPick(null) }, label = { Text(stringResource(R.string.item_none)) })
         Item.entries.filter { it.slot == slot }.forEach { item ->
-            val unlocked = item.unlocked(earned)
+            val unlocked = item.unlocked(wearable)
             val name = stringResource(item.label)
             val sticker = item.sticker?.let { res.getString(it.label) }
             val label = if (unlocked) name else stringResource(R.string.item_locked, name)
             val description = if (unlocked || sticker == null) name else stringResource(R.string.item_locked_description, name, sticker)
-            FilterChip(selected = outfit[slot] == item, enabled = unlocked, onClick = { onPick(item) },
-                label = { Text(label) }, modifier = Modifier.semantics { contentDescription = description })
+            FilterChip(selected = outfit[slot] == item || explained == item,
+                onClick = { if (unlocked) { explained = null; onPick(item) } else explained = if (explained == item) null else item },
+                label = { Text(label, color = if (unlocked || explained == item) Color.Unspecified else palette.muted) },
+                modifier = Modifier.semantics { contentDescription = description })
         }
+    }
+    val locked = explained?.takeIf { !it.unlocked(wearable) }
+    val sticker = locked?.sticker
+    if (locked != null && sticker != null) Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).card(palette).padding(12.dp)
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Text(stringResource(R.string.item_locked_title, stringResource(locked.label)), fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.item_locked_need, stringResource(sticker.label), stringResource(sticker.how)), fontSize = 14.sp)
     }
 }
 

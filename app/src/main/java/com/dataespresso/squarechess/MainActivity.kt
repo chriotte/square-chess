@@ -130,7 +130,7 @@ class MainActivity: ComponentActivity() {
                 val puzzleUi by puzzles.state.collectAsState()
                 val prefs=settings
                 val allGames by vm.history.collectAsState(initial=emptyList())
-                val recentGames=remember(allGames) { recentFinishedGames(allGames) }
+                val recentGames=remember(allGames) { recentGames(allGames) }
                 // Stickers are worked out from saved games and puzzle progress, only with Playful extras on.
                 // A game counts when it ends, so the games are not replayed after every move.
                 var earned by remember { mutableStateOf<Set<Sticker>>(emptySet()) }
@@ -276,13 +276,11 @@ class MainActivity: ComponentActivity() {
                             "home" -> Box(Modifier.fillMaxSize(),contentAlignment=Alignment.TopCenter) { Column(Modifier.fillMaxHeight().widthIn(max=720.dp).fillMaxWidth().padding(horizontal=24.dp)) {
                               // On a drawn world the header and footer sit on cards, so their text never lies on the picture.
                               val onCard=if(world!=World.CLASSIC) Modifier.clip(RoundedCornerShape(12.dp)).background(palette.card) else Modifier
-                              BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-                              val available=maxHeight-36.dp
                               Column(
-                                Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                                Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
                                     .padding(top=24.dp,bottom=12.dp)
                               ) {
-                              MenuWithOptionalExtra(available,16.dp,menu={ Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                              Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
                                 Row(Modifier.padding(bottom=12.dp).then(onCard).then(if(world!=World.CLASSIC) Modifier.padding(6.dp) else Modifier),verticalAlignment=Alignment.CenterVertically) {
                                     Image(painterResource(R.drawable.ic_square_chess),contentDescription=null,
                                         modifier=Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)))
@@ -311,10 +309,11 @@ class MainActivity: ComponentActivity() {
                                 ) {
                                     screen="standaloneClock"
                                 }
-                              } },extra={ left ->
-                                RecentGames(recentGames,prefs,left) { g -> flip=defaultFlipFor(g); reviewPly=null; vm.resume(g); screen="game" }
-                              })
                               }
+                              // Below the menu, so the first screen looks as before; scroll down to reach it.
+                              Spacer(Modifier.height(24.dp))
+                              RecentGamesList(recentGames,prefs,onOpen={ g -> flip=defaultFlipFor(g); reviewPly=null; vm.resume(g); screen="game" },
+                                  onAll={screen="history"})
                               }
                                 Row(Modifier.fillMaxWidth().padding(top=4.dp,bottom=16.dp).then(onCard),horizontalArrangement=Arrangement.SpaceBetween) {
                                     TextButton(onClick={screen="history"}) { Text(stringResource(R.string.game_history)) }
@@ -433,6 +432,13 @@ class MainActivity: ComponentActivity() {
                                     val capturesBelow=!capturesInGutters && spareBelow-(if(reviewPly!=null && barBelow) REVIEW_BAR_HEIGHT else 0.dp)-
                                         (if(stripBelow) MOVE_STRIP_HEIGHT else 0.dp)>=CAPTURED_ROW_HEIGHT*2
                                     SideEffect { reviewBarBelow=barBelow; moveStripShown=stripBelow }
+                                    // The buddy (computer games, Playful extras) only takes what is left after the
+                                    // rows above: beside the board on wide screens, below it on tall ones, else nowhere.
+                                    val buddyOn=prefs.playful && s.game?.mode==GameMode.COMPUTER.name && reviewPly==null
+                                    val buddyLeft=spareBelow-(if(reviewPly!=null && barBelow) REVIEW_BAR_HEIGHT else 0.dp)-
+                                        (if(stripBelow) MOVE_STRIP_HEIGHT else 0.dp)-(if(capturesBelow) CAPTURED_ROW_HEIGHT*2 else 0.dp)
+                                    val buddyBeside=buddyOn && gutter>=BUDDY_GAME_GUTTER_MIN && side>=BUDDY_GAME_SIDE_MIN
+                                    val buddyBelow=buddyOn && !buddyBeside && buddyLeft>=BUDDY_GAME_ROW_MIN
                                     val display=remember(s,reviewPly) {
                                         reviewPly?.let { s.copy(position=ChessPosition(s.position.initialFen,s.position.moves.take(it)),busy=true,highlightMove=null) } ?: s
                                     }
@@ -476,7 +482,12 @@ class MainActivity: ComponentActivity() {
                                         onFirst={stepReview(0)},onPrevious={stepReview(reviewPly!!-1)},onMoves={dialog="history"},
                                         onNext={stepReview(reviewPly!!+1)},onLast={stepReview(s.position.moves.size)},modifier=Modifier.width(side))
                                     if(stripBelow) MoveStrip(san,firstMoveNumber,whiteFirst,reviewPly,onOpen={dialog="history"},modifier=Modifier.width(side))
+                                    if(buddyBelow) {
+                                        val large=buddyLeft>=BUDDY_GAME_LARGE_BELOW
+                                        GameBuddy(s,prefs,earned,Modifier.padding(top=8.dp).width(if(large) minOf(side,280.dp) else side),large,maxHeight=buddyLeft-8.dp)
                                     }
+                                    }
+                                    if(buddyBeside) GameBuddy(s,prefs,earned,Modifier.align(Alignment.TopEnd).padding(end=8.dp).width(gutter-16.dp),large=true)
                                 }
                                 Spacer(Modifier.height(8.dp))
                             }
@@ -659,7 +670,8 @@ class MainActivity: ComponentActivity() {
                                 val playerWon=event.result!="1/2-1/2" && (game?.mode!=GameMode.COMPUTER.name || ((event.result=="1-0")==game.humanWhite))
                                 val fresh=(earned-settings.seenStickers).sortedBy { it.ordinal }.take(3)
                                 val extra=if(fresh.isEmpty()) null else stringResource(R.string.sticker_new,fresh.joinToString(", ") { resources.getString(it.label) })
-                                BuddyReaction(settings,earned,if(playerWon) BuddyMoment.WIN else BuddyMoment.GOOD_GAME,Modifier.padding(top=12.dp),extra)
+                                BuddyReaction(settings,earned,if(playerWon) BuddyMoment.WIN else BuddyMoment.GOOD_GAME,Modifier.padding(top=12.dp),extra,
+                                    bubbleColor=MaterialTheme.colorScheme.surfaceContainerHighest)
                                 // Told once: the stickers in this card are not new on Home afterwards.
                                 val told by rememberUpdatedState(fresh)
                                 DisposableEffect(Unit) { onDispose { if(told.isNotEmpty()) saveSettings(settings.copy(seenStickers=settings.seenStickers+told)) } }

@@ -135,7 +135,7 @@ import androidx.compose.ui.unit.sp
                 val gutter=(maxWidth-side)/2
                 val spareBelow=maxHeight-side
                 if(gutter>=BUDDY_GUTTER_MIN) BuddyReaction(prefs,earned,moment,Modifier.align(Alignment.TopEnd).padding(end=8.dp).width(gutter-16.dp),large=true)
-                else if(spareBelow>=BUDDY_LARGE_BELOW) BuddyReaction(prefs,earned,moment,Modifier.align(Alignment.TopCenter).padding(top=side+8.dp).width(minOf(side,280.dp)),large=true)
+                else if(spareBelow>=BUDDY_LARGE_BELOW) BuddyReaction(prefs,earned,moment,Modifier.align(Alignment.TopCenter).padding(top=side+8.dp).width(minOf(side,280.dp)),large=true,maxHeight=spareBelow-8.dp)
                 else if(spareBelow>=BUDDY_ROW_MIN) BuddyReaction(prefs,earned,moment,Modifier.align(Alignment.TopCenter).padding(top=side+8.dp).width(side))
             }
         }
@@ -145,7 +145,7 @@ import androidx.compose.ui.unit.sp
 
 private val BUDDY_GUTTER_MIN=180.dp
 private val BUDDY_ROW_MIN=112.dp
-private val BUDDY_LARGE_BELOW=330.dp
+private val BUDDY_LARGE_BELOW=290.dp
 
 /** The end of a Quick 5 set: counts only, no score. */
 @Composable fun QuickSummary(ui: PuzzleUi, onAgain: () -> Unit, onDone: () -> Unit) {

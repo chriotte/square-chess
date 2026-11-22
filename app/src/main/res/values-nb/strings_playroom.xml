@@ -193,4 +193,22 @@
     <string name="line_bob_gg">Godt parti. Jeg planlegger allerede revansjen.</string>
     <string name="line_bob_hint">Ett øyenbryn er oppe. Jeg har en idé.</string>
     <string name="line_bob_think">Begge øyenbrynene er på oppdagelsesferd. Tenker.</string>
+    <string name="unlock_all_title">Lås opp alt</string>
+    <string name="unlock_all_help">Bruk hva som helst nå. Klistremerker får du fortsatt ved å spille.</string>
+    <string name="item_locked_title">%1$s er låst</string>
+    <string name="item_locked_need">Få klistremerket %1$s: %2$s</string>
+    <string name="game_your_move">Ditt trekk. Kos deg!</string>
+    <string name="game_computer_played">Datamaskinen spilte %1$s. Ditt trekk.</string>
+    <string name="game_in_check">Kongen din står i sjakk! Finn et trygt trekk.</string>
+    <string name="game_check_given">Sjakk! Godt gjort.</string>
+    <string name="game_capture">Fint slag!</string>
+    <string name="game_mistake">Hmm, det trekket ga bort noe. Fortsett!</string>
+    <string name="line_robot_nice">Godt trekk. Verdt en pannekake.</string>
+    <string name="line_magnus_nice">Et magnifikt trekk!</string>
+    <string name="line_girl_nice">Fint trekk!</string>
+    <string name="line_princess_nice">Et kongelig trekk!</string>
+    <string name="line_monkey_nice">Uh uh, fint trekk!</string>
+    <string name="line_sloth_nice">Fint… trekk. Veldig… apete.</string>
+    <string name="line_bob_nice">Godt trekk. Øyenbrynene mine er enige.</string>
+    <string name="recent_all_games">Alle partier ›</string>
 </resources>

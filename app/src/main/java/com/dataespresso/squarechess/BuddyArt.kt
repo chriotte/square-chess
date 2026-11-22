@@ -2,6 +2,20 @@ package com.dataespresso.squarechess
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.Snapshot
+import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.delay
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.sin
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.graphicsLayer
@@ -28,10 +42,19 @@ import com.github.bhlangonijr.chesslib.Piece
 
 /**
  * A buddy, drawn as in the Playroom mockup: a 100 × 130 unit figure with its outfit and pet. It
- * holds still (no animation), so it costs nothing while on screen and suits e-paper, where
- * [mono] draws it as black lines on white.
+ * moves (breathing, waving, jumping, tears, flying pancakes) and pops in when its pose changes.
+ * It holds still with [animate] off, on e-paper ([mono], black lines on white) and when the
+ * phone's animations are off. Only the drawing repeats, at 30 frames a second, and only while
+ * the screen is in front.
  */
-@Composable fun BuddyFigure(buddy: Buddy, outfit: Outfit, pose: BuddyPose, modifier: Modifier, mono: Boolean = false, description: String? = null) {
+@Composable fun BuddyFigure(buddy: Buddy, outfit: Outfit, pose: BuddyPose, modifier: Modifier, mono: Boolean = false,
+                            description: String? = null, animate: Boolean = true) {
+    val moving = animate && !mono && animationsOn()
+    val time = rememberBuddyTime(moving)
+    // The time a pose began, for the pop-in. Read without observing, so a pose change alone does not tick.
+    var shownPose by remember { mutableStateOf(pose) }
+    var poseStart by remember { mutableFloatStateOf(-10f) }
+    if (shownPose != pose) { shownPose = pose; poseStart = Snapshot.withoutReadObservation { time.floatValue } }
     val semantics = if (description != null) Modifier.semantics { contentDescription = description } else Modifier
     // Arms and legs are bare lines: on a dark card they are drawn light, so they do not disappear.
     // Piece pets switch to the white set there for the same reason.
@@ -50,11 +73,40 @@ import com.github.bhlangonijr.chesslib.Piece
             val scale = minOf(size.width / 100f, size.height / 130f)
             val dx = (size.width - 100f * scale) / 2f
             val dy = (size.height - 130f * scale) / 2f
-            withTransform({ translate(dx, dy); scale(scale, scale, Offset.Zero); translate(0f, 14f) }) {
-                BuddyPen(this, mono, limb).drawBuddy(buddy, outfit, pose, petPiece, knight)
+            val t = if (moving) time.floatValue else 0f
+            // Pop in: a quick overshoot from 85 % to full size in the first 0.4 s of a new pose.
+            val since = t - poseStart
+            val pop = if (moving && since in 0f..0.4f) 0.85f + 0.15f * easeOutBack(since / 0.4f) else 1f
+            withTransform({
+                translate(dx, dy); scale(scale, scale, Offset.Zero); translate(0f, 14f)
+                scale(pop, pop, Offset(50f, 108f))
+            }) {
+                BuddyPen(this, mono, limb).drawBuddy(buddy, outfit, pose, petPiece, knight, t, moving)
             }
         }
     })
+}
+
+private fun easeOutBack(x: Float): Float {
+    val c = 1.70158f; val y = x - 1f
+    return 1f + (c + 1f) * y * y * y + c * y * y
+}
+
+/** Seconds of animation, advancing only while [running] and the screen is resumed. */
+@Composable private fun rememberBuddyTime(running: Boolean): androidx.compose.runtime.MutableFloatState {
+    val time = remember { mutableFloatStateOf(0f) }
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    val state by lifecycle.currentStateFlow.collectAsState()
+    val on = running && state.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)
+    LaunchedEffect(on) {
+        if (!on) return@LaunchedEffect
+        var last = withFrameNanos { it }
+        while (true) {
+            delay(33)
+            withFrameNanos { now -> time.floatValue += ((now - last) / 1_000_000_000f).coerceAtMost(0.1f); last = now }
+        }
+    }
+    return time
 }
 
 /** The chess piece a piece pet shows: the black set on light cards, the white set on dark ones. */
@@ -112,7 +164,11 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
         with(scope) { translate(x, y) { with(p) { draw(Size(size, size)) } } }
     }
 
-    fun drawBuddy(buddy: Buddy, outfit: Outfit, pose: BuddyPose, petPiece: Painter?, knight: Painter?) {
+    /** A straight line drawn directly, for parts that move every frame (no parsed path to cache). */
+    fun seg(x1: Float, y1: Float, x2: Float, y2: Float, width: Float, color: Color) =
+        scope.drawLine(color, Offset(x1, y1), Offset(x2, y2), width, StrokeCap.Round)
+
+    fun drawBuddy(buddy: Buddy, outfit: Outfit, pose: BuddyPose, petPiece: Painter?, knight: Painter?, t: Float, moving: Boolean) {
         val skin = when (buddy) {
             Buddy.ROBOT -> Color(0xFFA9B1B8); Buddy.MONKEY -> Color(0xFFB07A4F); Buddy.SLOTH -> Color(0xFF9A8670)
             Buddy.BOB -> Color(0xFF54D8FF); else -> Color(0xFFF3CDA9)
@@ -134,8 +190,37 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
             BuddyPose.CRY -> listOf(36f to 84f, 64f to 84f)
             BuddyPose.PANCAKES -> listOf(40f to 68f, 60f to 68f)
         }
-        val (lx, ly) = arms[0]; val (rx, ry) = arms[1]
-        val lift = if (pose == BuddyPose.CHEER || pose == BuddyPose.PANCAKES) -5f else 0f
+        val (lx0, ly0) = arms[0]; val (rx0, ry0) = arms[1]
+        val w = if (moving) t else 0f
+        /** The hand at ([x], [y]) turned [deg] degrees about the shoulder at ([sx], [sy]). */
+        fun swing(sx: Float, sy: Float, x: Float, y: Float, deg: Float): Pair<Float, Float> {
+            val a = Math.toRadians(deg.toDouble()); val vx = x - sx; val vy = y - sy
+            return (sx + vx * cos(a) - vy * sin(a)).toFloat() to (sy + vx * sin(a) + vy * cos(a)).toFloat()
+        }
+        val armBob = sin(w * 4f) * 1.5f
+        val (lx, ly) = when (pose) {
+            BuddyPose.CHEER -> swing(42f, 60f, lx0, ly0, sin(w * 5f) * 12f)
+            BuddyPose.SHRUG -> lx0 to ly0 + sin(w * 3f) * 2f
+            BuddyPose.PANCAKES -> lx0 to ly0 + armBob
+            else -> lx0 to ly0
+        }
+        val (rx, ry) = when (pose) {
+            BuddyPose.WAVE -> swing(58f, 60f, rx0, ry0, sin(w * 7f) * 24f)
+            BuddyPose.CHEER -> swing(58f, 60f, rx0, ry0, -sin(w * 5f) * 12f)
+            BuddyPose.EUREKA -> swing(58f, 60f, rx0, ry0, sin(w * 3f) * 6f)
+            BuddyPose.SHRUG -> rx0 to ry0 + sin(w * 3f) * 2f
+            BuddyPose.PANCAKES -> rx0 to ry0 + armBob
+            else -> rx0 to ry0
+        }
+        val jumping = pose == BuddyPose.CHEER || pose == BuddyPose.PANCAKES
+        val lift = (if (jumping) -5f else 0f) + when {
+            !moving -> 0f
+            jumping -> -abs(sin(t * 4.5f)) * 5f
+            pose == BuddyPose.CRY -> sin(t * 14f) * 0.6f
+            else -> sin(t * 2.2f) * 0.7f
+        }
+        // Sloth sways, slowly.
+        val sway = if (buddy == Buddy.SLOTH && moving) sin(t * 1.1f) * 2.5f else 0f
         val head = outfit[Slot.HEAD] ?: when (buddy) { Buddy.PRINCESS -> Item.CROWN; else -> null }
         val magnusCrown = buddy == Buddy.MAGNUS && outfit[Slot.HEAD] == null
         val cape = outfit[Slot.BACK] == Item.CAPE || buddy == Buddy.MAGNUS
@@ -148,7 +233,7 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
             else -> Color(0xFFE7AD58)
         }
 
-        scope.translate(0f, lift) {
+        scope.rotate(sway, Offset(50f, 108f)) { scope.translate(0f, lift) {
             if (cape) d("M41 55 L28 100 Q50 106 72 100 L59 55Z", f(Ink.red))
             if (buddy == Buddy.MONKEY) line("M58 84 Q80 88 78 70 Q76 60 70 66", color = limb)
             // Legs.
@@ -172,9 +257,11 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
                 Buddy.ROBOT -> {
                     rect(36f, 50f, 28f, 31f, 2f, f(skin))
                     rect(42f, 56f, 16f, 11f, 1.5f, dark(Color(0xFF22304A)))
-                    circle(50f, 61.5f, 2.8f, if (mono) Color.White else light, stroke = 0f)
+                    // The chest light glows on and off while Little Robot waits.
+                    val glow = if (moving && pose != BuddyPose.CRY && !jumping) 0.55f + 0.45f * abs(sin(t * 2f)) else 1f
+                    circle(50f, 61.5f, 2.8f, if (mono) Color.White else light, stroke = 0f, alpha = glow)
                 }
-                Buddy.BOB -> d("M40 54 L60 54 L63 86 L37 86Z", f(shirt), alpha = if (mono) 1f else 0.85f)
+                Buddy.BOB -> d("M40 54 L60 54 L63 86 L37 86Z", f(shirt), alpha = if (mono) 1f else 0.85f + sin(w * 9f) * 0.05f)
                 else -> {
                     rect(40f, 52f, 20f, 35f, 8f, f(shirt))
                     if (buddy == Buddy.MAGNUS) {
@@ -190,11 +277,11 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
                 circle(lx, ly, 3.6f, f(Color(0xFF54D8FF))); circle(rx, ry, 3.6f, f(Color(0xFF54D8FF)))
             } else {
                 val aw = if (buddy == Buddy.ROBOT) 3.2f else sw
-                line("M42 60 L$lx $ly", aw, limb)
-                if (pose == BuddyPose.THINK) line("M58 60 L67 67 L56 47", aw, limb) else line("M58 60 L$rx $ry", aw, limb)
+                seg(42f, 60f, lx, ly, aw, limb)
+                if (pose == BuddyPose.THINK) line("M58 60 L67 67 L56 47", aw, limb) else seg(58f, 60f, rx, ry, aw, limb)
                 if (buddy == Buddy.ROBOT) { circle(lx, ly, 2.8f, f(Color(0xFFE7AD58))); circle(rx, ry, 2.8f, f(Color(0xFFE7AD58))) }
                 if (buddy == Buddy.SLOTH) listOf(lx to ly, rx to ry).forEach { (x, y) ->
-                    line("M${x - 2} $y l-2 4 M$x $y l0 4.5 M${x + 2} $y l2 4", 1.4f, limb)
+                    scope.translate(x, y) { line("M-2 0 l-2 4 M0 0 l0 4.5 M2 0 l2 4", 1.4f, limb) }
                 }
             }
             if (buddy == Buddy.MAGNUS) { ellipse(40f, 55f, 5f, 3.5f, f(Ink.red)); ellipse(60f, 55f, 5f, 3.5f, f(Ink.red)) }
@@ -219,7 +306,7 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
                     scope.drawRect(eye, Offset(40f, 29f), Size(5f, 5f)); scope.drawRect(eye, Offset(55f, 29f), Size(5f, 5f))
                 }
                 Buddy.BOB -> {
-                    rect(33f, 12f, 34f, 32f, 7f, f(skin), alpha = if (mono) 1f else 0.88f)
+                    rect(33f, 12f, 34f, 32f, 7f, f(skin), alpha = if (mono) 1f else 0.86f + sin(w * 9f) * 0.06f)
                     if (!mono) listOf(18f, 23f, 28f, 33f, 38f).forEach { y -> line("M36 $y L64 $y", 1f, Color.White, 0.4f) }
                     circle(44f, 28f, 2f, dark(Color(0xFF0E3345)), stroke = 0f); circle(56f, 28f, 2f, dark(Color(0xFF0E3345)), stroke = 0f)
                     line("M40 22 L47 21")
@@ -255,27 +342,40 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
                     val y = eyeY + 5f
                     d("M$x $y q-3.6 6 0 8.2 q3.6 -2.2 0 -8.2Z", tear, 1.1f)
                     val x2 = x + if (i == 1) 4f else -4f
-                    d("M$x2 ${y + 11} q-2.8 4.6 0 6.4 q2.8 -1.8 0 -6.4Z", tear, 1f)
+                    // The second tear keeps falling and fades as it goes.
+                    val fall = if (moving) ((t * 1.3f + i * 0.5f) % 1f) * 14f else 0f
+                    scope.translate(0f, fall) {
+                        d("M$x2 ${y + 9} q-2.8 4.6 0 6.4 q2.8 -1.8 0 -6.4Z", tear, 1f, alpha = 1f - fall / 16f)
+                    }
                 }
             }
-            drawHandItem(outfit[Slot.HAND], lx, ly)
+            scope.translate(lx - lx0, ly - ly0) { drawHandItem(outfit[Slot.HAND], lx0, ly0) }
             if (pose == BuddyPose.PANCAKES) {
-                ellipse(50f, 69f, 15f, 3f, f(Color(0xFFE8ECEF)))
-                listOf(65f, 61.5f, 58f).forEach { y -> ellipse(50f, y, 10f, 3.2f, f(Ink.pancake)) }
-                line("M46 56.5 Q50 59 54 56.5", 1.3f, dark(Ink.syrup))
-                listOf(Triple(18f, 22f, -20f), Triple(82f, 14f, 15f), Triple(86f, 44f, -10f), Triple(14f, 52f, 12f))
-                    .forEach { (x, y, r) -> ellipse(x, y, 8f, 2.8f, f(Ink.pancake), r) }
+                scope.translate(0f, armBob) {
+                    ellipse(50f, 69f, 15f, 3f, f(Color(0xFFE8ECEF)))
+                    listOf(65f, 61.5f, 58f).forEach { y -> ellipse(50f, y, 10f, 3.2f, f(Ink.pancake)) }
+                    line("M46 56.5 Q50 59 54 56.5", 1.3f, dark(Ink.syrup))
+                }
+                // Pancakes flying round Little Robot's head, spinning as they go.
+                for (i in 0 until 4) {
+                    val a = w * 1.8f + i * (Math.PI.toFloat() / 2f)
+                    val x = 50f + cos(a) * 38f; val y = 22f + sin(a) * 16f
+                    ellipse(x, y, 8f, 2.8f, f(Ink.pancake), Math.toDegrees(a.toDouble()).toFloat() % 360f * 0.3f - 20f)
+                }
             }
             if (pose == BuddyPose.EUREKA) {
-                circle(80f, 18f, 7f, f(Color(0xFFF2C14E)))
-                line("M77 26 L83 26 M80 6 L80 2 M90 18 L94 18 M70 18 L66 18", color = limb)
+                // The bulb glows and its rays flicker.
+                circle(80f, 18f, 7f + sin(w * 6f) * 0.9f, f(Color(0xFFF2C14E)))
+                line("M77 26 L83 26 M80 6 L80 2 M90 18 L94 18 M70 18 L66 18", color = limb, alpha = if (moving) 0.55f + 0.45f * abs(sin(t * 6f)) else 1f)
             }
             if (pose == BuddyPose.THINK) {
-                circle(74f, 20f, 2f, null, strokeColor = limb); circle(80f, 12f, 3f, null, strokeColor = limb)
-                knight?.let { painter(it, 80f, -10f, 14f) }
+                // Thought bubbles swell in turn; the idea bobs above them.
+                circle(74f, 20f, 2f + max(0f, sin(w * 3f)) * 0.8f, null, strokeColor = limb)
+                circle(80f, 12f, 3f + max(0f, sin(w * 3f - 1.5f)) * 0.9f, null, strokeColor = limb)
+                knight?.let { painter(it, 80f, -10f + sin(w * 2f) * 1.5f, 14f) }
             }
-        }
-        drawPet(outfit[Slot.PET], petPiece)
+        } }
+        drawPet(outfit[Slot.PET], petPiece, w)
     }
 
     private fun drawHat(head: Item?, magnusCrown: Boolean, top: Float) {
@@ -379,11 +479,14 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
         }
     }
 
-    private fun drawPet(item: Item?, petPiece: Painter?) {
-        if (petPiece != null) { painter(petPiece, 72f, 91f, 22f); return }
+    private fun drawPet(item: Item?, petPiece: Painter?, w: Float) {
+        // Pets hop now and then.
+        val hop = -max(0f, sin(w * 3f)) * 2f
+        if (petPiece != null) { painter(petPiece, 72f, 91f + hop, 22f); return }
         when (item) {
             Item.LAVA_MONSTER -> {
-                line("M90 100 q8 -6 6 -12", 2.4f)
+                // The tail wags.
+                scope.rotate(sin(w * 7f) * 18f, Offset(90f, 100f)) { line("M90 100 q8 -6 6 -12", 2.4f) }
                 line("M74 112 L75 106 M84 112 L84 106 M90 112 L89 106", 2.6f)
                 ellipse(82f, 102f, 11f, 6.5f, f(Color(0xFF3D2B3B)), stroke = 1.6f)
                 ellipse(81f, 105f, 7f, 2.6f, f(Color(0xFFFFC34D)), stroke = 0f)
@@ -394,7 +497,8 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
                 line("M65 99 Q68 101 71 99", 1.2f, if (mono) ink else Color(0xFFFF7A2E))
             }
             Item.LITTLE_FROSTY -> {
-                d("M86 98 q6 -10 12 -6 q-4 2 -6 8Z", f(Color(0xFFD8F4FF)), 1.5f)
+                // The wing flaps.
+                scope.rotate(sin(w * 8f) * 20f, Offset(87f, 99f)) { d("M86 98 q6 -10 12 -6 q-4 2 -6 8Z", f(Color(0xFFD8F4FF)), 1.5f) }
                 line("M90 106 q8 2 9 -4", 1.5f)
                 ellipse(83f, 105f, 8f, 6f, f(Color(0xFF9ADCF2)), stroke = 1.5f)
                 line("M79 111 l0 2 M87 111 l0 2", 2f)
@@ -411,7 +515,7 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
                 circle(86f, 102f, 3f, f(Color(0xFFC9C9D4)), 1.4f)
                 circle(85.5f, 105f, 0.9f, ink, 0f)
             }
-            Item.FROG -> {
+            Item.FROG -> scope.translate(0f, hop) {
                 ellipse(84f, 107f, 10f, 6f, f(Color(0xFF6CBF4A)), stroke = 1.5f)
                 circle(79f, 101f, 3f, f(Color(0xFF6CBF4A)), 1.5f); circle(89f, 101f, 3f, f(Color(0xFF6CBF4A)), 1.5f)
                 circle(79f, 101f, 1.1f, ink, 0f); circle(89f, 101f, 1.1f, ink, 0f)

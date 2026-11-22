@@ -161,6 +161,10 @@ internal fun earnedStickers(games: List<SavedGame>, puzzles: Collection<PuzzlePr
     return earned
 }
 
-/** The most recent finished games, newest first, for Home. */
+/** The most recently played games (finished or not), newest first, for the list on Home. */
+fun recentGames(games: List<SavedGame>, count: Int = 5): List<SavedGame> =
+    games.filter { it.moves.isNotBlank() }.sortedByDescending { it.updated }.take(count)
+
+/** The most recent finished games, newest first. */
 fun recentFinishedGames(games: List<SavedGame>, count: Int = 3): List<SavedGame> =
     games.filter { it.result!="*" && it.moves.isNotBlank() }.sortedByDescending { it.updated }.take(count)

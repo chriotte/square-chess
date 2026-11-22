@@ -193,4 +193,22 @@
     <string name="line_bob_gg">Gute Partie. Ich plane schon die Revanche.</string>
     <string name="line_bob_hint">Eine Augenbraue ist oben. Ich habe eine Idee.</string>
     <string name="line_bob_think">Beide Augenbrauen gehen auf Erkundung. Ich denke nach.</string>
+    <string name="unlock_all_title">Alle Sachen freischalten</string>
+    <string name="unlock_all_help">Jede Sache sofort tragen. Sticker werden weiter durch Spielen verdient.</string>
+    <string name="item_locked_title">%1$s ist gesperrt</string>
+    <string name="item_locked_need">Verdiene den Sticker %1$s: %2$s</string>
+    <string name="game_your_move">Du bist am Zug. Viel Spaß!</string>
+    <string name="game_computer_played">Der Computer hat %1$s gespielt. Du bist am Zug.</string>
+    <string name="game_in_check">Dein König steht im Schach! Finde einen sicheren Zug.</string>
+    <string name="game_check_given">Schach! Gut gemacht.</string>
+    <string name="game_capture">Gut geschlagen!</string>
+    <string name="game_mistake">Hmm, damit hast du etwas hergegeben. Weiter so!</string>
+    <string name="line_robot_nice">Guter Zug. Pfannkuchen-würdig.</string>
+    <string name="line_magnus_nice">Ein großartiger Zug!</string>
+    <string name="line_girl_nice">Toller Zug!</string>
+    <string name="line_princess_nice">Ein königlicher Zug!</string>
+    <string name="line_monkey_nice">Uh uh, guter Zug!</string>
+    <string name="line_sloth_nice">Guter… Zug. Sehr… affig.</string>
+    <string name="line_bob_nice">Guter Zug. Meine Augenbrauen sind einverstanden.</string>
+    <string name="recent_all_games">Alle Partien ›</string>
 </resources>
