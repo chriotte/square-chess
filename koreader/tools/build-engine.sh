@@ -11,13 +11,21 @@
 # Needs podman or docker.
 set -eu
 repo="$(cd "$(dirname "$0")/../.." && pwd)"
-out="$repo/koreader/squarechess.koplugin/bin"
+# The app repository keeps the plugin under koreader/ and the engine source in
+# native/fairy; the plugin's own release repository has them at the top level.
+if [ -d "$repo/koreader/squarechess.koplugin" ]; then
+    out="$repo/koreader/squarechess.koplugin/bin"
+else
+    repo="$(cd "$(dirname "$0")/.." && pwd)"
+    out="$repo/squarechess.koplugin/bin"
+fi
+if [ -d "$repo/native/fairy" ]; then engine="$repo/native/fairy"; else engine="$repo/engine"; fi
 arches="${*:-armhf aarch64 x86_64}"
 runtime="$(command -v podman || command -v docker)"
 mkdir -p "$out"
 
 "$runtime" run --rm \
-    -v "$repo/native:/src/native:ro,Z" -v "$out:/out:Z" \
+    -v "$engine:/src/native/fairy:ro,Z" -v "$out:/out:Z" \
     -e ARCHES="$arches" docker.io/library/debian:bookworm sh -eu -c '
 apt-get update -qq
 pkgs="g++"

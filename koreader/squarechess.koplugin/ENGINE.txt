@@ -1,0 +1,36 @@
+Chess engine in bin/
+====================
+
+bin/ holds Fairy-Stockfish, built as a self-contained UCI program for three
+processors. The plugin runs the one that matches the device:
+
+  bin/fairy-armhf     32-bit ARM (Kindle, Kobo, PocketBook, reMarkable)
+  bin/fairy-aarch64   64-bit ARM
+  bin/fairy-x86_64    64-bit x86 (desktop KOReader)
+
+Licence
+-------
+
+Fairy-Stockfish is free software under the GNU General Public License,
+version 3 or later, as is this plugin. The engine's own licence text is in
+ENGINE-LICENSE.txt.
+
+Corresponding source
+--------------------
+
+The GPL entitles you to the source these binaries were built from. It is in
+the engine/ folder of the plugin's repository, together with the script that
+builds them:
+
+  https://github.com/chriotte/squarechess.koplugin
+
+The source is Lichess's modified Fairy-Stockfish rather than pristine
+upstream, with three further changes of our own. engine/PROVENANCE.md records
+every one of them, the commits they came from, and why they were made.
+
+To rebuild the binaries yourself, with podman or docker installed:
+
+  tools/build-engine.sh armhf      # or aarch64, or x86_64
+
+The build is reproducible: the engine's version string and build date are
+fixed, and file paths are mapped, so the same source gives the same binary.
