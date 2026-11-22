@@ -24,6 +24,8 @@ cp "$repo/LICENSE" "$target/LICENSE"
 cp "$here/release/README.md" "$target/README.md"
 cp "$here/release/CHANGELOG.md" "$target/CHANGELOG.md"
 cp "$here/release/gitignore" "$target/.gitignore"
+rm -rf "$target/kpm"
+cp -r "$here/release/kpm" "$target/kpm"
 mkdir -p "$target/docs"
 cp "$here/release/docs/"*.png "$target/docs/" 2>/dev/null || true
 

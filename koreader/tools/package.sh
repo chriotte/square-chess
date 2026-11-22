@@ -11,8 +11,9 @@ for a in armhf aarch64 x86_64; do
 done
 # A release repository keeps the engine source next to the plugin; the app
 # repository keeps it in native/fairy.
-if [ -d "$here/../engine" ]; then engine="$here/../engine"; else engine="$here/../native/fairy"; fi
-cp "$here/../LICENSE" "$plugin/LICENSE"
+if [ -d "$here/engine" ]; then engine="$here/engine"; else engine="$here/../native/fairy"; fi
+if [ -f "$here/LICENSE" ]; then licence="$here/LICENSE"; else licence="$here/../LICENSE"; fi
+cp "$licence" "$plugin/LICENSE"
 cp "$engine/Copying.txt" "$plugin/ENGINE-LICENSE.txt"
 version="${1:-$(git -C "$here" describe --tags --always --dirty 2>/dev/null || echo dev)}"
 mkdir -p "$here/dist"

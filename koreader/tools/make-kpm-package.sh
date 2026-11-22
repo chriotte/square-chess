@@ -20,14 +20,18 @@ done
 build="$out/squarechess"
 rm -rf "$build"
 mkdir -p "$build"
-cp "$here/release/kpm/manifest.json" "$build/manifest.json"
+# The app repository keeps the packaging files under release/kpm; the release
+# repository has them in kpm/.
+if [ -d "$here/kpm" ]; then kpm="$here/kpm"; else kpm="$here/release/kpm"; fi
+cp "$kpm/manifest.json" "$build/manifest.json"
 for s in install.sh uninstall.sh launch.sh; do
-    cp "$here/release/kpm/$s" "$build/$s"
+    cp "$kpm/$s" "$build/$s"
     chmod +x "$build/$s"
 done
 cp -r "$here/squarechess.koplugin" "$build/squarechess.koplugin"
-if [ -d "$here/../engine" ]; then engine="$here/../engine"; else engine="$here/../native/fairy"; fi
-cp "$here/../LICENSE" "$build/squarechess.koplugin/LICENSE"
+if [ -d "$here/engine" ]; then engine="$here/engine"; else engine="$here/../native/fairy"; fi
+if [ -f "$here/LICENSE" ]; then licence="$here/LICENSE"; else licence="$here/../LICENSE"; fi
+cp "$licence" "$build/squarechess.koplugin/LICENSE"
 cp "$engine/Copying.txt" "$build/squarechess.koplugin/ENGINE-LICENSE.txt"
 
 version="$(python3 -c 'import json,sys; print(".".join(str(n) for n in json.load(open(sys.argv[1]))["version"]))' "$build/manifest.json")"
