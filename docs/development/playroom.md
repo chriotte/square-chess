@@ -14,7 +14,7 @@ Optional colour and play for Square Chess. With the Classic world and Playful ex
 
 - **The board never gets smaller.** In puzzles and computer games the buddy uses only the space beside the board (wide screens) or what is left below it after the review bar, move strip and captured rows (tall screens). On small screens such as the Titan 2 Elite it does not appear there at all.
 - **The first screen of Home stays the same.** The recent-games list sits below the menu, reached by scrolling, with a link to the whole history.
-- **On board screens the buddy stands on the screen itself** and speaks in a bubble, instead of sitting in a box.
+- **On board screens the buddy speaks in a bubble.** In a world it stands in a small framed scene of that world (wood, bamboo, a brass or steel porthole); in Classic and on e-ink it stands on the screen itself.
 - **The board screen stays plain.** Worlds are drawn behind Home, Settings, history, the buddy screen and the puzzle menu, never behind a board or the clock. A world gives the board its own square colours.
 - **E-ink mode wins.** It ignores the world and draws the buddy as a still black line drawing.
 - **Gentle motion, no nagging.** The buddy breathes, waves, jumps, cries and throws pancakes at 30 frames a second while its screen is in front; it holds still in e-ink mode and when the phone's animations are off. No streaks, no notifications. Losing never takes a sticker away.
@@ -40,3 +40,7 @@ Each sticker is one condition in `earnedStickers`. "Player" means the person at 
 
 - `PlayroomTest.kt`: sticker rules on short real games, outfit saving, game remarks, and text contrast on every world's cards.
 - `PlayroomDeviceTest.kt`: the buddy on Home, the recent-games list, the buddy screen, and no buddy with Playful extras off.
+
+## Set up a position
+
+Home → Set up a position (also Menu → Set up from this position during a game) opens `PositionEditorScreen` in `PositionEditor.kt`. Pieces are placed from a palette; tapping a square that holds the chosen piece empties it. Castling rights follow the kings and rooks still on their starting squares. `editorProblem` explains what blocks play (kings, pawns on the edge, the waiting side in check, a finished position), and the position then goes to the usual new-game dialog as a starting FEN, for a game against the computer or between two people. Tests: `PositionEditorTest.kt`.

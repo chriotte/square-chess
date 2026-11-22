@@ -211,4 +211,18 @@
     <string name="line_sloth_nice">Joli… coup. Très… singe.</string>
     <string name="line_bob_nice">Bon coup. Mes sourcils approuvent.</string>
     <string name="recent_all_games">Toutes les parties ›</string>
+    <string name="editor_title">Préparer une position</string>
+    <string name="editor_subtitle">Placez les pièces, puis jouez contre l’ordinateur ou avec un ami</string>
+    <string name="editor_white_moves">Les blancs jouent en premier</string>
+    <string name="editor_black_moves">Les noirs jouent en premier</string>
+    <string name="editor_start_position">Position initiale</string>
+    <string name="editor_clear">Échiquier vide</string>
+    <string name="editor_ready">Prêt à jouer.</string>
+    <string name="editor_eraser">Gomme : vider une case</string>
+    <string name="editor_problem_kings">Chaque camp doit avoir exactement un roi.</string>
+    <string name="editor_problem_pawns">Les pions ne peuvent pas être sur la première ou la dernière rangée.</string>
+    <string name="editor_problem_check">Le camp qui ne joue pas en premier est en échec. Déplacez une pièce ou laissez l’autre camp jouer en premier.</string>
+    <string name="editor_problem_over">Cette position est déjà mat ou pat.</string>
+    <string name="editor_from_game">Préparer depuis cette position</string>
+    <string name="starting_from_setup">Départ depuis votre position préparée</string>
 </resources>

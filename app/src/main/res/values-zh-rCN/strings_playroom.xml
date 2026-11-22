@@ -211,4 +211,18 @@
     <string name="line_sloth_nice">好……棋。很……猴子。</string>
     <string name="line_bob_nice">好棋。我的眉毛表示赞同。</string>
     <string name="recent_all_games">全部对局 ›</string>
+    <string name="editor_title">摆设局面</string>
+    <string name="editor_subtitle">摆好棋子，然后和电脑或朋友对弈</string>
+    <string name="editor_white_moves">白方先走</string>
+    <string name="editor_black_moves">黑方先走</string>
+    <string name="editor_start_position">初始局面</string>
+    <string name="editor_clear">清空棋盘</string>
+    <string name="editor_ready">可以开始了。</string>
+    <string name="editor_eraser">橡皮擦：清空一个格子</string>
+    <string name="editor_problem_kings">双方都必须各有一个王。</string>
+    <string name="editor_problem_pawns">兵不能在第一或最后一横排。</string>
+    <string name="editor_problem_check">不先走的一方正被将军。移动一个棋子，或让另一方先走。</string>
+    <string name="editor_problem_over">这个局面已经是将杀或逼和。</string>
+    <string name="editor_from_game">从此局面开始摆设</string>
+    <string name="starting_from_setup">从你摆设的局面开始</string>
 </resources>

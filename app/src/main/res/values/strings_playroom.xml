@@ -227,4 +227,18 @@
     <string name="line_sloth_nice">Nice… move. Very… monkey.</string>
     <string name="line_bob_nice">Good move. My eyebrows approve.</string>
     <string name="recent_all_games">All games ›</string>
+    <string name="editor_title">Set up a position</string>
+    <string name="editor_subtitle">Place the pieces, then play the computer or a friend</string>
+    <string name="editor_white_moves">White moves first</string>
+    <string name="editor_black_moves">Black moves first</string>
+    <string name="editor_start_position">Starting position</string>
+    <string name="editor_clear">Empty board</string>
+    <string name="editor_ready">Ready to play.</string>
+    <string name="editor_eraser">Eraser: empty a square</string>
+    <string name="editor_problem_kings">Each side needs exactly one king.</string>
+    <string name="editor_problem_pawns">Pawns cannot stand on the first or last rank.</string>
+    <string name="editor_problem_check">The side that does not move first is in check. Move a piece, or let the other side move first.</string>
+    <string name="editor_problem_over">This position is already checkmate or stalemate.</string>
+    <string name="editor_from_game">Set up from this position</string>
+    <string name="starting_from_setup">Starting from your set-up position</string>
 </resources>

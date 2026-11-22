@@ -102,11 +102,37 @@ enum class BubbleTail { LEFT, BOTTOM }
         SpeechBubble(line, extra, BubbleTail.BOTTOM, bubbleColor, Modifier.fillMaxWidth(), large = true)
         // Width first, then the height left under the bubble, so the figure never runs off the screen.
         val figureHeight = maxHeight?.let { (it - 90.dp).coerceIn(80.dp, 221.dp) } ?: 221.dp
-        BuddyFigure(settings.buddy, outfit, pose, Modifier.widthIn(max = 170.dp).fillMaxWidth().aspectRatio(100f / 130f).heightIn(max = figureHeight),
-            mono = palette.eink)
+        WorldStage(Modifier.widthIn(max = 170.dp).fillMaxWidth().aspectRatio(100f / 130f).heightIn(max = figureHeight)) {
+            BuddyFigure(settings.buddy, outfit, pose, it, mono = palette.eink)
+        }
     } else Row(modifier.then(semantics), verticalAlignment = Alignment.CenterVertically) {
-        BuddyFigure(settings.buddy, outfit, pose, Modifier.size(80.dp, 104.dp), mono = palette.eink)
+        WorldStage(Modifier.size(84.dp, 108.dp)) { BuddyFigure(settings.buddy, outfit, pose, it, mono = palette.eink) }
         SpeechBubble(line, extra, BubbleTail.LEFT, bubbleColor, Modifier.weight(1f, fill = false), large = false)
+    }
+}
+
+/** The frame round a world's stage: wood, bamboo, a brass porthole, a steel porthole. */
+private fun stageFrame(world: World): Color = when (world) {
+    World.FOREST -> Color(0xFF7A5531)
+    World.JUNGLE -> Color(0xFFA88B3E)
+    World.OCEAN -> Color(0xFFB8893A)
+    World.SPACE -> Color(0xFF9AA3C7)
+    World.CLASSIC -> Color.Transparent
+}
+
+/**
+ * In a world, the buddy stands in a small framed scene of that world; in Classic and on e-ink it
+ * stands on the screen as before. [content] gets the modifier for the figure inside the frame.
+ */
+@Composable fun WorldStage(modifier: Modifier, content: @Composable (Modifier) -> Unit) {
+    val world = LocalWorld.current
+    if (world == World.CLASSIC || LocalPalette.current.eink) { content(modifier); return }
+    val round = if (world == World.OCEAN || world == World.SPACE) 28.dp else 16.dp
+    val shape = RoundedCornerShape(round)
+    BoxWithConstraints(modifier.clip(shape).border(3.dp, stageFrame(world), shape)) {
+        val unit = with(LocalDensity.current) { maxWidth.toPx() } / 120f
+        WorldBackground(world, Modifier.fillMaxSize(), unit = unit)
+        content(Modifier.fillMaxSize().padding(start = 4.dp, end = 4.dp, top = 8.dp, bottom = 2.dp))
     }
 }
 

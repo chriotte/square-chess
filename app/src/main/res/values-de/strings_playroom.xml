@@ -211,4 +211,18 @@
     <string name="line_sloth_nice">Guter… Zug. Sehr… affig.</string>
     <string name="line_bob_nice">Guter Zug. Meine Augenbrauen sind einverstanden.</string>
     <string name="recent_all_games">Alle Partien ›</string>
+    <string name="editor_title">Stellung aufbauen</string>
+    <string name="editor_subtitle">Figuren aufstellen, dann gegen den Computer oder mit einem Freund spielen</string>
+    <string name="editor_white_moves">Weiß zieht zuerst</string>
+    <string name="editor_black_moves">Schwarz zieht zuerst</string>
+    <string name="editor_start_position">Grundstellung</string>
+    <string name="editor_clear">Leeres Brett</string>
+    <string name="editor_ready">Bereit zum Spielen.</string>
+    <string name="editor_eraser">Radierer: ein Feld leeren</string>
+    <string name="editor_problem_kings">Jede Seite braucht genau einen König.</string>
+    <string name="editor_problem_pawns">Bauern dürfen nicht auf der ersten oder letzten Reihe stehen.</string>
+    <string name="editor_problem_check">Die Seite, die nicht zuerst zieht, steht im Schach. Verschiebe eine Figur oder lass die andere Seite zuerst ziehen.</string>
+    <string name="editor_problem_over">Diese Stellung ist schon matt oder patt.</string>
+    <string name="editor_from_game">Stellung von hier aufbauen</string>
+    <string name="starting_from_setup">Start aus deiner aufgebauten Stellung</string>
 </resources>

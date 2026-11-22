@@ -211,4 +211,18 @@
     <string name="line_sloth_nice">Buena… jugada. Muy… de mono.</string>
     <string name="line_bob_nice">Buena jugada. Mis cejas lo aprueban.</string>
     <string name="recent_all_games">Todas las partidas ›</string>
+    <string name="editor_title">Preparar una posición</string>
+    <string name="editor_subtitle">Coloca las piezas y juega contra el ordenador o con un amigo</string>
+    <string name="editor_white_moves">Juegan primero las blancas</string>
+    <string name="editor_black_moves">Juegan primero las negras</string>
+    <string name="editor_start_position">Posición inicial</string>
+    <string name="editor_clear">Tablero vacío</string>
+    <string name="editor_ready">Listo para jugar.</string>
+    <string name="editor_eraser">Borrador: vaciar una casilla</string>
+    <string name="editor_problem_kings">Cada bando necesita exactamente un rey.</string>
+    <string name="editor_problem_pawns">Los peones no pueden estar en la primera ni en la última fila.</string>
+    <string name="editor_problem_check">El bando que no juega primero está en jaque. Mueve una pieza o deja que el otro bando juegue primero.</string>
+    <string name="editor_problem_over">Esta posición ya es jaque mate o rey ahogado.</string>
+    <string name="editor_from_game">Preparar desde esta posición</string>
+    <string name="starting_from_setup">Empezando desde tu posición preparada</string>
 </resources>

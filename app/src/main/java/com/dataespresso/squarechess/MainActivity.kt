@@ -172,6 +172,9 @@ class MainActivity: ComponentActivity() {
                 var clockPreset by rememberSaveable { mutableStateOf("Untimed") }
                 var clockPresetMenu by remember { mutableStateOf(false) }
                 var importedFen by rememberSaveable { mutableStateOf<String?>(null) }
+                // The position editor's board, and whether the new game starts from it.
+                var editorFen by rememberSaveable { mutableStateOf(START_FEN) }
+                var fromEditor by rememberSaveable { mutableStateOf(false) }
                 var moreSetupOptions by rememberSaveable { mutableStateOf(false) }
                 var fenImportError by remember { mutableStateOf<String?>(null) }
                 var fenImporting by remember { mutableStateOf(false) }
@@ -227,6 +230,7 @@ class MainActivity: ComponentActivity() {
                     showEvaluation=false
                     moreSetupOptions=false
                     importedFen=null
+                    fromEditor=false
                     fenImportError=null
                     fenImporting=false
                     dialog="new"
@@ -257,7 +261,7 @@ class MainActivity: ComponentActivity() {
                 Surface(Modifier.fillMaxSize(),color=palette.background) {
                     // The world is drawn behind Home and the menus, never behind a board. Screens with
                     // text straight on the page get a veil, so the text stays easy to read.
-                    val boardScreen=screen=="game" || screen=="standaloneClock" || (screen=="puzzles" && puzzleUi.session!=null)
+                    val boardScreen=screen=="game" || screen=="standaloneClock" || screen=="editor" || (screen=="puzzles" && puzzleUi.session!=null)
                     if(world!=World.CLASSIC && !boardScreen)
                         WorldBackground(world,Modifier.fillMaxSize(),veil=if(screen=="home") 0f else 0.82f)
                     // Home/history keep a conventional cutout inset. The game header
@@ -303,6 +307,7 @@ class MainActivity: ComponentActivity() {
                                 }
                                 LandingOption(stringResource(R.string.over_the_board)) { openNewGame(GameMode.LOCAL_TWO_PLAYER) }
                                 LandingOption(stringResource(R.string.record_physical_game)) { openNewGame(GameMode.PHYSICAL_BOARD_RECORDING) }
+                                LandingOption(stringResource(R.string.editor_title),stringResource(R.string.editor_subtitle)) { editorFen=START_FEN; screen="editor" }
                                 LandingOption(
                                     stringResource(R.string.chess_clock),
                                     stringResource(R.string.chess_clock_subtitle)
@@ -321,6 +326,13 @@ class MainActivity: ComponentActivity() {
                                     TextButton(onClick={screen="help";vm.pauseForNavigation()}) { Text(stringResource(R.string.help_title)) }
                                 }
                             } }
+                            "editor" -> {
+                                BackHandler { screen="home" }
+                                // The new-game dialog opens over the editor; Cancel returns to it, Start opens the game.
+                                PositionEditorScreen(editorFen,prefs,onBack={screen="home"},onPlay={ fen,mode ->
+                                    editorFen=fen; openNewGame(mode); importedFen=fen; fromEditor=true
+                                })
+                            }
                             "buddy" -> {
                                 BackHandler { screen="home" }
                                 // Opening the buddy screen shows every sticker, so none is new any more.
@@ -546,7 +558,7 @@ class MainActivity: ComponentActivity() {
                             Text(stringResource(R.string.import_position_help),fontSize=13.sp)
                         }
                         if(fenImporting) Text(stringResource(R.string.importing_position))
-                        if(importedFen!=null) Text(stringResource(R.string.starting_from_imported),fontSize=13.sp,fontWeight=FontWeight.Medium)
+                        if(importedFen!=null) Text(stringResource(if(fromEditor) R.string.starting_from_setup else R.string.starting_from_imported),fontSize=13.sp,fontWeight=FontWeight.Medium)
                         fenImportError?.let { Text(it,color=MaterialTheme.colorScheme.error,fontSize=12.sp) }
                         if(importedFen!=null || fenImportError!=null) {
                             TextButton(onClick={importedFen=null;fenImportError=null}) { Text(stringResource(R.string.use_standard_position)) }
@@ -582,6 +594,10 @@ class MainActivity: ComponentActivity() {
                     else TextButton(onClick={endReview();reviewPly=null;vm.foreground();dialog=""}) { Text(stringResource(R.string.return_to_game)) }
                     TextButton(onClick={dialog="history"}){Text(stringResource(R.string.move_list))}
                     TextButton(onClick={flip=!flip;vm.setOrientation(flip);dialog=""}){Text(stringResource(R.string.flip_board))}
+                    TextButton(onClick={
+                        val shown=reviewPly?.let { ChessPosition(s.position.initialFen,s.position.moves.take(it)) } ?: s.position
+                        editorFen=shown.board.fen; dialog=""; if(reviewPly!=null) { endReview(); reviewPly=null }; vm.pauseForNavigation(); screen="editor"
+                    }){Text(stringResource(R.string.editor_from_game))}
                     s.game?.let { game ->
                         MenuSection(stringResource(R.string.section_share))
                         TextButton(onClick={

@@ -211,4 +211,18 @@
     <string name="line_sloth_nice">Fint… trekk. Veldig… apete.</string>
     <string name="line_bob_nice">Godt trekk. Øyenbrynene mine er enige.</string>
     <string name="recent_all_games">Alle partier ›</string>
+    <string name="editor_title">Sett opp en stilling</string>
+    <string name="editor_subtitle">Plasser brikkene, og spill mot datamaskinen eller en venn</string>
+    <string name="editor_white_moves">Hvit trekker først</string>
+    <string name="editor_black_moves">Svart trekker først</string>
+    <string name="editor_start_position">Utgangsstilling</string>
+    <string name="editor_clear">Tomt brett</string>
+    <string name="editor_ready">Klar til å spille.</string>
+    <string name="editor_eraser">Viskelær: tøm en rute</string>
+    <string name="editor_problem_kings">Hver side trenger nøyaktig én konge.</string>
+    <string name="editor_problem_pawns">Bønder kan ikke stå på første eller siste rad.</string>
+    <string name="editor_problem_check">Siden som ikke trekker først, står i sjakk. Flytt en brikke, eller la den andre siden trekke først.</string>
+    <string name="editor_problem_over">Denne stillingen er allerede matt eller patt.</string>
+    <string name="editor_from_game">Sett opp fra denne stillingen</string>
+    <string name="starting_from_setup">Starter fra stillingen du satte opp</string>
 </resources>
