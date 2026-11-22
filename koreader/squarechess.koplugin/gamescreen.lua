@@ -584,6 +584,19 @@ function GameScreen:review(ply)
 end
 
 --- Starts a new game; `fen` and `moves` load a position (from PGN, for example).
+--- Starts a game between two people on this device, keeping an unfinished game if asked.
+function GameScreen:startTwoPlayers()
+    if self.player ~= "both" and not self.ended and #self.game.moves > 0 then
+        UIManager:show(ConfirmBox:new{
+            text = _("Start a two-player game? The game against the computer will be lost."),
+            ok_text = _("Two players"),
+            ok_callback = function() self:startGame("both") end,
+        })
+    else
+        self:startGame("both")
+    end
+end
+
 function GameScreen:startGame(player, game, ended, tags)
     self:invalidate()
     self.hint_text = nil
