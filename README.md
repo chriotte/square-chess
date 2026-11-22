@@ -17,6 +17,8 @@
 
 <a href="https://play.google.com/store/apps/details?id=com.dataespresso.squarechess"><img src="docs/images/badges/google-play.png" alt="Get it on Google Play" height="64"></a> <a href="https://github.com/chriotte/square-chess/releases/latest"><img src="docs/images/badges/github.png" alt="Get the latest APK on GitHub" height="64"></a> <a href="https://f-droid.org/packages/com.dataespresso.squarechess/"><img src="docs/images/badges/f-droid.png" alt="Get it on F-Droid" height="64"></a>
 
+**Reading on an e-ink device?** [**Square Chess for KOReader**](https://github.com/chriotte/squarechess.koplugin) is the same game for readers that cannot run Android apps: jailbroken Kindles, Kobo, PocketBook and reMarkable.
+
 ## Why Square Chess?
 
 The board comes first.
