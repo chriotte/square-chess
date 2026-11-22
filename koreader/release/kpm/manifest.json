@@ -14,5 +14,8 @@
       "id": "koreader"
     }
   ],
-  "supported_platforms": null
+  "supported_platforms": [
+    "kindlehf",
+    "kindlepw2"
+  ]
 }

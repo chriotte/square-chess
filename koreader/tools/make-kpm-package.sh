@@ -34,8 +34,14 @@ if [ -f "$here/LICENSE" ]; then licence="$here/LICENSE"; else licence="$here/../
 cp "$licence" "$build/squarechess.koplugin/LICENSE"
 cp "$engine/Copying.txt" "$build/squarechess.koplugin/ENGINE-LICENSE.txt"
 
-version="$(python3 -c 'import json,sys; print(".".join(str(n) for n in json.load(open(sys.argv[1]))["version"]))' "$build/manifest.json")"
-kpkg="$out/squarechess_${version}_kindleany.kpkg"
+# KPM names an artifact <id>_<version>_<platforms>.kpkg, with "kindleany" when
+# the package declares no platforms.
+name="$(python3 -c 'import json,sys
+m = json.load(open(sys.argv[1]))
+v = ".".join(str(n) for n in m["version"])
+p = "-".join(m["supported_platforms"]) if m.get("supported_platforms") else "kindleany"
+print(m["id"] + "_" + v + "_" + p)' "$build/manifest.json")"
+kpkg="$out/$name.kpkg"
 rm -f "$kpkg"
 # Entries are named without a "./" prefix: KPM looks "manifest.json" up by that
 # exact name, and "./manifest.json" would not match it.
