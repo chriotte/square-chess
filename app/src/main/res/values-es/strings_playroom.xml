@@ -225,4 +225,7 @@
     <string name="editor_problem_over">Esta posición ya es jaque mate o rey ahogado.</string>
     <string name="editor_from_game">Preparar desde esta posición</string>
     <string name="starting_from_setup">Empezando desde tu posición preparada</string>
+    <string name="tile_computer_sub">Diez niveles, desde los primeros pasos hasta fuerte</string>
+    <string name="tile_two_players_sub">Comparte un tablero con un amigo</string>
+    <string name="tile_setup_sub">Tu propia posición, y a jugar</string>
 </resources>

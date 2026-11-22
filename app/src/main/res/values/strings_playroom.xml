@@ -241,4 +241,7 @@
     <string name="editor_problem_over">This position is already checkmate or stalemate.</string>
     <string name="editor_from_game">Set up from this position</string>
     <string name="starting_from_setup">Starting from your set-up position</string>
+    <string name="tile_computer_sub">Ten levels, from first steps to strong</string>
+    <string name="tile_two_players_sub">Share one board with a friend</string>
+    <string name="tile_setup_sub">Your own position, then play</string>
 </resources>

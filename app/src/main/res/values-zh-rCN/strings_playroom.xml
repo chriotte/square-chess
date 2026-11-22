@@ -225,4 +225,7 @@
     <string name="editor_problem_over">这个局面已经是将杀或逼和。</string>
     <string name="editor_from_game">从此局面开始摆设</string>
     <string name="starting_from_setup">从你摆设的局面开始</string>
+    <string name="tile_computer_sub">十个级别，从入门到高手</string>
+    <string name="tile_two_players_sub">和朋友共用一个棋盘</string>
+    <string name="tile_setup_sub">摆出自己的局面，然后对弈</string>
 </resources>

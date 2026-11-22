@@ -225,4 +225,7 @@
     <string name="editor_problem_over">Diese Stellung ist schon matt oder patt.</string>
     <string name="editor_from_game">Stellung von hier aufbauen</string>
     <string name="starting_from_setup">Start aus deiner aufgebauten Stellung</string>
+    <string name="tile_computer_sub">Zehn Stufen, von den ersten Schritten bis stark</string>
+    <string name="tile_two_players_sub">Ein Brett mit einem Freund teilen</string>
+    <string name="tile_setup_sub">Eigene Stellung, dann spielen</string>
 </resources>

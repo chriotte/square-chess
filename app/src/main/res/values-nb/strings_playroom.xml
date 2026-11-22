@@ -225,4 +225,7 @@
     <string name="editor_problem_over">Denne stillingen er allerede matt eller patt.</string>
     <string name="editor_from_game">Sett opp fra denne stillingen</string>
     <string name="starting_from_setup">Starter fra stillingen du satte opp</string>
+    <string name="tile_computer_sub">Ti nivåer, fra første steg til sterk</string>
+    <string name="tile_two_players_sub">Del ett brett med en venn</string>
+    <string name="tile_setup_sub">Din egen stilling, så spill</string>
 </resources>

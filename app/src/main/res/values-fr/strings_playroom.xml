@@ -225,4 +225,7 @@
     <string name="editor_problem_over">Cette position est déjà mat ou pat.</string>
     <string name="editor_from_game">Préparer depuis cette position</string>
     <string name="starting_from_setup">Départ depuis votre position préparée</string>
+    <string name="tile_computer_sub">Dix niveaux, des premiers pas au jeu fort</string>
+    <string name="tile_two_players_sub">Partagez un échiquier avec un ami</string>
+    <string name="tile_setup_sub">Votre propre position, puis jouez</string>
 </resources>

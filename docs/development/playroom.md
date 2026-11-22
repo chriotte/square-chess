@@ -44,3 +44,7 @@ Each sticker is one condition in `earnedStickers`. "Player" means the person at 
 ## Set up a position
 
 Home → Set up a position (also Menu → Set up from this position during a game) opens `PositionEditorScreen` in `PositionEditor.kt`. Pieces are placed from a palette; tapping a square that holds the chosen piece empties it. Castling rights follow the kings and rooks still on their starting squares. `editorProblem` explains what blocks play (kings, pawns on the edge, the waiting side in check, a finished position), and the position then goes to the usual new-game dialog as a starting FEN, for a game against the computer or between two people. Tests: `PositionEditorTest.kt`.
+
+## Home
+
+Colour screens use `TileHome` (`HomeScreen.kt`): the game to continue, four tiles (computer, puzzles, over the board, set up a position), two small buttons (record a real game, chess clock) and recent games as a sideways row; screens 900 dp and wider get two columns, with the buddy and the recent games on the right. E-ink keeps the plain list in `MainActivity`, which suits e-paper. Both use the same labels, so tests and screen-reader users find options by the same names.

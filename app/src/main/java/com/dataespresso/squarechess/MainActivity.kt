@@ -277,7 +277,20 @@ class MainActivity: ComponentActivity() {
                             .imePadding()
                     ) {
                         when(screen) {
-                            "home" -> Box(Modifier.fillMaxSize(),contentAlignment=Alignment.TopCenter) { Column(Modifier.fillMaxHeight().widthIn(max=720.dp).fillMaxWidth().padding(horizontal=24.dp)) {
+                            // Colour screens get tiles; e-ink keeps the plain list below, which suits e-paper.
+                            "home" -> if(!palette.eink) TileHome(s.game,settings,earned,recentGames,HomeActions(
+                                onContinue={ flip=defaultFlipFor(s.game); reviewPly=null; screen="game"; vm.foreground() },
+                                onComputer={ openNewGame(GameMode.COMPUTER) },
+                                onPuzzles={ vm.pauseForNavigation(); screen="puzzles" },
+                                onTwoPlayers={ openNewGame(GameMode.LOCAL_TWO_PLAYER) },
+                                onRecord={ openNewGame(GameMode.PHYSICAL_BOARD_RECORDING) },
+                                onSetUp={ editorFen=START_FEN; screen="editor" },
+                                onClock={ screen="standaloneClock" },
+                                onHistory={ screen="history" }, onSettings={ screen="settings" },
+                                onHelp={ screen="help"; vm.pauseForNavigation() }, onClose={ finish() },
+                                onBuddy={ screen="buddy" },
+                                onOpenGame={ g -> flip=defaultFlipFor(g); reviewPly=null; vm.resume(g); screen="game" }
+                            )) else Box(Modifier.fillMaxSize(),contentAlignment=Alignment.TopCenter) { Column(Modifier.fillMaxHeight().widthIn(max=720.dp).fillMaxWidth().padding(horizontal=24.dp)) {
                               // On a drawn world the header and footer sit on cards, so their text never lies on the picture.
                               val onCard=if(world!=World.CLASSIC) Modifier.clip(RoundedCornerShape(12.dp)).background(palette.card) else Modifier
                               Column(
