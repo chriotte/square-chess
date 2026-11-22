@@ -160,6 +160,11 @@ private val EinkScheme = lightColorScheme(
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
+private val VisibleRipple = RippleConfiguration()
+@OptIn(ExperimentalMaterial3Api::class)
+private val InvisibleRipple = RippleConfiguration(Color.Transparent, androidx.compose.material.ripple.RippleAlpha(0f, 0f, 0f, 0f))
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable fun SquareChessTheme(eink: Boolean, world: World = World.CLASSIC, content: @Composable () -> Unit) {
     val shown = if (eink) World.CLASSIC else world
     val scheme = when {
@@ -173,10 +178,12 @@ private val EinkScheme = lightColorScheme(
     MaterialTheme(colorScheme = scheme) {
         // Ripples fade in and out, which leaves ghost images on e-paper. One provider call for both
         // modes keeps the content at the same place in the tree, so switching keeps the screen state.
+        // E-ink gets an invisible ripple, not null: Material 3 1.3 crashes when a ripple that null
+        // already removed is removed again (switching e-ink on, off and on).
         CompositionLocalProvider(
             LocalPalette provides if (eink) EinkPalette else worldPalette(shown),
             LocalWorld provides shown,
-            LocalRippleConfiguration provides if (eink) null else RippleConfiguration(),
+            LocalRippleConfiguration provides if (eink) InvisibleRipple else VisibleRipple,
             content = content
         )
     }
