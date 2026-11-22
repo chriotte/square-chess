@@ -79,6 +79,10 @@ It also works on conventional Android phones and tablets.
 
 See the [device testing plan](docs/testing/test-plan.md).
 
+### E-readers that cannot run Android
+
+Jailbroken Kindles, Kobo, PocketBook and reMarkable run **[Square Chess for KOReader](https://github.com/chriotte/squarechess.koplugin)**, a port of this app as a KOReader plugin. It has the same engine, levels, puzzles and e-ink board. The plugin is developed in [koreader/](koreader/) here and released from that repository.
+
 ## Building from source
 
 Requirements:

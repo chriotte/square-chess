@@ -2,6 +2,8 @@
 
 Square Chess as a [KOReader](https://koreader.rocks) plugin, for e-readers that cannot run Android apps: jailbroken Kindles (including the Kindle Scribe), Kobo, PocketBook and reMarkable.
 
+This folder is where the plugin is developed. Users install it from its own repository, **[chriotte/squarechess.koplugin](https://github.com/chriotte/squarechess.koplugin)**, which `tools/make-release-repo.sh` assembles from here for each release.
+
 It uses the same engine as the Android app (Fairy-Stockfish, ten levels) and the same black-and-white e-ink board: hatched dark squares, shape-based highlights and no animations. Everything runs on the device, with no network access.
 
 ## Features
