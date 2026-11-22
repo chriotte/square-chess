@@ -107,7 +107,10 @@ val forbiddenDependencyGroups = listOf(
 )
 val allowedPermissions = setOf(
     // Added by AndroidX core for its own receivers; it grants nothing to other apps.
-    "com.dataespresso.squarechess.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+    "com.dataespresso.squarechess.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+    // Optional Settings → Sign in to sync with squarechess.org (SyncApi.kt). The app makes no
+    // connection until the player signs in; there are no ads, analytics or other network use.
+    "android.permission.INTERNET"
 )
 tasks.register("verifyReleasePolicy") {
     group = "verification"
