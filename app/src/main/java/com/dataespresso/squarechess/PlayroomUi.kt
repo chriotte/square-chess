@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -149,6 +150,14 @@ private fun stageFrame(world: World): Color = when (world) {
         if (animate) { scale.snapTo(0.82f); scale.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = 380f)) }
     }
     val fill = if (eink) Color.White else color
+    // Outlined like the buddy's frame, so bubble and buddy read as one: the world's frame colour,
+    // the accent in Classic, black on e-ink.
+    val world = LocalWorld.current
+    val outline = when {
+        eink -> Color.Black
+        world == World.CLASSIC -> palette.accent
+        else -> stageFrame(world)
+    }
     val tailSize = 10.dp
     Column(
         modifier
@@ -167,7 +176,7 @@ private fun stageFrame(world: World): Color = when (world) {
                 }
                 val shape = Path.combine(PathOperation.Union, bubble, point)
                 drawPath(shape, fill)
-                if (eink) drawPath(shape, Color.Black, style = Stroke(1.5.dp.toPx()))
+                drawPath(shape, outline, style = Stroke(if (eink) 1.5.dp.toPx() else 2.5.dp.toPx(), join = StrokeJoin.Round))
             }
             .padding(
                 start = if (tail == BubbleTail.LEFT) tailSize + 12.dp else 14.dp, end = 14.dp,
