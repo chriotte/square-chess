@@ -100,6 +100,13 @@ class MainActivity: ComponentActivity() {
     private val settingsStore by lazy { SettingsStore(this) }
     private var settings by mutableStateOf(AppSettings())
     private val sounds by lazy { MoveSounds() }
+    /** Replayed game facts by game and save time, so each finished game is replayed once per process. */
+    private val factsCache=java.util.concurrent.ConcurrentHashMap<Pair<String,Long>,Any>()
+    private val stickerFacts: (SavedGame) -> GameFacts? = { game ->
+        val key=game.id to game.updated
+        val hit=factsCache[key]
+        if(hit!=null) hit as? GameFacts else gameFacts(game).also { factsCache[key]=it ?: Unit }
+    }
     // Android 8–12: apply the language chosen in Settings (Android 13+ does this itself).
     override fun attachBaseContext(newBase: Context) { super.attachBaseContext(LanguageSetting.wrap(newBase)) }
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -116,11 +123,28 @@ class MainActivity: ComponentActivity() {
         }
         hideSystemBars()
         setContent {
-            SquareChessTheme(eink=settings.eink) {
+            SquareChessTheme(eink=settings.eink,world=settings.world) {
                 val palette=LocalPalette.current
+                val world=LocalWorld.current
                 val s by vm.state.collectAsState()
                 val puzzleUi by puzzles.state.collectAsState()
                 val prefs=settings
+                val allGames by vm.history.collectAsState(initial=emptyList())
+                val recentGames=remember(allGames) { recentFinishedGames(allGames) }
+                // Stickers are worked out from saved games and puzzle progress, only with Playful extras on.
+                // A game counts when it ends, so the games are not replayed after every move.
+                var earned by remember { mutableStateOf<Set<Sticker>>(emptySet()) }
+                val finishedKey=remember(allGames) { allGames.filter { it.result!="*" }.map { it.id to it.updated } }
+                LaunchedEffect(finishedKey,puzzleUi.totals,settings.playful) {
+                    if(!settings.playful) return@LaunchedEffect
+                    earned=withContext(Dispatchers.Default) {
+                        val progress=appChessDatabase(this@MainActivity).puzzleProgress().all()
+                        // The pack is read only once Puzzles has been opened; until then the two theme stickers wait.
+                        val themes=PuzzleCatalog.cached()?.associate { it.id to it.themes }
+                        earnedStickers(allGames,progress,themes,stickerFacts)
+                    }
+                }
+                fun saveSettings(value: AppSettings) { settings=value; settingsStore.save(value) }
                 val haptics=LocalHapticFeedback.current
                 // Sound and vibration only for a move just added to the same game, never on load or undo.
                 var soundKey by remember { mutableStateOf<Pair<String?,Int>?>(null) }
@@ -231,6 +255,11 @@ class MainActivity: ComponentActivity() {
                 modalVisible=dialog.isNotEmpty() || resultDialog!=null || entryPromotions.isNotEmpty()
                 BackHandler(draft.text.isNotEmpty()) { draft=NotationDraft() }
                 Surface(Modifier.fillMaxSize(),color=palette.background) {
+                    // The world is drawn behind Home and the menus, never behind a board. Screens with
+                    // text straight on the page get a veil, so the text stays easy to read.
+                    val boardScreen=screen=="game" || screen=="standaloneClock" || (screen=="puzzles" && puzzleUi.session!=null)
+                    if(world!=World.CLASSIC && !boardScreen)
+                        WorldBackground(world,Modifier.fillMaxSize(),veil=if(screen=="home") 0f else 0.82f)
                     // Home/history keep a conventional cutout inset. The game header
                     // handles the actual camera rectangle, using the space beside it.
                     Box(
@@ -244,13 +273,17 @@ class MainActivity: ComponentActivity() {
                             .imePadding()
                     ) {
                         when(screen) {
-                            "home" -> Column(Modifier.fillMaxSize().padding(horizontal=24.dp)) {
+                            "home" -> Box(Modifier.fillMaxSize(),contentAlignment=Alignment.TopCenter) { Column(Modifier.fillMaxHeight().widthIn(max=720.dp).fillMaxWidth().padding(horizontal=24.dp)) {
+                              // On a drawn world the header and footer sit on cards, so their text never lies on the picture.
+                              val onCard=if(world!=World.CLASSIC) Modifier.clip(RoundedCornerShape(12.dp)).background(palette.card) else Modifier
+                              BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                              val available=maxHeight-36.dp
                               Column(
-                                Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
-                                    .padding(top=24.dp,bottom=12.dp),
-                                verticalArrangement=Arrangement.spacedBy(12.dp)
+                                Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                                    .padding(top=24.dp,bottom=12.dp)
                               ) {
-                                Row(Modifier.padding(bottom=12.dp),verticalAlignment=Alignment.CenterVertically) {
+                              MenuWithOptionalExtra(available,16.dp,menu={ Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                                Row(Modifier.padding(bottom=12.dp).then(onCard).then(if(world!=World.CLASSIC) Modifier.padding(6.dp) else Modifier),verticalAlignment=Alignment.CenterVertically) {
                                     Image(painterResource(R.drawable.ic_square_chess),contentDescription=null,
                                         modifier=Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)))
                                     Spacer(Modifier.width(12.dp))
@@ -259,6 +292,7 @@ class MainActivity: ComponentActivity() {
                                     // For e-ink devices with the navigation bar hidden; a game is already saved on Home.
                                     TextButton(onClick={finish()}) { Text(stringResource(R.string.close_app)) }
                                 }
+                                if(settings.playful) HomeBuddyCard(settings,earned) { screen="buddy" }
                                 if(s.game!=null) Button(
                                     onClick={ flip=defaultFlipFor(s.game); reviewPly=null; screen="game"; vm.foreground() },
                                     modifier=Modifier.fillMaxWidth().heightIn(min=56.dp),
@@ -277,12 +311,22 @@ class MainActivity: ComponentActivity() {
                                 ) {
                                     screen="standaloneClock"
                                 }
+                              } },extra={ left ->
+                                RecentGames(recentGames,prefs,left) { g -> flip=defaultFlipFor(g); reviewPly=null; vm.resume(g); screen="game" }
+                              })
                               }
-                                Row(Modifier.fillMaxWidth().padding(top=4.dp,bottom=16.dp),horizontalArrangement=Arrangement.SpaceBetween) {
+                              }
+                                Row(Modifier.fillMaxWidth().padding(top=4.dp,bottom=16.dp).then(onCard),horizontalArrangement=Arrangement.SpaceBetween) {
                                     TextButton(onClick={screen="history"}) { Text(stringResource(R.string.game_history)) }
                                     TextButton(onClick={screen="settings"}) { Text(stringResource(R.string.settings_title)) }
                                     TextButton(onClick={screen="help";vm.pauseForNavigation()}) { Text(stringResource(R.string.help_title)) }
                                 }
+                            } }
+                            "buddy" -> {
+                                BackHandler { screen="home" }
+                                // Opening the buddy screen shows every sticker, so none is new any more.
+                                LaunchedEffect(earned) { if(!settings.seenStickers.containsAll(earned)) saveSettings(settings.copy(seenStickers=settings.seenStickers+earned)) }
+                                BuddyScreen(settings,earned,onChange={ saveSettings(it) },onExit={screen="home"})
                             }
                             "history" -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
                                 BackHandler { screen="home" }
@@ -304,7 +348,7 @@ class MainActivity: ComponentActivity() {
                             }
                             "settings" -> {
                               BackHandler { screen="home" }
-                              SettingsScreen(settings,onChange={ settings=it; settingsStore.save(it) },onExit={screen="home"},
+                              SettingsScreen(settings,onChange={ saveSettings(it) },onExit={screen="home"},
                                 language=remember { LanguageSetting.chosen(this@MainActivity) },
                                 onLanguage={ LanguageSetting.set(this@MainActivity,it) })
                             }
@@ -312,7 +356,7 @@ class MainActivity: ComponentActivity() {
                                 puzzleUi.session!=null -> {
                                     // Back clears a typed move first (the BackHandler above), then leaves the puzzle.
                                     BackHandler(draft.text.isEmpty()) { puzzles.exit() }
-                                    PuzzleBoardScreen(puzzleUi,prefs,draft,
+                                    PuzzleBoardScreen(puzzleUi,prefs,draft,earned,
                                         onMove={ move -> draft=NotationDraft(); puzzles.move(move) },
                                         onHint={puzzles.showHint()},onHideHint={puzzles.hideHint()},onNext={puzzles.next()},
                                         onExit={ draft=NotationDraft(); puzzles.exit() },
@@ -607,9 +651,19 @@ class MainActivity: ComponentActivity() {
                     AppAlertDialog(
                         onDismissRequest={resultDialog=null;vm.acknowledgeResult()},
                         title={Text(stringResource(resultHeadline(event,s.game)))},
-                        text={Column {
+                        text={Column(Modifier.verticalScroll(rememberScrollState())) {
                             Text(reasonText(resources,event.reason))
                             Text(stringResource(resultScore(event.result)),modifier=Modifier.padding(top=8.dp),fontWeight=FontWeight.Medium)
+                            if(settings.playful) {
+                                val game=s.game
+                                val playerWon=event.result!="1/2-1/2" && (game?.mode!=GameMode.COMPUTER.name || ((event.result=="1-0")==game.humanWhite))
+                                val fresh=(earned-settings.seenStickers).sortedBy { it.ordinal }.take(3)
+                                val extra=if(fresh.isEmpty()) null else stringResource(R.string.sticker_new,fresh.joinToString(", ") { resources.getString(it.label) })
+                                BuddyReaction(settings,earned,if(playerWon) BuddyMoment.WIN else BuddyMoment.GOOD_GAME,Modifier.padding(top=12.dp),extra)
+                                // Told once: the stickers in this card are not new on Home afterwards.
+                                val told by rememberUpdatedState(fresh)
+                                DisposableEffect(Unit) { onDispose { if(told.isNotEmpty()) saveSettings(settings.copy(seenStickers=settings.seenStickers+told)) } }
+                            }
                             TextButton(onClick={resultDialog=null;vm.acknowledgeResult()}) { Text(stringResource(R.string.review_board)) }
                         }},
                         confirmButton={TextButton(onClick={

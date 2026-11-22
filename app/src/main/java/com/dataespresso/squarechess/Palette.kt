@@ -48,7 +48,81 @@ val EinkPalette = Palette(
     clockPanel = Color.White, clockPanelActive = Color.Black
 )
 
+/*
+ * World palettes. Cards are slightly see-through so the drawn world shows at their edges on Home;
+ * text keeps at least 4.5:1 contrast on them (PlayroomTest checks this).
+ */
+val ForestPalette = Palette(
+    eink = false, background = Color(0xFFE6EEDA), card = Color(0xEBFFFCF1), text = Color(0xFF22351E), muted = Color(0xFF4A6443),
+    accent = Color(0xFFA9530F), onAccent = Color.White, selectedSquare = Color(0xFFE8B04A), checkSquare = Color(0xFFD9645A),
+    recentSquare = Color(0xFFC9CF7A), inactiveTrack = Color(0xFFC9D6C0),
+    clockPanel = Color(0xFFF6F3E6), clockPanelActive = Color(0xFFD4E3C4)
+)
+val JunglePalette = Palette(
+    eink = false, background = Color(0xFFE9F2D6), card = Color(0xEBFFFBE8), text = Color(0xFF1F3318), muted = Color(0xFF465F35),
+    accent = Color(0xFF7E5B00), onAccent = Color.White, selectedSquare = Color(0xFFF29E4C), checkSquare = Color(0xFFD9645A),
+    recentSquare = Color(0xFFB9D27A), inactiveTrack = Color(0xFFCADDB0),
+    clockPanel = Color(0xFFF7F4E2), clockPanelActive = Color(0xFFDDE8BE)
+)
+val OceanPalette = Palette(
+    eink = false, background = Color(0xFFE3F1F5), card = Color(0xEBF4FBFD), text = Color(0xFF0E3345), muted = Color(0xFF365E70),
+    accent = Color(0xFF1B6990), onAccent = Color.White, selectedSquare = Color(0xFFF2C14E), checkSquare = Color(0xFFE07A6A),
+    recentSquare = Color(0xFF9FD3C7), inactiveTrack = Color(0xFFBFDCE6),
+    clockPanel = Color(0xFFF1F8FA), clockPanelActive = Color(0xFFC9E4EE)
+)
+val SpacePalette = Palette(
+    eink = false, background = Color(0xFF141634), card = Color(0xE61F2350), text = Color(0xFFEEF0FF), muted = Color(0xFFB5BAE0),
+    accent = Color(0xFFF3B854), onAccent = Color(0xFF1A1630), selectedSquare = Color(0xFFF3B854), checkSquare = Color(0xFFE06A7A),
+    recentSquare = Color(0xFF9C9BD8), inactiveTrack = Color(0xFF3A3F78),
+    clockPanel = Color(0xFF1C2048), clockPanelActive = Color(0xFF34397A)
+)
+
+fun worldPalette(world: World): Palette = when (world) {
+    World.CLASSIC -> StandardPalette
+    World.FOREST -> ForestPalette
+    World.JUNGLE -> JunglePalette
+    World.OCEAN -> OceanPalette
+    World.SPACE -> SpacePalette
+}
+
 val LocalPalette = staticCompositionLocalOf { StandardPalette }
+/** The world drawn behind Home and the menus; Classic draws nothing. E-ink always gives Classic. */
+val LocalWorld = staticCompositionLocalOf { World.CLASSIC }
+
+private fun lightWorldScheme(p: Palette, surface: Color, container: Color, outline: Color) = lightColorScheme(
+    primary = p.accent, onPrimary = p.onAccent,
+    secondary = p.muted, onSecondary = Color.White,
+    secondaryContainer = container, onSecondaryContainer = p.text,
+    tertiary = p.accent, onTertiary = p.onAccent,
+    primaryContainer = container, onPrimaryContainer = p.text,
+    background = p.background, onBackground = p.text,
+    surface = surface, onSurface = p.text,
+    surfaceVariant = container, onSurfaceVariant = p.muted,
+    surfaceTint = container,
+    surfaceContainerLowest = surface, surfaceContainerLow = surface,
+    surfaceContainer = surface, surfaceContainerHigh = surface,
+    surfaceContainerHighest = container,
+    outline = outline, outlineVariant = container
+)
+
+private val ForestScheme = lightWorldScheme(ForestPalette, Color(0xFFFBF8EC), Color(0xFFDCE8D0), Color(0xFF6E8466))
+private val JungleScheme = lightWorldScheme(JunglePalette, Color(0xFFFCF8E6), Color(0xFFE1ECC4), Color(0xFF6A7F55))
+private val OceanScheme = lightWorldScheme(OceanPalette, Color(0xFFF5FBFD), Color(0xFFD3E8EF), Color(0xFF5E7F8C))
+private val SpaceScheme = darkColorScheme(
+    primary = SpacePalette.accent, onPrimary = SpacePalette.onAccent,
+    secondary = Color(0xFFC2C6F0), onSecondary = Color(0xFF1A1630),
+    secondaryContainer = Color(0xFF34397A), onSecondaryContainer = SpacePalette.text,
+    tertiary = SpacePalette.accent, onTertiary = SpacePalette.onAccent,
+    primaryContainer = Color(0xFF34397A), onPrimaryContainer = SpacePalette.text,
+    background = SpacePalette.background, onBackground = SpacePalette.text,
+    surface = Color(0xFF1C2048), onSurface = SpacePalette.text,
+    surfaceVariant = Color(0xFF2A2E62), onSurfaceVariant = SpacePalette.muted,
+    surfaceTint = Color(0xFF34397A),
+    surfaceContainerLowest = Color(0xFF101230), surfaceContainerLow = Color(0xFF171A3E),
+    surfaceContainer = Color(0xFF1C2048), surfaceContainerHigh = Color(0xFF232756),
+    surfaceContainerHighest = Color(0xFF2A2E62),
+    outline = Color(0xFF7A7FB8), outlineVariant = Color(0xFF34397A)
+)
 
 private val StandardScheme = darkColorScheme(
     primary = Sand, onPrimary = Ink,
@@ -86,12 +160,22 @@ private val EinkScheme = lightColorScheme(
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable fun SquareChessTheme(eink: Boolean, content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = if (eink) EinkScheme else StandardScheme) {
+@Composable fun SquareChessTheme(eink: Boolean, world: World = World.CLASSIC, content: @Composable () -> Unit) {
+    val shown = if (eink) World.CLASSIC else world
+    val scheme = when {
+        eink -> EinkScheme
+        shown == World.FOREST -> ForestScheme
+        shown == World.JUNGLE -> JungleScheme
+        shown == World.OCEAN -> OceanScheme
+        shown == World.SPACE -> SpaceScheme
+        else -> StandardScheme
+    }
+    MaterialTheme(colorScheme = scheme) {
         // Ripples fade in and out, which leaves ghost images on e-paper. One provider call for both
         // modes keeps the content at the same place in the tree, so switching keeps the screen state.
         CompositionLocalProvider(
-            LocalPalette provides if (eink) EinkPalette else StandardPalette,
+            LocalPalette provides if (eink) EinkPalette else worldPalette(shown),
+            LocalWorld provides shown,
             LocalRippleConfiguration provides if (eink) null else RippleConfiguration(),
             content = content
         )

@@ -9,7 +9,8 @@ Square Chess is available in English, Simplified Chinese, Norwegian Bokmål, Ger
 | `app/src/main/res/values/strings_ui.xml` | All screen text except help (English source) |
 | `app/src/main/res/values/help.xml` | Help & About, How to play, privacy and feedback pages |
 | `app/src/main/res/values/strings.xml` | Home-screen entries and the FEN import help |
-| `values-zh-rCN`, `values-nb`, `values-de`, `values-es`, `values-fr` | The same three files, translated |
+| `app/src/main/res/values/strings_playroom.xml` | The Playroom: worlds, the buddy, its lines, items and stickers |
+| `values-zh-rCN`, `values-nb`, `values-de`, `values-es`, `values-fr` | The same four files, translated |
 | `app/src/main/res/xml/locales_config.xml` | Languages that Android 13+ lists under the system's App languages |
 | `Language.kt` → `APP_LANGUAGES` | Languages in Settings → Language, each named in its own language |
 
@@ -30,7 +31,7 @@ Square Chess is available in English, Simplified Chinese, Norwegian Bokmål, Ger
 
 ## Adding a language
 
-1. Copy the three files from `values` to `values-<code>` and translate them.
+1. Copy the four files from `values` to `values-<code>` and translate them.
 2. Add the language to `APP_LANGUAGES` (tag and its own name) and to `locales_config.xml`.
 3. Run `./gradlew -Pdev=true lintDebug connectedDebugAndroidTest` (the localization test covers the new language automatically).
 4. Check the game screen on the narrowest emulator (Light Phone III, 411 dp) in the new language.

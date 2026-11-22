@@ -20,6 +20,9 @@ object PuzzleCatalog {
     /** Milliseconds the first load took, for the performance notes. */
     @Volatile var loadMillis: Long=0; private set
 
+    /** The pack if it has been read already, without reading it. */
+    fun cached(): List<Puzzle>? = loaded
+
     suspend fun puzzles(context: Context): List<Puzzle> = loaded ?: lock.withLock {
         loaded ?: withContext(Dispatchers.IO) {
             val start=SystemClock.elapsedRealtime()

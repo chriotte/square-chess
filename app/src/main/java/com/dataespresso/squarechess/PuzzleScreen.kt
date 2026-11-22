@@ -61,7 +61,7 @@ import androidx.compose.ui.unit.sp
  * move over the board. Wrong moves are only reported; the board keeps the puzzle position.
  */
 @Composable fun PuzzleBoardScreen(
-    ui: PuzzleUi, prefs: AppSettings, draft: NotationDraft,
+    ui: PuzzleUi, prefs: AppSettings, draft: NotationDraft, earned: Set<Sticker>,
     onMove: (String) -> Unit, onHint: () -> Unit, onHideHint: () -> Unit, onNext: () -> Unit, onExit: () -> Unit,
     onClearDraft: () -> Unit, onPlayDraft: () -> Unit, cancelDraft: () -> Boolean
 ) {
@@ -123,10 +123,29 @@ import androidx.compose.ui.unit.sp
                 if(ui.hintShown) session.expectedMove?.let { HintOverlay(it,flip,Modifier.fillMaxSize()) }
                 if(draft.text.isNotEmpty()) MoveEntryCard(draft,onClearDraft,onPlayDraft,Modifier.align(Alignment.TopCenter))
             }
+            // The buddy only uses space the square board cannot: beside it on wide screens, below it on
+            // tall ones, and nowhere when neither is free (the header still says how the move went).
+            if(prefs.playful) {
+                val moment=when {
+                    ui.hintShown -> BuddyMoment.HINT
+                    ui.feedback==PuzzleFeedback.WRONG -> BuddyMoment.WRONG
+                    ui.feedback==PuzzleFeedback.CORRECT || session.state==PuzzleState.SOLVED -> BuddyMoment.RIGHT
+                    else -> BuddyMoment.THINK
+                }
+                val gutter=(maxWidth-side)/2
+                val spareBelow=maxHeight-side
+                if(gutter>=BUDDY_GUTTER_MIN) BuddyReaction(prefs,earned,moment,Modifier.align(Alignment.TopEnd).padding(end=8.dp).width(gutter-16.dp),large=true)
+                else if(spareBelow>=BUDDY_LARGE_BELOW) BuddyReaction(prefs,earned,moment,Modifier.align(Alignment.TopCenter).padding(top=side+8.dp).width(minOf(side,280.dp)),large=true)
+                else if(spareBelow>=BUDDY_ROW_MIN) BuddyReaction(prefs,earned,moment,Modifier.align(Alignment.TopCenter).padding(top=side+8.dp).width(side))
+            }
         }
         Spacer(Modifier.height(8.dp))
     }
 }
+
+private val BUDDY_GUTTER_MIN=180.dp
+private val BUDDY_ROW_MIN=112.dp
+private val BUDDY_LARGE_BELOW=330.dp
 
 /** The end of a Quick 5 set: counts only, no score. */
 @Composable fun QuickSummary(ui: PuzzleUi, onAgain: () -> Unit, onDone: () -> Unit) {

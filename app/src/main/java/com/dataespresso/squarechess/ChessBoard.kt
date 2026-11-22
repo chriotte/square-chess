@@ -71,7 +71,7 @@ fun pieceTurnedRound(side: Side, flip: Boolean, faceToFace: Boolean): Boolean =
     val palette=LocalPalette.current
     val eink=palette.eink
     val res=appResources()
-    val lightSquare=prefs.boardTheme.light; val darkSquare=prefs.boardTheme.dark
+    val lightSquare=prefs.lightSquare; val darkSquare=prefs.darkSquare
     val hatched=eink && !prefs.einkGreySquares
     fun turned(piece: Piece)=if(pieceTurnedRound(piece.pieceSide,flip,faceToFace)) Modifier.graphicsLayer(rotationZ=180f) else Modifier
     fun squareAt(offset: Offset, boardPx: Float): Square? {

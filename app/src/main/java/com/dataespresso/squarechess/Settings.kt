@@ -47,8 +47,20 @@ data class AppSettings(
     /** Two-player games: the pieces at the top of the board are drawn upside down. On by default. */
     val faceToFace: Boolean = true,
     /** Screen readers say each new move in words ("Knight from g1 to f3") instead of notation ("Nf3"). */
-    val spokenMovesInWords: Boolean = true
+    val spokenMovesInWords: Boolean = true,
+    /** A drawn world behind Home and the menus, with its own board colours. Classic is the app as before. */
+    val world: World = World.CLASSIC,
+    /** The buddy and stickers. Off by default, so the app stays as calm as it was. */
+    val playful: Boolean = false,
+    val buddy: Buddy = Buddy.ROBOT,
+    val outfit: Outfit = Outfit(),
+    /** Stickers the player has already been told about. */
+    val seenStickers: Set<Sticker> = emptySet()
 )
+
+/** The board's square colours: the world's own, or the chosen board colours in Classic. */
+val AppSettings.lightSquare: Color get() = if (world == World.CLASSIC) boardTheme.light else world.light
+val AppSettings.darkSquare: Color get() = if (world == World.CLASSIC) boardTheme.dark else world.dark
 
 /** Small per-device preferences; saved games stay in Room. */
 class SettingsStore(context: Context) {
@@ -62,7 +74,12 @@ class SettingsStore(context: Context) {
         eink = prefs.getBoolean("eink", isKnownEinkDevice()),
         einkGreySquares = prefs.getBoolean("einkGreySquares", false),
         faceToFace = prefs.getBoolean("faceToFace", true),
-        spokenMovesInWords = prefs.getBoolean("spokenMovesInWords", true)
+        spokenMovesInWords = prefs.getBoolean("spokenMovesInWords", true),
+        world = World.entries.firstOrNull { it.name == prefs.getString("world", null) } ?: World.CLASSIC,
+        playful = prefs.getBoolean("playful", false),
+        buddy = Buddy.entries.firstOrNull { it.name == prefs.getString("buddy", null) } ?: Buddy.ROBOT,
+        outfit = Outfit.decode(prefs.getString("outfit", null)),
+        seenStickers = decodeStickers(prefs.getString("seenStickers", null))
     )
     fun save(settings: AppSettings) {
         prefs.edit()
@@ -75,6 +92,11 @@ class SettingsStore(context: Context) {
             .putBoolean("einkGreySquares", settings.einkGreySquares)
             .putBoolean("faceToFace", settings.faceToFace)
             .putBoolean("spokenMovesInWords", settings.spokenMovesInWords)
+            .putString("world", settings.world.name)
+            .putBoolean("playful", settings.playful)
+            .putString("buddy", settings.buddy.name)
+            .putString("outfit", settings.outfit.encode())
+            .putString("seenStickers", encodeStickers(settings.seenStickers))
             .apply()
     }
 }
@@ -103,6 +125,16 @@ class SettingsStore(context: Context) {
             Text("›", fontSize = 24.sp)
         }
         Spacer(Modifier.height(12.dp))
+        Text(stringResource(R.string.world_title), fontSize = 16.sp)
+        Text(stringResource(if (settings.eink) R.string.world_eink_note else R.string.world_help),
+            fontSize = 12.sp, color = LocalPalette.current.muted)
+        if (!settings.eink) Row(Modifier.padding(vertical = 8.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            World.entries.forEach { world ->
+                WorldSwatch(world, settings.world == world) { onChange(settings.copy(world = world)) }
+            }
+        }
+        SettingSwitch(stringResource(R.string.playful_title), stringResource(R.string.playful_help), settings.playful) { onChange(settings.copy(playful = it)) }
+        Spacer(Modifier.height(12.dp))
         Text(stringResource(R.string.board_colours), fontSize = 16.sp)
         if (settings.eink) {
             Text(stringResource(R.string.eink_board_note),
@@ -116,6 +148,8 @@ class SettingsStore(context: Context) {
                 }
             }
         }
+        else if (settings.world != World.CLASSIC) Text(stringResource(R.string.world_board_note),
+            fontSize = 12.sp, color = LocalPalette.current.muted, modifier = Modifier.padding(vertical = 8.dp))
         // Four swatches need about 300 dp; on narrower screens the row scrolls.
         else Row(Modifier.padding(vertical = 8.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             BoardTheme.entries.forEach { theme ->
