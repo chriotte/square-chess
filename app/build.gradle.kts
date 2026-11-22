@@ -91,6 +91,8 @@ dependencies {
     implementation("androidx.room:room-ktx:2.7.2")
     kapt("androidx.room:room-compiler:2.7.2")
     testImplementation("junit:junit:4.13.2")
+    // JVM tests only: the real org.json (Android's is a stub off-device). The fake server is the JDK's own HttpServer.
+    testImplementation("org.json:json:20240303")
     if (!r8Test) {
         androidTestImplementation("androidx.test.ext:junit:1.2.1")
         androidTestImplementation("androidx.test:runner:1.6.2")

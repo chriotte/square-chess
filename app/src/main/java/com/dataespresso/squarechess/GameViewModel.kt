@@ -326,12 +326,27 @@ class GameViewModel private constructor(
         val open=state.value.game?.id==game.id
         if(open) invalidate()
         db.games().delete(game.id)
+        SyncManager.get(getApplication()).gameDeleted(game.id)
         if(open) {
             // Show the next most recent game, as a fresh start would.
             val next=db.games().latest()
             if(next!=null) load(next) else state.value=GameUi(ready=true)
         }
     } }
+    /**
+     * A sync brought a newer copy of the open game from another device, or its deletion. The
+     * screen shows the newer copy, so a stale one is never saved over it.
+     */
+    fun reloadAfterSync(gameIds: Set<String>) = viewModelScope.launch {
+        commitLock.withLock {
+            val open=state.value.game ?: return@withLock
+            if(open.id !in gameIds) return@withLock
+            val fresh=db.games().get(open.id)
+            if(fresh!=null && fresh.updated<=open.updated) return@withLock
+            if(fresh!=null) load(fresh)
+            else db.games().latest()?.let { load(it) } ?: run { invalidate(); state.value=GameUi(ready=true) }
+        }
+    }
     fun pauseClock() = viewModelScope.launch { commitLock.withLock { pauseClockLocked(interrupted=false) } }
     fun resumeClock() = viewModelScope.launch {
         commitLock.withLock {

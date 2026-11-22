@@ -28,6 +28,7 @@ data class PuzzleProgress(
     @Query("SELECT * FROM puzzle_progress") suspend fun all(): List<PuzzleProgress>
     @Query("SELECT * FROM puzzle_progress WHERE puzzleId = :id") suspend fun get(id: String): PuzzleProgress?
     @Insert(onConflict=OnConflictStrategy.REPLACE) suspend fun save(progress: PuzzleProgress)
+    @Query("SELECT puzzleId AS id, lastAttemptAt AS updated FROM puzzle_progress") suspend fun stamps(): List<RecordStamp>
 }
 
 private const val DAY_MS=24*60*60*1000L

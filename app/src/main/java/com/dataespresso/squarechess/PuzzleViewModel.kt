@@ -58,7 +58,7 @@ class PuzzleViewModel internal constructor(
         { PuzzleCatalog.puzzles(app) },Random.Default,System::currentTimeMillis,REPLY_DELAY_MS)
 
     val state=MutableStateFlow(PuzzleUi())
-    private val prefs=app.getSharedPreferences("puzzles",Context.MODE_PRIVATE)
+    private val prefs=app.getSharedPreferences(PREFS,Context.MODE_PRIVATE)
     private val lock=Mutex()
     private var puzzles: List<Puzzle> = emptyList()
     private var progress: Map<String,PuzzleProgress> = emptyMap()
@@ -201,9 +201,19 @@ class PuzzleViewModel internal constructor(
         val s=state.value
         // Review puzzles are old ones; only new puzzles move the training level.
         val level=if(s.mode==PuzzleMode.REVIEW) s.level else nextTrainingLevel(s.level,result,session.puzzle.rating)
-        prefs.edit().putInt(LEVEL_KEY,level).apply()
+        // The time of a change lets the newest training level win when the account syncs.
+        if(level!=s.level) prefs.edit().putInt(LEVEL_KEY,level).putLong(LEVEL_UPDATED_KEY,now()).apply()
         val quick=if(s.mode==PuzzleMode.QUICK) s.quick+QuickResult(id,result,session.hintUsed) else s.quick
         update(s.copy(level=level,quick=quick,totals=puzzleTotals(progress.values,now())))
+    }
+
+    /** After a sync brought progress or a training level from another device. A puzzle on screen stays. */
+    fun reloadAfterSync() {
+        if(!opened) return
+        viewModelScope.launch { lock.withLock {
+            progress=db.puzzleProgress().all().associateBy { it.puzzleId }
+            update(state.value.copy(level=prefs.getInt(LEVEL_KEY,START_TRAINING_LEVEL),totals=puzzleTotals(progress.values,now())))
+        } }
     }
 
     private fun refreshTotals() { update(state.value.copy(totals=puzzleTotals(progress.values,now()))) }
@@ -241,7 +251,9 @@ class PuzzleViewModel internal constructor(
     companion object {
         const val REPLY_DELAY_MS=450L
         private const val RECENT_LIMIT=30
-        private const val LEVEL_KEY="trainingLevel"
+        internal const val PREFS="puzzles"
+        internal const val LEVEL_KEY="trainingLevel"
+        internal const val LEVEL_UPDATED_KEY="trainingLevel.updated"
         private const val SAVED_ID="puzzle.id"
         private const val SAVED_PLY="puzzle.ply"
         private const val SAVED_MISTAKES="puzzle.mistakes"

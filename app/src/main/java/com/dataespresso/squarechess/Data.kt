@@ -44,11 +44,27 @@ data class SavedGame(
     /** Changes only the evaluations, so a running clock's saved state is not touched. */
     @Query("UPDATE games SET evaluations = :evaluations WHERE id = :id") suspend fun setEvaluations(id: String, evaluations: String)
     @Query("DELETE FROM games WHERE id = :id") suspend fun delete(id: String)
+    @Query("SELECT * FROM games WHERE id = :id") suspend fun get(id: String): SavedGame?
+    /** Each game's last change, for sync; cheaper than loading every game. */
+    @Query("SELECT id, updated FROM games") suspend fun stamps(): List<RecordStamp>
 }
-@Database(entities=[SavedGame::class, PuzzleProgress::class], version=7, exportSchema=true)
+data class RecordStamp(val id: String, val updated: Long)
+/**
+ * The server's last copy of each synced record (see SyncEngine.kt), only while signed in. [data]
+ * is the record's JSON as the server sent it, so fields this version does not know are kept.
+ */
+@Entity(tableName="sync_base", primaryKeys=["kind","id"])
+data class SyncBase(val kind: String, val id: String, val updated: Long, val deleted: Boolean, val data: String?)
+@Dao interface SyncBaseDao {
+    @Query("SELECT * FROM sync_base") suspend fun all(): List<SyncBase>
+    @Insert(onConflict=OnConflictStrategy.REPLACE) suspend fun save(base: SyncBase)
+    @Query("DELETE FROM sync_base") suspend fun clear()
+}
+@Database(entities=[SavedGame::class, PuzzleProgress::class, SyncBase::class], version=8, exportSchema=true)
 abstract class ChessDatabase : RoomDatabase() {
     abstract fun games(): GameDao
     abstract fun puzzleProgress(): PuzzleProgressDao
+    abstract fun syncBase(): SyncBaseDao
 }
 
 val MIGRATION_1_2 = object: Migration(1,2) {
@@ -91,9 +107,15 @@ val MIGRATION_6_7 = object: Migration(6,7) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `puzzle_progress` (`puzzleId` TEXT NOT NULL, `attempts` INTEGER NOT NULL, `solved` INTEGER NOT NULL, `firstTrySolved` INTEGER NOT NULL, `mistakes` INTEGER NOT NULL, `hints` INTEGER NOT NULL, `lastResult` TEXT NOT NULL, `lastAttemptAt` INTEGER NOT NULL, `reviewStep` INTEGER, `nextReviewAt` INTEGER, PRIMARY KEY(`puzzleId`))")
     }
 }
+/** Sign-in and sync keep the server's copies in their own table; nothing else is touched. */
+val MIGRATION_7_8 = object: Migration(7,8) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `sync_base` (`kind` TEXT NOT NULL, `id` TEXT NOT NULL, `updated` INTEGER NOT NULL, `deleted` INTEGER NOT NULL, `data` TEXT, PRIMARY KEY(`kind`, `id`))")
+    }
+}
 fun openChessDatabase(context: Context, name: String="square-chess.db") =
     Room.databaseBuilder(context,ChessDatabase::class.java,name)
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).build()
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8).build()
 
 /**
  * The app's one database, open for the life of the process. View models must not close it: a save

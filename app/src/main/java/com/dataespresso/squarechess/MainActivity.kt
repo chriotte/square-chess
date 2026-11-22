@@ -98,6 +98,8 @@ class MainActivity: ComponentActivity() {
     private var entryPromotions by mutableStateOf<List<String>>(emptyList())
     private var flip by mutableStateOf(false)
     private val settingsStore by lazy { SettingsStore(this) }
+    /** Optional sign-in and sync; it does nothing on the network until the player signs in. */
+    private val sync by lazy { SyncManager.get(this) }
     private var settings by mutableStateOf(AppSettings())
     private val sounds by lazy { MoveSounds() }
     /** Replayed game facts by game and save time, so each finished game is replayed once per process. */
@@ -145,6 +147,15 @@ class MainActivity: ComponentActivity() {
                     }
                 }
                 fun saveSettings(value: AppSettings) { settings=value; settingsStore.save(value) }
+                val accountUi by sync.state.collectAsState()
+                // Data from the account's other devices: open screens show it, so a stale copy is never saved over it.
+                LaunchedEffect(Unit) {
+                    sync.changes.collect { changes ->
+                        if(changes.playroom) settings=settingsStore.load()
+                        if(changes.puzzles || changes.trainingLevel) puzzles.reloadAfterSync()
+                        if(changes.games.isNotEmpty()) vm.reloadAfterSync(changes.games)
+                    }
+                }
                 val haptics=LocalHapticFeedback.current
                 // Sound and vibration only for a move just added to the same game, never on load or undo.
                 var soundKey by remember { mutableStateOf<Pair<String?,Int>?>(null) }
@@ -374,7 +385,12 @@ class MainActivity: ComponentActivity() {
                               BackHandler { screen="home" }
                               SettingsScreen(settings,onChange={ saveSettings(it) },onExit={screen="home"},
                                 language=remember { LanguageSetting.chosen(this@MainActivity) },
-                                onLanguage={ LanguageSetting.set(this@MainActivity,it) })
+                                onLanguage={ LanguageSetting.set(this@MainActivity,it) },
+                                account=accountUi,onAccount={screen="account"})
+                            }
+                            "account" -> {
+                              BackHandler { screen="settings" }
+                              AccountScreen(accountUi,sync,backupFiles,onExit={screen="settings"})
                             }
                             "puzzles" -> when {
                                 puzzleUi.session!=null -> {
@@ -913,7 +929,30 @@ class MainActivity: ComponentActivity() {
         startActivity(Intent.createChooser(send,getString(R.string.share_games_chooser)))
     }
     override fun onDestroy() { sounds.release(); super.onDestroy() }
-    override fun onStart() { super.onStart(); if(gameVisible && !reviewing) vm.foreground() }
+    /** Full backups for the account screen: one JSON file through the document picker, no permission needed. */
+    private val backupFiles=object: BackupFiles {
+        override suspend fun save(uri: Uri) {
+            val json=withContext(Dispatchers.IO) { Backup.build(sync.store,settings,System.currentTimeMillis()).toString(1) }
+            withContext(Dispatchers.IO) {
+                val output=runCatching { contentResolver.openOutputStream(uri,"wt") }.getOrNull()
+                    ?: contentResolver.openOutputStream(uri,"w") ?: throw IOException("The file could not be opened.")
+                output.use { it.write(json.toByteArray(Charsets.UTF_8)) }
+            }
+        }
+        override suspend fun restore(uri: Uri): Backup.Restored {
+            val text=readTextDocument(uri,MAX_BACKUP_BYTES)
+            val restored=withContext(Dispatchers.IO) {
+                val json=try { org.json.JSONObject(text) } catch(e: org.json.JSONException) { throw IllegalArgumentException(getString(R.string.backup_not_backup)) }
+                try { Backup.restore(sync.store,json,settings) } catch(e: IllegalArgumentException) { throw IllegalArgumentException(getString(R.string.backup_not_backup)) }
+            }
+            val fresh=settingsStore.load()
+            settings=restored.settings?.withPlayroom(fresh.playroom) ?: fresh
+            settingsStore.save(settings)
+            sync.notifyChanges(restored.changes)
+            return restored
+        }
+    }
+    override fun onStart() { super.onStart(); if(gameVisible && !reviewing) vm.foreground(); sync.onAppStart() }
     override fun onStop() { vm.background(); super.onStop() }
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)

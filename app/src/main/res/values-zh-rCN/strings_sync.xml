@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sync_settings_row">登录以同步</string>
+    <string name="sync_settings_row_help">可选。让各设备上的对局和进度保持一致，或保存备份</string>
+    <string name="sync_title">登录以同步</string>
+    <string name="sync_intro">有了免费的 squarechess.org 账号，你的对局、谜题进度和小伙伴在手机、平板和网站上都保持一致。Square Chess 无需账号即可完整使用，在你登录之前不会发送任何内容。</string>
+    <string name="sync_sign_in">使用 squarechess.org 登录</string>
+    <string name="sync_signing_in">请在浏览器中完成登录，然后回到这里。</string>
+    <string name="sync_what_is_sent">登录会在浏览器中打开 squarechess.org，你在那里输入密码，而不是在 Square Chess 中。之后会同步你的对局、谜题进度、训练等级、小伙伴、服装和世界，以及本设备的型号名称（用于你的已登录设备列表）。</string>
+    <string name="sync_signed_in_as">已登录：%1$s</string>
+    <string name="sync_last">上次同步：%1$s</string>
+    <string name="sync_never">尚未同步</string>
+    <string name="sync_running">正在同步…</string>
+    <string name="sync_now">立即同步</string>
+    <string name="sync_sign_out">退出登录</string>
+    <string name="sync_sign_out_help">在本设备上退出登录，并取消它对账号的访问权限。你的对局仍保留在本设备上。</string>
+    <string name="sync_delete">删除账号</string>
+    <string name="sync_delete_help">删除你的 squarechess.org 账号以及所有已同步到该账号的内容。</string>
+    <string name="sync_delete_open">删除账号…</string>
+    <string name="sync_delete_title">要删除你的账号吗？</string>
+    <string name="sync_delete_text">这将删除你的 squarechess.org 账号，以及同步到该账号的所有对局、谜题进度和设置，所有设备上都会删除。此操作无法撤销。本设备上的对局会保留。\n\n请输入账号密码以确认。密码只会发送到 squarechess.org。</string>
+    <string name="sync_delete_password">账号密码</string>
+    <string name="sync_delete_confirm">永久删除</string>
+    <string name="sync_delete_web">改为在网站上删除</string>
+    <string name="sync_deleting">正在删除…</string>
+    <string name="sync_deleted">你的账号已删除。你的对局仍在本设备上。</string>
+    <string name="sync_problem_offline">无法连接 squarechess.org。你的对局在本设备上很安全；稍后会再次尝试同步。</string>
+    <string name="sync_problem_session">你已退出登录。请重新登录以继续同步。</string>
+    <string name="sync_problem_sign_in">登录未成功，请重试。</string>
+    <string name="sync_problem_cancelled">登录已取消。</string>
+    <string name="sync_problem_password">密码不正确。</string>
+    <string name="sync_problem_attempts">尝试次数过多。请等待 15 分钟后再试。</string>
+    <string name="sync_problem_server">账号服务目前不可用，请稍后再试。</string>
+    <string name="sync_problem_browser">找不到可用于登录的浏览器。</string>
+    <string name="backup_title">备份</string>
+    <string name="backup_help">把所有内容保存在一个文件里：对局、谜题进度、小伙伴和设置。不需要账号。恢复时会保留每局对局较新的版本。</string>
+    <string name="backup_save">保存备份文件</string>
+    <string name="backup_restore">从备份恢复</string>
+    <string name="backup_saved">备份已保存。</string>
+    <string name="backup_restored">备份已恢复。新增或更新的对局：%1$d。谜题结果：%2$d。</string>
+    <string name="backup_failed">无法保存备份：%1$s</string>
+    <string name="backup_restore_failed">无法恢复此文件：%1$s</string>
+    <string name="backup_not_backup">这不是 Square Chess 的备份。</string>
+</resources>

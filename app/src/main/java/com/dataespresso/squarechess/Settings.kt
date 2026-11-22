@@ -87,8 +87,17 @@ class SettingsStore(context: Context) {
         seenStickers = decodeStickers(prefs.getString("seenStickers", null)),
         unlockAll = prefs.getBoolean("unlockAll", false)
     )
-    fun save(settings: AppSettings) {
+    /** When the buddy, clothes or world last changed here, for sync; 0 when not known. */
+    val playroomUpdated: Long get() = prefs.getLong(PLAYROOM_UPDATED, 0)
+    fun setPlayroomUpdated(updated: Long) { prefs.edit().putLong(PLAYROOM_UPDATED, updated).apply() }
+    /**
+     * Saves [settings]. A change to the synced Playroom choices records its time, so the newest
+     * choice wins across devices; sync passes the server's time in [playroomUpdated] instead.
+     */
+    fun save(settings: AppSettings, playroomUpdated: Long? = null) {
+        val stamp = playroomUpdated ?: if (load().playroom != settings.playroom) System.currentTimeMillis() else null
         prefs.edit()
+            .apply { if (stamp != null) putLong(PLAYROOM_UPDATED, stamp) }
             .putBoolean("sound", settings.sound)
             .putBoolean("haptics", settings.haptics)
             .putBoolean("coordinates", settings.coordinates)
@@ -106,10 +115,12 @@ class SettingsStore(context: Context) {
             .putBoolean("unlockAll", settings.unlockAll)
             .apply()
     }
+    private companion object { const val PLAYROOM_UPDATED = "playroom.updated" }
 }
 
 @Composable fun SettingsScreen(settings: AppSettings, onChange: (AppSettings) -> Unit, onExit: () -> Unit,
-                               language: AppLanguage? = null, onLanguage: (String) -> Unit = {}) {
+                               language: AppLanguage? = null, onLanguage: (String) -> Unit = {},
+                               account: AccountUi? = null, onAccount: () -> Unit = {}) {
     var languageDialog by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
         TextButton(onClick = onExit) { Text(stringResource(R.string.home_back)) }
@@ -167,6 +178,12 @@ class SettingsStore(context: Context) {
         }
         SettingSwitch(stringResource(R.string.face_to_face), stringResource(R.string.face_to_face_help), settings.faceToFace) { onChange(settings.copy(faceToFace = it)) }
         SettingSwitch(stringResource(R.string.spoken_moves_words), stringResource(R.string.spoken_moves_words_help), settings.spokenMovesInWords) { onChange(settings.copy(spokenMovesInWords = it)) }
+        // Optional account and backups. Here in Settings, away from the Playroom screens children use.
+        if (account != null) {
+            Spacer(Modifier.height(12.dp))
+            HorizontalDivider()
+            AccountSettingsRow(account, onAccount)
+        }
     }
     if (languageDialog) AppAlertDialog(onDismissRequest = { languageDialog = false },
         title = { Text(stringResource(R.string.language)) },

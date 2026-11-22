@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sync_settings_row">Logg inn for å synkronisere</string>
+    <string name="sync_settings_row_help">Valgfritt. Hold partier og fremgang like på enhetene dine, eller lagre en sikkerhetskopi</string>
+    <string name="sync_title">Logg inn for å synkronisere</string>
+    <string name="sync_intro">Med en gratis konto på squarechess.org blir partiene, oppgavefremgangen og kompisen din de samme på telefonen, nettbrettet og nettstedet. Square Chess fungerer fullt ut uten konto, og ingenting sendes før du logger inn.</string>
+    <string name="sync_sign_in">Logg inn med squarechess.org</string>
+    <string name="sync_signing_in">Fullfør innloggingen i nettleseren, og kom så tilbake hit.</string>
+    <string name="sync_what_is_sent">Innloggingen åpner squarechess.org i nettleseren, så du skriver passordet der og ikke i Square Chess. Etterpå synkroniseres partiene, oppgavefremgangen, treningsnivået, kompisen, klærne og verdenen din, sammen med modellnavnet til denne enheten for listen over innloggede enheter.</string>
+    <string name="sync_signed_in_as">Logget inn som %1$s</string>
+    <string name="sync_last">Sist synkronisert: %1$s</string>
+    <string name="sync_never">Ikke synkronisert ennå</string>
+    <string name="sync_running">Synkroniserer …</string>
+    <string name="sync_now">Synkroniser nå</string>
+    <string name="sync_sign_out">Logg ut</string>
+    <string name="sync_sign_out_help">Logger ut på denne enheten og fjerner tilgangen til kontoen. Partiene blir på denne enheten.</string>
+    <string name="sync_delete">Slett konto</string>
+    <string name="sync_delete_help">Sletter kontoen din på squarechess.org og alt som er synkronisert til den.</string>
+    <string name="sync_delete_open">Slett konto …</string>
+    <string name="sync_delete_title">Slette kontoen din?</string>
+    <string name="sync_delete_text">Dette sletter kontoen din på squarechess.org og alle partier, all oppgavefremgang og alle innstillinger som er synkronisert til den, for alle enheter. Det kan ikke angres. Partiene på denne enheten blir her.\n\nSkriv inn passordet til kontoen for å bekrefte. Det sendes bare til squarechess.org.</string>
+    <string name="sync_delete_password">Passord for kontoen</string>
+    <string name="sync_delete_confirm">Slett for godt</string>
+    <string name="sync_delete_web">Slett på nettstedet i stedet</string>
+    <string name="sync_deleting">Sletter …</string>
+    <string name="sync_deleted">Kontoen din er slettet. Partiene dine er fortsatt på denne enheten.</string>
+    <string name="sync_problem_offline">Fikk ikke kontakt med squarechess.org. Partiene er trygge på denne enheten; synkroniseringen prøver igjen senere.</string>
+    <string name="sync_problem_session">Du ble logget ut. Logg inn igjen for å fortsette å synkronisere.</string>
+    <string name="sync_problem_sign_in">Innloggingen virket ikke. Prøv igjen.</string>
+    <string name="sync_problem_cancelled">Innloggingen ble avbrutt.</string>
+    <string name="sync_problem_password">Passordet er ikke riktig.</string>
+    <string name="sync_problem_attempts">For mange forsøk. Vent 15 minutter og prøv igjen.</string>
+    <string name="sync_problem_server">Kontotjenesten er ikke tilgjengelig akkurat nå. Prøv igjen senere.</string>
+    <string name="sync_problem_browser">Fant ingen nettleser å logge inn med.</string>
+    <string name="backup_title">Sikkerhetskopi</string>
+    <string name="backup_help">Lagre alt i én fil: partier, oppgavefremgang, kompis og innstillinger. Ingen konto trengs. Ved gjenoppretting beholdes den nyeste kopien av hvert parti.</string>
+    <string name="backup_save">Lagre sikkerhetskopi</string>
+    <string name="backup_restore">Gjenopprett fra sikkerhetskopi</string>
+    <string name="backup_saved">Sikkerhetskopien er lagret.</string>
+    <string name="backup_restored">Sikkerhetskopien er gjenopprettet. Partier lagt til eller oppdatert: %1$d. Oppgaveresultater: %2$d.</string>
+    <string name="backup_failed">Sikkerhetskopien kunne ikke lagres: %1$s</string>
+    <string name="backup_restore_failed">Denne filen kunne ikke gjenopprettes: %1$s</string>
+    <string name="backup_not_backup">Det er ikke en sikkerhetskopi fra Square Chess.</string>
+</resources>

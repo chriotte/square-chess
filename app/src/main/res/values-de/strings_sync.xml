@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sync_settings_row">Anmelden zum Synchronisieren</string>
+    <string name="sync_settings_row_help">Optional. Partien und Fortschritt auf allen Geräten gleich halten oder eine Sicherung speichern</string>
+    <string name="sync_title">Anmelden zum Synchronisieren</string>
+    <string name="sync_intro">Mit einem kostenlosen Konto bei squarechess.org bleiben deine Partien, dein Aufgabenfortschritt und dein Kumpel auf Handy, Tablet und Website gleich. Square Chess funktioniert vollständig ohne Konto, und nichts wird gesendet, bevor du dich anmeldest.</string>
+    <string name="sync_sign_in">Mit squarechess.org anmelden</string>
+    <string name="sync_signing_in">Schließe die Anmeldung im Browser ab und komm dann hierher zurück.</string>
+    <string name="sync_what_is_sent">Die Anmeldung öffnet squarechess.org im Browser, du gibst dein Passwort also dort ein und nicht in Square Chess. Danach werden deine Partien, dein Aufgabenfortschritt, deine Trainingsstufe, dein Kumpel, seine Kleidung und deine Welt synchronisiert, dazu der Modellname dieses Geräts für deine Liste angemeldeter Geräte.</string>
+    <string name="sync_signed_in_as">Angemeldet als %1$s</string>
+    <string name="sync_last">Zuletzt synchronisiert: %1$s</string>
+    <string name="sync_never">Noch nicht synchronisiert</string>
+    <string name="sync_running">Wird synchronisiert …</string>
+    <string name="sync_now">Jetzt synchronisieren</string>
+    <string name="sync_sign_out">Abmelden</string>
+    <string name="sync_sign_out_help">Meldet dieses Gerät ab und beendet seinen Zugriff auf das Konto. Deine Partien bleiben auf diesem Gerät.</string>
+    <string name="sync_delete">Konto löschen</string>
+    <string name="sync_delete_help">Löscht dein Konto bei squarechess.org und alles, was damit synchronisiert wurde.</string>
+    <string name="sync_delete_open">Konto löschen …</string>
+    <string name="sync_delete_title">Konto löschen?</string>
+    <string name="sync_delete_text">Damit werden dein Konto bei squarechess.org und alle damit synchronisierten Partien, Aufgabenfortschritte und Einstellungen für alle Geräte gelöscht. Das kann nicht rückgängig gemacht werden. Die Partien auf diesem Gerät bleiben hier.\n\nGib zur Bestätigung dein Kontopasswort ein. Es wird nur an squarechess.org gesendet.</string>
+    <string name="sync_delete_password">Kontopasswort</string>
+    <string name="sync_delete_confirm">Endgültig löschen</string>
+    <string name="sync_delete_web">Stattdessen auf der Website löschen</string>
+    <string name="sync_deleting">Wird gelöscht …</string>
+    <string name="sync_deleted">Dein Konto wurde gelöscht. Deine Partien sind weiterhin auf diesem Gerät.</string>
+    <string name="sync_problem_offline">squarechess.org ist nicht erreichbar. Deine Partien sind auf diesem Gerät sicher; die Synchronisierung versucht es später erneut.</string>
+    <string name="sync_problem_session">Du wurdest abgemeldet. Melde dich erneut an, um weiter zu synchronisieren.</string>
+    <string name="sync_problem_sign_in">Die Anmeldung hat nicht geklappt. Bitte versuche es noch einmal.</string>
+    <string name="sync_problem_cancelled">Die Anmeldung wurde abgebrochen.</string>
+    <string name="sync_problem_password">Das Passwort stimmt nicht.</string>
+    <string name="sync_problem_attempts">Zu viele Versuche. Warte 15 Minuten und versuche es erneut.</string>
+    <string name="sync_problem_server">Der Kontodienst ist gerade nicht verfügbar. Bitte versuche es später noch einmal.</string>
+    <string name="sync_problem_browser">Es wurde kein Browser für die Anmeldung gefunden.</string>
+    <string name="backup_title">Sicherung</string>
+    <string name="backup_help">Alles in einer Datei speichern: Partien, Aufgabenfortschritt, Kumpel und Einstellungen. Kein Konto nötig. Beim Wiederherstellen bleibt von jeder Partie die neuere Fassung.</string>
+    <string name="backup_save">Sicherung speichern</string>
+    <string name="backup_restore">Aus Sicherung wiederherstellen</string>
+    <string name="backup_saved">Sicherung gespeichert.</string>
+    <string name="backup_restored">Sicherung wiederhergestellt. Partien hinzugefügt oder aktualisiert: %1$d. Aufgabenergebnisse: %2$d.</string>
+    <string name="backup_failed">Die Sicherung konnte nicht gespeichert werden: %1$s</string>
+    <string name="backup_restore_failed">Diese Datei konnte nicht wiederhergestellt werden: %1$s</string>
+    <string name="backup_not_backup">Das ist keine Sicherung von Square Chess.</string>
+</resources>
