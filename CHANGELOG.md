@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.6.0 — unreleased
+## 1.6.0 — 22 November 2026
 - Playful extras (Settings, off by default): colourful worlds (Forest, Banana Jungle, Ocean and Space) that colour the board and the screens, and a buddy to choose: Little Robot, Magnus, the Girl, the Princess, Monkey, Sloth or Bob. The buddy cheers when you solve a puzzle, cries and says "try again" after a wrong move, and on bigger screens comments on games against the computer ("The computer played Nf3. Your move."). It sits beside or below the board and never makes the board smaller.
 - Stickers for things you do (your first checkmate, puzzle streaks, winning against higher levels and more) unlock hats, things to hold, pets (every chess piece, the Lava Monster, Little Frosty and more) and other items. Magnus, the Girl and the Princess can have their skin tone and hair colour chosen; colours are never locked. "Unlock all items" lets you wear everything at once.
 - Home on colour screens: tiles instead of a long list, a Continue card with the board, and your recent games. E-ink devices keep the plain list.
