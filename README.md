@@ -42,7 +42,28 @@ It also works normally on conventional Android phones and tablets.
 - **Review and manage games** with move history, undo, resign and draw handling.
 - **Import and export PGN** for Lichess, ChessBase and other chess software.
 
+- **Set up a position** — place the pieces yourself, then play it against the computer or a friend.
+
 Square Chess also includes a standalone chess clock, board customisation, coordinates, legal-move markers, move sounds and vibration.
+
+## Playful extras
+
+Turn on **Playful extras** in Settings for a more colourful game. Pick a world (Forest, Banana Jungle, Ocean or Space) and a buddy who cheers you on when you solve a puzzle, says "try again" after a mistake, and comments on your games against the computer on bigger screens. Earn stickers for your first checkmate, puzzle streaks and wins, and unlock hats, swords, wands and pets for your buddy. Magnus, the Girl and the Princess can have their skin tone and hair colour chosen.
+
+Playful extras are off by default, the buddy never makes the board smaller, and e-ink mode stays calm black and white.
+
+<table>
+<tr>
+<td align="center"><strong>Meet the buddies</strong></td>
+<td align="center"><strong>Home with a world</strong></td>
+<td align="center"><strong>Dress up your buddy</strong></td>
+</tr>
+<tr>
+<td><img src="docs/images/readme/buddies.png" alt="The seven buddies: Little Robot, Magnus, the Girl, the Princess, Monkey, Sloth and Bob" width="260"></td>
+<td><img src="docs/images/readme/playroom-home.png" alt="Home in the Forest world with the buddy and the Continue card" width="260"></td>
+<td><img src="docs/images/readme/buddy-screen.png" alt="The buddy screen in the Ocean world" width="260"></td>
+</tr>
+</table>
 
 ## Private and offline
 
