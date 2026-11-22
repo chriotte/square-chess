@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="support_title">Apoya Square Chess</string>
+    <string name="support_intro">Square Chess es gratis, sin anuncios, sin rastreo y sin compras dentro de la app. Si te gusta, una pequeña donación ayuda a que siga así y financia nuevas funciones.</string>
+    <string name="support_kofi">Donar en Ko-fi</string>
+    <string name="support_liberapay">Donar en Liberapay</string>
+    <string name="visit_website">Visitar squarechess.org</string>
+    <string name="link_open_failed">No se pudo abrir el enlace.</string>
+</resources>

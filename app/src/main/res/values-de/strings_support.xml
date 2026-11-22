@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="support_title">Square Chess unterstützen</string>
+    <string name="support_intro">Square Chess ist kostenlos, ohne Werbung, Tracking oder In-App-Käufe. Wenn es dir gefällt, hilft eine kleine Spende, dass es so bleibt, und finanziert neue Funktionen.</string>
+    <string name="support_kofi">Auf Ko-fi spenden</string>
+    <string name="support_liberapay">Auf Liberapay spenden</string>
+    <string name="visit_website">squarechess.org besuchen</string>
+    <string name="link_open_failed">Der Link konnte nicht geöffnet werden.</string>
+</resources>
