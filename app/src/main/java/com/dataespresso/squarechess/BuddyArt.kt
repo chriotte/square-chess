@@ -154,6 +154,11 @@ private object Ink {
 /** Parsed shapes by path text. The figure uses a few hundred distinct paths at most. */
 private val parsedPaths = java.util.concurrent.ConcurrentHashMap<String, Path>()
 
+/** Shoulders sit inside the top corners of the body, hidden behind it. */
+private const val SHOULDER_L = 44f
+private const val SHOULDER_R = 56f
+private const val SHOULDER_Y = 58f
+
 private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color) {
     val ink = if (mono) Color.Black else Ink.line
     /** How much of each motion to draw: 1 while moving, down to 0 as a burst ends. */
@@ -189,9 +194,22 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
         with(scope) { translate(x, y) { with(p) { draw(Size(size, size)) } } }
     }
 
-    /** A straight line drawn directly, for parts that move every frame (no parsed path to cache). */
-    fun seg(x1: Float, y1: Float, x2: Float, y2: Float, width: Float, color: Color) =
-        scope.drawLine(color, Offset(x1, y1), Offset(x2, y2), width, StrokeCap.Round)
+    /** An outlined sleeve from the shoulder at ([sx], SHOULDER_Y) to the hand, bent at [elbow] if given. */
+    fun arm(sx: Float, hx: Float, hy: Float, elbow: Pair<Float, Float>?, thick: Float, fill: Color) =
+        tube(sx, SHOULDER_Y, hx, hy, elbow, thick, fill)
+
+    /** An outlined limb from ([x1], [y1]) to ([x2], [y2]). */
+    fun tube(x1: Float, y1: Float, x2: Float, y2: Float, elbow: Pair<Float, Float>?, thick: Float, fill: Color) {
+        val hx = x2; val hy = y2
+        val p = Path().apply {
+            moveTo(x1, y1)
+            if (elbow != null) lineTo(elbow.first, elbow.second)
+            lineTo(hx, hy)
+        }
+        val outline = if (mono) 1.4f else 1.2f
+        scope.drawPath(p, ink, style = Stroke(thick + outline * 2, cap = StrokeCap.Round, join = StrokeJoin.Round))
+        scope.drawPath(p, fill, style = Stroke(thick, cap = StrokeCap.Round, join = StrokeJoin.Round))
+    }
 
     fun drawBuddy(buddy: Buddy, outfit: Outfit, pose: BuddyPose, petPiece: Painter?, knight: Painter?, t: Float, moving: Boolean) {
         val skin = when (buddy) {
@@ -209,7 +227,7 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
             BuddyPose.STAND -> listOf(30f to 80f, 70f to 80f)
             BuddyPose.WAVE -> listOf(30f to 80f, 73f to 40f)
             BuddyPose.CHEER -> listOf(27f to 40f, 73f to 40f)
-            BuddyPose.THINK -> listOf(30f to 80f, 56f to 47f)
+            BuddyPose.THINK -> listOf(30f to 80f, 59f to 49f)
             BuddyPose.EUREKA -> listOf(30f to 80f, 71f to 41f)
             BuddyPose.SHRUG -> listOf(27f to 60f, 73f to 60f)
             BuddyPose.CRY -> listOf(36f to 84f, 64f to 84f)
@@ -224,15 +242,15 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
         }
         val armBob = osc(w * 4f) * 1.5f
         val (lx, ly) = when (pose) {
-            BuddyPose.CHEER -> swing(42f, 60f, lx0, ly0, osc(w * 5f) * 12f)
+            BuddyPose.CHEER -> swing(SHOULDER_L, SHOULDER_Y, lx0, ly0, osc(w * 5f) * 12f)
             BuddyPose.SHRUG -> lx0 to ly0 + osc(w * 3f) * 2f
             BuddyPose.PANCAKES -> lx0 to ly0 + armBob
             else -> lx0 to ly0
         }
         val (rx, ry) = when (pose) {
-            BuddyPose.WAVE -> swing(58f, 60f, rx0, ry0, osc(w * 7f) * 24f)
-            BuddyPose.CHEER -> swing(58f, 60f, rx0, ry0, -osc(w * 5f) * 12f)
-            BuddyPose.EUREKA -> swing(58f, 60f, rx0, ry0, osc(w * 3f) * 6f)
+            BuddyPose.WAVE -> swing(SHOULDER_R, SHOULDER_Y, rx0, ry0, osc(w * 7f) * 24f)
+            BuddyPose.CHEER -> swing(SHOULDER_R, SHOULDER_Y, rx0, ry0, -osc(w * 5f) * 12f)
+            BuddyPose.EUREKA -> swing(SHOULDER_R, SHOULDER_Y, rx0, ry0, osc(w * 3f) * 6f)
             BuddyPose.SHRUG -> rx0 to ry0 + osc(w * 3f) * 2f
             BuddyPose.PANCAKES -> rx0 to ry0 + armBob
             else -> rx0 to ry0
@@ -275,7 +293,21 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
                     line("M46 86 L41 104 M54 86 L59 104", 5f, dark(Color(0xFF1C2A55)))
                     rect(35f, 102f, 10f, 6f, 2f, f(Ink.red)); rect(55f, 102f, 10f, 6f, 2f, f(Ink.red))
                 }
-                else -> line("M46 86 L40 108 M54 86 L60 108", color = limb)
+                else -> {
+                    // Legs start hidden behind the body; small dark shoes.
+                    val leg = f(if (buddy == Buddy.GIRL) Color(0xFF3B4A6B) else skin)
+                    tube(46f, 82f, 42f, 104f, null, 5f, leg); tube(54f, 82f, 58f, 104f, null, 5f, leg)
+                    ellipse(40.5f, 106f, 4.5f, 2.6f, dark(Color(0xFF4A3B2E)), stroke = 1.2f)
+                    ellipse(59.5f, 106f, 4.5f, 2.6f, dark(Color(0xFF4A3B2E)), stroke = 1.2f)
+                }
+            }
+            // Arms: sleeves from shoulders hidden behind the body, so they come out of its sides.
+            if (buddy != Buddy.BOB) {
+                val sleeve = if (buddy == Buddy.MONKEY || buddy == Buddy.SLOTH) skin else shirt
+                val thick = if (buddy == Buddy.ROBOT) 6f else 5f
+                arm(SHOULDER_L, lx, ly, null, thick, f(sleeve))
+                if (pose == BuddyPose.THINK) arm(SHOULDER_R, rx, ry, 68f to 66f, thick, f(sleeve))
+                else arm(SHOULDER_R, rx, ry, null, thick, f(sleeve))
             }
             // Body.
             when (buddy) {
@@ -297,14 +329,13 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
                     if (buddy == Buddy.SLOTH) line("M44 62 l2 3 M54 66 l2 3 M47 74 l2 3", 1.2f)
                 }
             }
-            // Arms and hands.
+            // Hands, in front of the body.
             if (buddy == Buddy.BOB) {
                 circle(lx, ly, 3.6f, f(Color(0xFF54D8FF))); circle(rx, ry, 3.6f, f(Color(0xFF54D8FF)))
             } else {
-                val aw = if (buddy == Buddy.ROBOT) 3.2f else sw
-                seg(42f, 60f, lx, ly, aw, limb)
-                if (pose == BuddyPose.THINK) line("M58 60 L67 67 L56 47", aw, limb) else seg(58f, 60f, rx, ry, aw, limb)
-                if (buddy == Buddy.ROBOT) { circle(lx, ly, 2.8f, f(Color(0xFFE7AD58))); circle(rx, ry, 2.8f, f(Color(0xFFE7AD58))) }
+                val hand = if (buddy == Buddy.ROBOT) Color(0xFFE7AD58) else skin
+                val hr = if (buddy == Buddy.ROBOT) 3.4f else 3.1f
+                circle(lx, ly, hr, f(hand), 1.4f); circle(rx, ry, hr, f(hand), 1.4f)
                 if (buddy == Buddy.SLOTH) listOf(lx to ly, rx to ry).forEach { (x, y) ->
                     scope.translate(x, y) { line("M-2 0 l-2 4 M0 0 l0 4.5 M2 0 l2 4", 1.4f, limb) }
                 }
@@ -425,10 +456,12 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
                 d("M50 ${t - 5} Q54 ${t - 20} 64 ${t - 16} Q58 ${t - 10} 52 ${t - 4}", f(Color(0xFFC8463D)))
             }
             Item.ADMIRAL_HAT -> {
-                d("M24 ${t + 4} Q30 ${t - 6} 50 ${t - 15} Q70 ${t - 6} 76 ${t + 4} Q50 ${t - 3} 24 ${t + 4}Z", f(Color(0xFF1E2A4F)))
-                line("M26 ${t + 3} Q50 ${t - 4} 74 ${t + 3}", 2.2f, if (mono) ink else Ink.gold)
-                circle(50f, t - 6, 3.6f, f(Ink.gold))
-                line("M50 ${t - 8} L50 ${t - 4} M48.3 ${t - 5.5f} L51.7 ${t - 5.5f}", 1f)
+                // A tall bicorne, worn side to side.
+                d("M23 ${t + 5} C25 ${t - 12} 38 ${t - 25} 50 ${t - 25} C62 ${t - 25} 75 ${t - 12} 77 ${t + 5} Q50 ${t - 3} 23 ${t + 5}Z", f(Color(0xFF1E2A4F)))
+                line("M25 ${t + 4} Q50 ${t - 4} 75 ${t + 4}", 2.4f, if (mono) ink else Ink.gold)
+                line("M28 ${t + 1} C30 ${t - 10} 40 ${t - 21} 50 ${t - 21} C60 ${t - 21} 70 ${t - 10} 72 ${t + 1}", 1.2f, if (mono) ink else Ink.gold)
+                circle(50f, t - 10, 4.2f, f(Ink.gold))
+                line("M50 ${t - 12.5f} L50 ${t - 7.5f} M48 ${t - 9.5f} L52 ${t - 9.5f}", 1.1f)
             }
             else -> Unit
         }
