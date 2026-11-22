@@ -66,7 +66,7 @@ import kotlinx.coroutines.withContext
     BackHandler { back() }
     val title=when(page) {
         "bug"->R.string.report_bug; "feature"->R.string.suggest_feature; "preview"->R.string.review_message
-        "about"->R.string.about_title; "support"->R.string.support_title; "howto"->R.string.how_to_play; "privacy"->R.string.privacy_title; "info"->R.string.app_information
+        "about"->R.string.about_title; "howto"->R.string.how_to_play; "privacy"->R.string.privacy_title; "info"->R.string.app_information
         "licences"->R.string.licences_title; "notices"->R.string.licence_notices
         "gpl"->R.string.licence_gpl; "chesslib"->R.string.licence_chesslib; "art"->R.string.licence_art
         else->R.string.help_title
@@ -89,7 +89,6 @@ import kotlinx.coroutines.withContext
                         HelpAction(R.string.how_to_play) { page="howto" }
                         HelpAction(R.string.report_bug) { page="bug" }
                         HelpAction(R.string.suggest_feature) { page="feature" }
-                        HelpAction(R.string.support_title) { page="support" }
                         HorizontalDivider()
                         HelpAction(R.string.about_title) { page="about" }
                         HelpAction(R.string.visit_website) { notice=openLink(context,SupportConfig.websiteUrl) }
@@ -100,11 +99,6 @@ import kotlinx.coroutines.withContext
                     "about" -> {
                         Text(stringResource(R.string.about_story))
                         HelpAction(R.string.visit_website) { notice=openLink(context,SupportConfig.websiteUrl) }
-                    }
-                    "support" -> {
-                        Text(stringResource(R.string.support_intro))
-                        HelpAction(R.string.support_kofi) { notice=openLink(context,SupportConfig.koFiUrl) }
-                        HelpAction(R.string.support_liberapay) { notice=openLink(context,SupportConfig.liberapayUrl) }
                     }
                     "howto" -> HOW_TO_PLAY.forEach { (title,body) ->
                         Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {

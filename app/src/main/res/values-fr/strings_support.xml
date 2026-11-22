@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="support_title">Soutenir Square Chess</string>
-    <string name="support_intro">Square Chess est gratuit, sans publicité, sans pistage et sans achats intégrés. S’il vous plaît, un petit don aide à le garder ainsi et finance de nouvelles fonctions.</string>
-    <string name="support_kofi">Faire un don sur Ko-fi</string>
-    <string name="support_liberapay">Faire un don sur Liberapay</string>
     <string name="visit_website">Visiter squarechess.org</string>
     <string name="link_open_failed">Le lien n’a pas pu être ouvert.</string>
 </resources>

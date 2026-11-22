@@ -5,8 +5,6 @@ object SupportConfig {
     val privacyPolicyUrl: String? = "https://dataespresso.com/en/square-chess-privacy/"
     val playListingUrl: String? = "https://play.google.com/store/apps/details?id=com.dataespresso.squarechess"
     const val websiteUrl = "https://squarechess.org"
-    const val koFiUrl = "https://ko-fi.com/chriotte"
-    const val liberapayUrl = "https://liberapay.com/chriotte"
 }
 
 data class FeedbackDiagnostics(val version: String, val device: String, val android: String, val gameMode: String?)
