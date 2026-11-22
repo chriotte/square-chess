@@ -71,6 +71,17 @@ $deviceProfiles = @(
         Keyboard = $false
     },
     [pscustomobject]@{
+        # Amazon Alexa Tablet 12 Pro (2026): 11.95 in, 2800 x 1840 landscape, 280 ppi, Android 16
+        # with Google Play. About 1600 x 1051 dp: the wide case for Home's Recent games and the
+        # buddy beside a puzzle board.
+        Name = 'SquareChess_Alexa_Tablet_12_Pro'
+        DisplayName = 'Square Chess - Alexa Tablet 12 Pro'
+        Width = 2800
+        Height = 1840
+        Density = 280
+        Keyboard = $false
+    },
+    [pscustomobject]@{
         # BlackBerry Priv: 5.4 in, 1440 x 2560, about 540 ppi, slide-out QWERTY keyboard.
         # The real Priv stops at Android 6, below the app's minimum (Android 8.0), so this
         # profile runs Android 8.0: it checks the screen and the keyboard, not the Priv's OS.

@@ -25,11 +25,14 @@ Create them with `scripts/setup-emulators.ps1` (add `-InstallMissingComponents` 
 | `SquareChess_Fold_Outer` | 1080 × 2092 | 420 dpi | No | 16 (API 36) |
 | `SquareChess_Fold_Inner` | 1840 × 2208 | 420 dpi | No | 16 (API 36) |
 | `SquareChess_Eink_Tablet` | 1404 × 1872 | 227 dpi | No | 16 (API 36) |
+| `SquareChess_Alexa_Tablet_12_Pro` | 2800 × 1840 | 280 dpi | No | 16 (API 36) |
 | `SquareChess_BlackBerry_Priv` | 1440 × 2560 | 560 dpi | Yes | 8.0 (API 26) |
 | `SquareChess_Eink_Android8` | 1404 × 1872 | 300 dpi | No | 8.0 (API 26), 32-bit x86, 2 GB |
 | `SquareChess_Boox_Go_6` | 1072 × 1448 | 300 dpi | No | 13 (API 33), 2 GB |
 
 The e-ink tablet profile has the size and density of a 10.3-inch e-reader such as the BOOX Note3; it shows layout only, not e-paper refresh. Turn on Settings → E-ink mode in the app.
+
+The Alexa Tablet 12 Pro profile is a 12-inch landscape tablet (about 1600 × 1051 dp). It is the wide case for Home's Recent games and for the Playroom buddy beside a puzzle board.
 
 The two Android 8.0 profiles test the oldest supported Android version (minSdk 26):
 
