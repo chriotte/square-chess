@@ -136,6 +136,17 @@ class StickerTest {
 }
 
 class OutfitTest {
+    @Test fun skinAndHairSurviveSavingAndAreNeverLocked() {
+        val outfit = Outfit(skin = SkinTone.DARK, hair = HairColour.BLACK).with(Slot.HEAD, Item.CROWN)
+        assertEquals(outfit, Outfit.decode(outfit.encode()))
+        assertEquals("CROWN,skin:DARK,hair:BLACK", outfit.encode())
+        // Outfits saved before colours existed load with the buddy's own colours.
+        assertEquals(Outfit().with(Slot.HEAD, Item.CROWN), Outfit.decode("CROWN"))
+        // Taking away locked items keeps the colours.
+        val kept = outfit.with(Slot.PET, Item.LAVA_MONSTER).allowed(emptySet())
+        assertEquals(SkinTone.DARK, kept.skin); assertEquals(HairColour.BLACK, kept.hair)
+        assertEquals(null, kept[Slot.PET])
+    }
     @Test fun outfitsSurviveSaving() {
         val outfit = Outfit().with(Slot.HEAD, Item.ADMIRAL_HAT).with(Slot.HAND, Item.KNIGHT_SWORD).with(Slot.PET, Item.LAVA_MONSTER)
         assertEquals(outfit, Outfit.decode(outfit.encode()))

@@ -27,6 +27,29 @@ enum class Buddy(@StringRes val label: Int, @StringRes val intro: Int) {
     BOB(R.string.buddy_bob, R.string.buddy_bob_intro)
 }
 
+/** The buddies that are people, and so can have their skin and hair colour chosen. */
+val Buddy.human: Boolean get() = this == Buddy.MAGNUS || this == Buddy.GIRL || this == Buddy.PRINCESS
+
+/** Skin tones, light to dark, as in the emoji skin-tone range. */
+enum class SkinTone(@StringRes val label: Int, val color: Color) {
+    LIGHT(R.string.skin_light, Color(0xFFF3CDA9)),
+    MEDIUM_LIGHT(R.string.skin_medium_light, Color(0xFFE2B084)),
+    MEDIUM(R.string.skin_medium, Color(0xFFC68B5E)),
+    MEDIUM_DARK(R.string.skin_medium_dark, Color(0xFF9C6641)),
+    DARK(R.string.skin_dark, Color(0xFF6E4630))
+}
+
+enum class HairColour(@StringRes val label: Int, val color: Color) {
+    BLACK(R.string.hair_black, Color(0xFF2B2522)),
+    DARK_BROWN(R.string.hair_dark_brown, Color(0xFF4A2F1E)),
+    BROWN(R.string.hair_brown, Color(0xFF6B4423)),
+    GINGER(R.string.hair_ginger, Color(0xFFB86E2A)),
+    BLONDE(R.string.hair_blonde, Color(0xFFE2BC55)),
+    GREY(R.string.hair_grey, Color(0xFFB9B6B0)),
+    PINK(R.string.hair_pink, Color(0xFFE88AB8)),
+    BLUE(R.string.hair_blue, Color(0xFF4F86D9))
+}
+
 enum class Slot(@StringRes val label: Int) {
     HEAD(R.string.slot_head), FACE(R.string.slot_face), NECK(R.string.slot_neck),
     BACK(R.string.slot_back), HAND(R.string.slot_hand), PET(R.string.slot_pet)
@@ -110,16 +133,26 @@ enum class Item(val slot: Slot, @StringRes val label: Int, val sticker: Sticker?
 
 fun Item.unlocked(earned: Set<Sticker>): Boolean = sticker==null || sticker in earned
 
-/** What the buddy wears: at most one item per slot. */
-data class Outfit(val items: Map<Slot,Item> = emptyMap()) {
+/**
+ * What the buddy wears (at most one item per slot), and for the human buddies a skin tone and hair
+ * colour. Null colours mean the buddy's own, as drawn.
+ */
+data class Outfit(val items: Map<Slot,Item> = emptyMap(), val skin: SkinTone? = null, val hair: HairColour? = null) {
     operator fun get(slot: Slot): Item? = items[slot]
-    fun with(slot: Slot, item: Item?): Outfit = Outfit(if(item==null) items-slot else items+(slot to item))
-    /** Only the items that are still unlocked, for example after saved games were deleted. */
-    fun allowed(earned: Set<Sticker>): Outfit = Outfit(items.filterValues { it.unlocked(earned) })
-    fun encode(): String = items.values.sortedBy { it.slot.ordinal }.joinToString(",") { it.name }
+    fun with(slot: Slot, item: Item?): Outfit = copy(items = if(item==null) items-slot else items+(slot to item))
+    /** Only the items that are still unlocked, for example after saved games were deleted. Colours are never locked. */
+    fun allowed(earned: Set<Sticker>): Outfit = copy(items = items.filterValues { it.unlocked(earned) })
+    /** Item names, then "skin:TONE" and "hair:COLOUR"; older versions skip the names they do not know. */
+    fun encode(): String = (items.values.sortedBy { it.slot.ordinal }.map { it.name } +
+        listOfNotNull(skin?.let { "skin:${it.name}" }, hair?.let { "hair:${it.name}" })).joinToString(",")
     companion object {
-        fun decode(text: String?): Outfit = Outfit(text.orEmpty().split(',').mapNotNull { name ->
-            Item.entries.firstOrNull { it.name==name.trim() } }.associateBy { it.slot })
+        fun decode(text: String?): Outfit {
+            val parts = text.orEmpty().split(',').map { it.trim() }
+            return Outfit(
+                parts.mapNotNull { name -> Item.entries.firstOrNull { it.name==name } }.associateBy { it.slot },
+                parts.firstNotNullOfOrNull { p -> SkinTone.entries.firstOrNull { "skin:${it.name}"==p } },
+                parts.firstNotNullOfOrNull { p -> HairColour.entries.firstOrNull { "hair:${it.name}"==p } })
+        }
     }
 }
 

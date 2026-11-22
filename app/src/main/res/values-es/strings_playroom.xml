@@ -228,4 +228,20 @@
     <string name="tile_computer_sub">Diez niveles, desde los primeros pasos hasta fuerte</string>
     <string name="tile_two_players_sub">Comparte un tablero con un amigo</string>
     <string name="tile_setup_sub">Tu propia posición, y a jugar</string>
+    <string name="buddy_skin">Piel</string>
+    <string name="buddy_hair">Pelo</string>
+    <string name="buddy_own_colour">Como está dibujado</string>
+    <string name="skin_light">Clara</string>
+    <string name="skin_medium_light">Medio clara</string>
+    <string name="skin_medium">Media</string>
+    <string name="skin_medium_dark">Medio oscura</string>
+    <string name="skin_dark">Oscura</string>
+    <string name="hair_black">Negro</string>
+    <string name="hair_dark_brown">Castaño oscuro</string>
+    <string name="hair_brown">Castaño</string>
+    <string name="hair_ginger">Pelirrojo</string>
+    <string name="hair_blonde">Rubio</string>
+    <string name="hair_grey">Gris</string>
+    <string name="hair_pink">Rosa</string>
+    <string name="hair_blue">Azul</string>
 </resources>

@@ -244,4 +244,20 @@
     <string name="tile_computer_sub">Ten levels, from first steps to strong</string>
     <string name="tile_two_players_sub">Share one board with a friend</string>
     <string name="tile_setup_sub">Your own position, then play</string>
+    <string name="buddy_skin">Skin</string>
+    <string name="buddy_hair">Hair</string>
+    <string name="buddy_own_colour">As drawn</string>
+    <string name="skin_light">Light</string>
+    <string name="skin_medium_light">Medium light</string>
+    <string name="skin_medium">Medium</string>
+    <string name="skin_medium_dark">Medium dark</string>
+    <string name="skin_dark">Dark</string>
+    <string name="hair_black">Black</string>
+    <string name="hair_dark_brown">Dark brown</string>
+    <string name="hair_brown">Brown</string>
+    <string name="hair_ginger">Ginger</string>
+    <string name="hair_blonde">Blonde</string>
+    <string name="hair_grey">Grey</string>
+    <string name="hair_pink">Pink</string>
+    <string name="hair_blue">Blue</string>
 </resources>

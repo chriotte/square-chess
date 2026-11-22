@@ -190,6 +190,11 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
         with(scope) { translate(x, y) { with(p) { draw(Size(size, size)) } } }
     }
 
+    /** A soft light streak on hair, so dark hair does not merge with its outline. */
+    fun hairShine(hair: Color, d: String) {
+        if (!mono) line(d, 1.6f, Color.White, if (hair.luminance() < 0.15f) 0.35f else 0.25f)
+    }
+
     /** An outlined limb from ([x1], [y1]) to ([x2], [y2]). */
     fun tube(x1: Float, y1: Float, x2: Float, y2: Float, elbow: Pair<Float, Float>?, thick: Float, fill: Color) {
         val hx = x2; val hy = y2
@@ -206,14 +211,17 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
     fun drawBuddy(buddy: Buddy, outfit: Outfit, pose: BuddyPose, petPiece: Painter?, knight: Painter?, t: Float, moving: Boolean) {
         val skin = when (buddy) {
             Buddy.ROBOT -> Color(0xFFA9B1B8); Buddy.MONKEY -> Color(0xFFB07A4F); Buddy.SLOTH -> Color(0xFF9A8670)
-            Buddy.BOB -> Color(0xFF54D8FF); else -> Color(0xFFF3CDA9)
+            Buddy.BOB -> Color(0xFF54D8FF); else -> (outfit.skin ?: SkinTone.LIGHT).color
         }
         val shirt = when (buddy) {
             Buddy.ROBOT -> skin; Buddy.MAGNUS -> Color(0xFF2A5DB0); Buddy.GIRL -> Color(0xFFD9645A)
             Buddy.PRINCESS -> Color(0xFFB57BD1); Buddy.MONKEY -> Color(0xFFE0A23C); Buddy.SLOTH -> skin; Buddy.BOB -> Color(0xFF2A5DB0)
         }
         val hair = when (buddy) {
-            Buddy.MAGNUS -> Color(0xFF6B4423); Buddy.GIRL -> Color(0xFFB86E2A); Buddy.PRINCESS -> Color(0xFFE2BC55); else -> null
+            Buddy.MAGNUS -> outfit.hair?.color ?: HairColour.BROWN.color
+            Buddy.GIRL -> outfit.hair?.color ?: HairColour.GINGER.color
+            Buddy.PRINCESS -> outfit.hair?.color ?: HairColour.BLONDE.color
+            else -> null
         }
         val arms = when (pose) {
             BuddyPose.STAND -> listOf(30f to 80f, 70f to 80f)
@@ -356,7 +364,7 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
                 else -> Unit
             }
             // Head.
-            if (buddy == Buddy.PRINCESS) d("M33 30 Q31 52 38 56 L62 56 Q69 52 67 30Z", f(hair!!))
+            if (buddy == Buddy.PRINCESS) { d("M33 30 Q31 52 38 56 L62 56 Q69 52 67 30Z", f(hair!!)); hairShine(hair, "M35 36 Q34 46 37 52") }
             if (buddy == Buddy.GIRL) { circle(31f, 36f, 5f, f(hair!!)); circle(69f, 36f, 5f, f(hair)) }
             if (buddy == Buddy.MONKEY) { circle(33f, 33f, 6f, f(skin)); circle(67f, 33f, 6f, f(skin)) }
             when (buddy) {
@@ -387,10 +395,17 @@ private class BuddyPen(val scope: DrawScope, val mono: Boolean, val limb: Color)
                 else -> {
                     circle(50f, 34f, 16f, f(skin))
                     if (buddy == Buddy.MONKEY) ellipse(50f, 39f, 10f, 7.5f, f(Color(0xFFEBCDA6)))
-                    circle(44f, 33f, 1.9f, ink, 0f); circle(56f, 33f, 1.9f, ink, 0f)
-                    line(if (pose == BuddyPose.CRY) "M45 43 Q50 39 55 43" else "M44.5 40 Q50 45 55.5 40")
-                    if (hair != null && head !in setOf(Item.BEANIE, Item.KNIGHT_HELMET, Item.WIZARD_HAT))
+                    // On darker skin the face lines are a touch darker and bolder, and every eye has a shine,
+                    // so the face reads on any skin tone.
+                    val deep = !mono && skin.luminance() < 0.3f
+                    val face = if (deep) Color(0xFF140D0A) else ink
+                    circle(44f, 33f, 2f, face, 0f); circle(56f, 33f, 2f, face, 0f)
+                    if (!mono && buddy != Buddy.MONKEY) { circle(44.7f, 32.3f, 0.7f, Color.White, 0f); circle(56.7f, 32.3f, 0.7f, Color.White, 0f) }
+                    line(if (pose == BuddyPose.CRY) "M45 43 Q50 39 55 43" else "M44.5 40 Q50 45 55.5 40", if (deep) 2.4f else sw, face)
+                    if (hair != null && head !in setOf(Item.BEANIE, Item.KNIGHT_HELMET, Item.WIZARD_HAT)) {
                         d("M34 31 Q36 16 50 17 Q64 16 66 31 Q58 23 50 25 Q42 23 34 31Z", f(hair))
+                        hairShine(hair, "M40 22 Q45 19 51 19")
+                    }
                 }
             }
             if (outfit[Slot.FACE] == Item.SUNGLASSES) {

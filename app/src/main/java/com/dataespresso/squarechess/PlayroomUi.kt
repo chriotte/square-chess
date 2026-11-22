@@ -20,6 +20,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -357,6 +358,14 @@ private fun stageFrame(world: World): Color = when (world) {
                 }
             }
         }
+        // Skin and hair for the human buddies. Not locked: everyone can make the buddy look like them.
+        // E-ink draws the buddy in black and white, so the colours would not show there.
+        if (settings.buddy.human && !palette.eink) {
+            MenuSection(stringResource(R.string.buddy_skin))
+            ColourChips(SkinTone.entries, outfit.skin, { it.label }, { it.color }) { onChange(settings.copy(outfit = outfit.copy(skin = it))) }
+            MenuSection(stringResource(R.string.buddy_hair))
+            ColourChips(HairColour.entries, outfit.hair, { it.label }, { it.color }) { onChange(settings.copy(outfit = outfit.copy(hair = it))) }
+        }
         SettingSwitch(stringResource(R.string.unlock_all_title), stringResource(R.string.unlock_all_help), settings.unlockAll) {
             onChange(settings.copy(unlockAll = it))
         }
@@ -373,6 +382,21 @@ private fun stageFrame(world: World): Color = when (world) {
         }
         Spacer(Modifier.height(16.dp))
     }
+    }
+}
+
+/** Colour choices as chips with a swatch; the first chip keeps the buddy's own colour. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable private fun <T> ColourChips(options: List<T>, chosen: T?, label: (T) -> Int, color: (T) -> Color, onPick: (T?) -> Unit) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilterChip(selected = chosen == null, onClick = { onPick(null) }, label = { Text(stringResource(R.string.buddy_own_colour)) })
+        options.forEach { option ->
+            FilterChip(selected = chosen == option, onClick = { onPick(option) }, label = { Text(stringResource(label(option))) },
+                leadingIcon = {
+                    Box(Modifier.size(18.dp).clip(CircleShape).background(color(option))
+                        .border(1.dp, Color.Black.copy(alpha = 0.35f), CircleShape))
+                })
+        }
     }
 }
 

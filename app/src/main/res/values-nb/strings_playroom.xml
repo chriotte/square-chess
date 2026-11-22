@@ -228,4 +228,20 @@
     <string name="tile_computer_sub">Ti nivåer, fra første steg til sterk</string>
     <string name="tile_two_players_sub">Del ett brett med en venn</string>
     <string name="tile_setup_sub">Din egen stilling, så spill</string>
+    <string name="buddy_skin">Hud</string>
+    <string name="buddy_hair">Hår</string>
+    <string name="buddy_own_colour">Som tegnet</string>
+    <string name="skin_light">Lys</string>
+    <string name="skin_medium_light">Middels lys</string>
+    <string name="skin_medium">Middels</string>
+    <string name="skin_medium_dark">Middels mørk</string>
+    <string name="skin_dark">Mørk</string>
+    <string name="hair_black">Svart</string>
+    <string name="hair_dark_brown">Mørkebrunt</string>
+    <string name="hair_brown">Brunt</string>
+    <string name="hair_ginger">Rødt</string>
+    <string name="hair_blonde">Blondt</string>
+    <string name="hair_grey">Grått</string>
+    <string name="hair_pink">Rosa</string>
+    <string name="hair_blue">Blått</string>
 </resources>

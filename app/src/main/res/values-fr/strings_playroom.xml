@@ -228,4 +228,20 @@
     <string name="tile_computer_sub">Dix niveaux, des premiers pas au jeu fort</string>
     <string name="tile_two_players_sub">Partagez un échiquier avec un ami</string>
     <string name="tile_setup_sub">Votre propre position, puis jouez</string>
+    <string name="buddy_skin">Peau</string>
+    <string name="buddy_hair">Cheveux</string>
+    <string name="buddy_own_colour">Comme dessiné</string>
+    <string name="skin_light">Claire</string>
+    <string name="skin_medium_light">Moyennement claire</string>
+    <string name="skin_medium">Moyenne</string>
+    <string name="skin_medium_dark">Moyennement foncée</string>
+    <string name="skin_dark">Foncée</string>
+    <string name="hair_black">Noirs</string>
+    <string name="hair_dark_brown">Châtain foncé</string>
+    <string name="hair_brown">Châtains</string>
+    <string name="hair_ginger">Roux</string>
+    <string name="hair_blonde">Blonds</string>
+    <string name="hair_grey">Gris</string>
+    <string name="hair_pink">Roses</string>
+    <string name="hair_blue">Bleus</string>
 </resources>

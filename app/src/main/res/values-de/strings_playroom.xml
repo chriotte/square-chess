@@ -228,4 +228,20 @@
     <string name="tile_computer_sub">Zehn Stufen, von den ersten Schritten bis stark</string>
     <string name="tile_two_players_sub">Ein Brett mit einem Freund teilen</string>
     <string name="tile_setup_sub">Eigene Stellung, dann spielen</string>
+    <string name="buddy_skin">Haut</string>
+    <string name="buddy_hair">Haare</string>
+    <string name="buddy_own_colour">Wie gezeichnet</string>
+    <string name="skin_light">Hell</string>
+    <string name="skin_medium_light">Mittelhell</string>
+    <string name="skin_medium">Mittel</string>
+    <string name="skin_medium_dark">Mitteldunkel</string>
+    <string name="skin_dark">Dunkel</string>
+    <string name="hair_black">Schwarz</string>
+    <string name="hair_dark_brown">Dunkelbraun</string>
+    <string name="hair_brown">Braun</string>
+    <string name="hair_ginger">Rot</string>
+    <string name="hair_blonde">Blond</string>
+    <string name="hair_grey">Grau</string>
+    <string name="hair_pink">Rosa</string>
+    <string name="hair_blue">Blau</string>
 </resources>

@@ -228,4 +228,20 @@
     <string name="tile_computer_sub">十个级别，从入门到高手</string>
     <string name="tile_two_players_sub">和朋友共用一个棋盘</string>
     <string name="tile_setup_sub">摆出自己的局面，然后对弈</string>
+    <string name="buddy_skin">肤色</string>
+    <string name="buddy_hair">发色</string>
+    <string name="buddy_own_colour">原样</string>
+    <string name="skin_light">浅</string>
+    <string name="skin_medium_light">中等偏浅</string>
+    <string name="skin_medium">中等</string>
+    <string name="skin_medium_dark">中等偏深</string>
+    <string name="skin_dark">深</string>
+    <string name="hair_black">黑色</string>
+    <string name="hair_dark_brown">深棕色</string>
+    <string name="hair_brown">棕色</string>
+    <string name="hair_ginger">姜黄色</string>
+    <string name="hair_blonde">金色</string>
+    <string name="hair_grey">灰色</string>
+    <string name="hair_pink">粉色</string>
+    <string name="hair_blue">蓝色</string>
 </resources>
