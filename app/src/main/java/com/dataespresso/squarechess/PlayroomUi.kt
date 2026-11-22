@@ -71,7 +71,7 @@ import com.github.bhlangonijr.chesslib.Square
         verticalAlignment = Alignment.CenterVertically
     ) {
         BuddyFigure(settings.buddy, settings.outfit.allowed(settings.wearable(earned)), BuddyPose.WAVE, Modifier.size(64.dp, 84.dp), mono = palette.eink,
-            description = name)
+            description = name, trigger = detail)
         Spacer(Modifier.width(8.dp))
         Column(Modifier.weight(1f)) {
             Text(line, fontSize = 15.sp, fontWeight = FontWeight.Medium)
@@ -104,10 +104,10 @@ enum class BubbleTail { LEFT, BOTTOM }
         // Width first, then the height left under the bubble, so the figure never runs off the screen.
         val figureHeight = maxHeight?.let { (it - 90.dp).coerceIn(80.dp, 221.dp) } ?: 221.dp
         WorldStage(Modifier.widthIn(max = 170.dp).fillMaxWidth().aspectRatio(100f / 130f).heightIn(max = figureHeight)) {
-            BuddyFigure(settings.buddy, outfit, pose, it, mono = palette.eink)
+            BuddyFigure(settings.buddy, outfit, pose, it, mono = palette.eink, trigger = line, tapToReplay = true)
         }
     } else Row(modifier.then(semantics), verticalAlignment = Alignment.CenterVertically) {
-        WorldStage(Modifier.size(84.dp, 108.dp)) { BuddyFigure(settings.buddy, outfit, pose, it, mono = palette.eink) }
+        WorldStage(Modifier.size(84.dp, 108.dp)) { BuddyFigure(settings.buddy, outfit, pose, it, mono = palette.eink, trigger = line, tapToReplay = true) }
         SpeechBubble(line, extra, BubbleTail.LEFT, bubbleColor, Modifier.weight(1f, fill = false), large = false)
     }
 }
@@ -331,7 +331,7 @@ private fun stageFrame(world: World): Color = when (world) {
         Text(stringResource(R.string.buddy_title), fontFamily = FontFamily.Serif, fontSize = 30.sp, modifier = Modifier.semantics { heading() })
         Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).card(palette).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             BuddyFigure(settings.buddy, outfit, BuddyPose.STAND, Modifier.size(120.dp, 156.dp), mono = palette.eink,
-                description = stringResource(settings.buddy.label))
+                description = stringResource(settings.buddy.label), trigger = settings.buddy, tapToReplay = true)
             Spacer(Modifier.width(8.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(stringResource(settings.buddy.label), fontSize = 20.sp, fontWeight = FontWeight.Medium)
