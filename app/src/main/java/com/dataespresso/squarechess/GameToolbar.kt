@@ -123,7 +123,12 @@ class HeaderReviewNav(val onFirst: ()->Unit, val onPrevious: ()->Unit, val onNex
                 // A hint replaces the status in the same text line, so the header keeps its height.
                 val text=when {
                     hint==null -> headerText(move,
-                        if(reviewPly!=null) stringResource(R.string.status_review,reviewPly,s.position.moves.size) else stringResource(statusText(status)),
+                        when {
+                            reviewPly!=null -> stringResource(R.string.status_review,reviewPly,s.position.moves.size)
+                            // Who won and how stays in view after the result card is closed.
+                            status==GameStatus.GAME_OVER && s.game!=null -> resultLine(res,s.game)
+                            else -> stringResource(statusText(status))
+                        },
                         difficulty,quality,lead,opening,oneLine=clock!=null,statusFirst=statusFirst,review=reviewPly!=null)
                     hint.san.isEmpty() -> hint.detail
                     else -> stringResource(R.string.hint_line,hint.san,hint.detail)

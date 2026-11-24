@@ -222,9 +222,9 @@
     <string name="play_again">Jugar otra vez</string>
     <string name="you_won">Has ganado</string>
     <string name="you_lost">Has perdido</string>
-    <string name="score_white">Blancas · 1–0</string>
-    <string name="score_black">Negras · 0–1</string>
-    <string name="score_draw">Tablas · ½–½</string>
+    <string name="result_played_white">Jugaste con blancas · %1$s</string>
+    <string name="result_played_black">Jugaste con negras · %1$s</string>
+    <string name="result_score">Resultado %1$s</string>
     <string name="reason_checkmate">Jaque mate</string>
     <string name="reason_stalemate">Rey ahogado</string>
     <string name="reason_insufficient">Tablas por material insuficiente</string>
@@ -415,7 +415,8 @@
     <string name="puzzle_correct">Correcto</string>
     <string name="puzzle_correct_continue">Correcto · busca la siguiente jugada</string>
     <string name="puzzle_wrong">Casi · inténtalo de nuevo</string>
-    <string name="puzzle_solved_detail">Resuelto · valoración %1$d</string>
+    <string name="puzzle_solved">Problema resuelto</string>
+    <string name="puzzle_rating">Valoración del problema %1$d</string>
     <string name="puzzle_mode_training">Nivel de entrenamiento %1$d</string>
     <string name="puzzle_mode_quick">5 rápidos · problema %1$d de %2$d</string>
     <string name="puzzle_next">Siguiente</string>

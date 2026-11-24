@@ -49,6 +49,37 @@ private val REASONS = mapOf(
 
 fun reasonText(res: Resources, reason: String): String = REASONS[reason]?.let(res::getString) ?: reason
 
+/** "You won", "Black wins" or "Draw": against the computer the headline is about the player. */
+@StringRes fun resultHeadline(result: String, game: SavedGame?): Int = when {
+    result == "1/2-1/2" -> R.string.draw
+    game?.mode == GameMode.COMPUTER.name && ((result == "1-0") == game.humanWhite) -> R.string.you_won
+    game?.mode == GameMode.COMPUTER.name -> R.string.you_lost
+    result == "1-0" -> R.string.white_wins
+    else -> R.string.black_wins
+}
+
+/** The finished game in one line for the header, for example "You won · Checkmate" or "Draw · Stalemate". */
+fun resultLine(res: Resources, game: SavedGame): String {
+    val headline = res.getString(resultHeadline(game.result, game))
+    val reason = game.resultReason.takeIf { it.isNotBlank() }?.let { reasonText(res, it) }
+    // "Draw by fivefold repetition" already says draw; the headline would only repeat it.
+    return when {
+        reason == null -> headline
+        reason.startsWith(headline, ignoreCase = true) -> reason
+        else -> "$headline · $reason"
+    }
+}
+
+/** The score in chess notation, with the player's colour in games against the computer. */
+fun resultScore(res: Resources, result: String, game: SavedGame?): String {
+    val score = when (result) { "1-0" -> "1–0"; "0-1" -> "0–1"; else -> "½–½" }
+    return when {
+        game?.mode != GameMode.COMPUTER.name -> res.getString(R.string.result_score, score)
+        game.humanWhite -> res.getString(R.string.result_played_white, score)
+        else -> res.getString(R.string.result_played_black, score)
+    }
+}
+
 @StringRes fun statusText(status: GameStatus): Int = when (status) {
     GameStatus.GAME_OVER -> R.string.status_game_over
     GameStatus.COMPUTER_THINKING -> R.string.status_thinking

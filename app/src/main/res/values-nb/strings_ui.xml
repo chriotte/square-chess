@@ -221,9 +221,9 @@
     <string name="play_again">Spill igjen</string>
     <string name="you_won">Du vant</string>
     <string name="you_lost">Du tapte</string>
-    <string name="score_white">Hvit · 1–0</string>
-    <string name="score_black">Svart · 0–1</string>
-    <string name="score_draw">Remis · ½–½</string>
+    <string name="result_played_white">Du spilte hvit · %1$s</string>
+    <string name="result_played_black">Du spilte svart · %1$s</string>
+    <string name="result_score">Resultat %1$s</string>
     <string name="reason_checkmate">Sjakkmatt</string>
     <string name="reason_stalemate">Patt</string>
     <string name="reason_insufficient">Remis på grunn av utilstrekkelig materiell</string>
@@ -408,7 +408,8 @@
     <string name="puzzle_correct">Riktig</string>
     <string name="puzzle_correct_continue">Riktig · finn neste trekk</string>
     <string name="puzzle_wrong">Ikke helt · prøv igjen</string>
-    <string name="puzzle_solved_detail">Løst · oppgaverating %1$d</string>
+    <string name="puzzle_solved">Oppgaven er løst</string>
+    <string name="puzzle_rating">Oppgaverating %1$d</string>
     <string name="puzzle_mode_training">Treningsnivå %1$d</string>
     <string name="puzzle_mode_quick">Rask 5 · oppgave %1$d av %2$d</string>
     <string name="puzzle_next">Neste</string>
