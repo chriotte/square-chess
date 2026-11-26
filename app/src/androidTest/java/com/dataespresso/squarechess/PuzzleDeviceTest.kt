@@ -108,7 +108,7 @@ class PuzzleDeviceTest {
             // UCI without the piece: the promotion choice opens.
             type("f7f8")
             tap(node(context.getString(R.string.piece_queen)))
-            nodeStarting("Solved · puzzle rating 1803")
+            nodeStarting("Puzzle solved\nPuzzle rating 1803")
             node("Next")
         }
         val db=openChessDatabase(context)
@@ -130,7 +130,7 @@ class PuzzleDeviceTest {
             drag("f6","d8")
             nodeStarting("d8, white king")        // the reply Kxd8
             type("Kc4")
-            nodeStarting("Solved")
+            nodeStarting("Puzzle solved")
         }
         val db=openChessDatabase(context)
         try { assertEquals(1,db.puzzleProgress().get("00B3B")!!.firstTrySolved) } finally { db.close() }
@@ -142,7 +142,7 @@ class PuzzleDeviceTest {
             node("Hint: Queen from d1 to h1, Qh1#")
             node("Hide")
             type("Qh1#")
-            nodeStarting("Solved")
+            nodeStarting("Puzzle solved")
         }
         val db=openChessDatabase(context)
         try { assertEquals(1,db.puzzleProgress().get("0Xuss")!!.hints) } finally { db.close() }
@@ -184,7 +184,7 @@ class PuzzleDeviceTest {
             nodeStarting("h2, black rook")
             nodeStarting("f7, white pawn")
             type("f8=Q")
-            nodeStarting("Solved")
+            nodeStarting("Puzzle solved")
         }
     }
 

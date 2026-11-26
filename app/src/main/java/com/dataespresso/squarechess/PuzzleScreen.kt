@@ -10,6 +10,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -17,6 +18,9 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -67,14 +71,17 @@ import androidx.compose.ui.unit.sp
 ) {
     val session=ui.session ?: return
     val res=appResources()
+    val palette=LocalPalette.current
     val flip=!session.solverWhite
+    val solved=session.state==PuzzleState.SOLVED
+    val lastOfSet=ui.mode==PuzzleMode.QUICK && ui.quick.size>=QUICK_SET_SIZE
     Column(Modifier.fillMaxSize()) {
         GameHeader {
             Column(Modifier.weight(1f).padding(end=4.dp)) {
                 val hint=if(ui.hintShown) session.expectedMove?.let { hintMove(session.position,it) }?.let { hintText(res,it) } else null
                 val first=when {
                     hint!=null -> stringResource(R.string.hint_line,hint.san,hint.detail)
-                    session.state==PuzzleState.SOLVED -> stringResource(R.string.puzzle_solved_detail,session.puzzle.rating)
+                    session.state==PuzzleState.SOLVED -> stringResource(R.string.puzzle_solved)
                     ui.feedback==PuzzleFeedback.WRONG -> stringResource(R.string.puzzle_wrong)
                     ui.feedback==PuzzleFeedback.CORRECT && session.state==PuzzleState.OPPONENT_TO_MOVE -> stringResource(R.string.puzzle_correct)
                     ui.feedback==PuzzleFeedback.CORRECT -> stringResource(R.string.puzzle_correct_continue)
@@ -82,7 +89,8 @@ import androidx.compose.ui.unit.sp
                 }
                 // Themes only after the solve, so they do not give the idea away; a chosen theme is known.
                 val second=when {
-                    session.state==PuzzleState.SOLVED -> session.puzzle.group.joinToString(" · ") { res.getString(groupName(it)) }.ifEmpty { null }
+                    session.state==PuzzleState.SOLVED -> (listOf(res.getString(R.string.puzzle_rating,session.puzzle.rating))+
+                        session.puzzle.group.map { res.getString(groupName(it)) }).joinToString(" · ")
                     ui.mode==PuzzleMode.QUICK -> stringResource(R.string.puzzle_mode_quick,ui.quick.size+1,QUICK_SET_SIZE)
                     ui.mode==PuzzleMode.REVIEW -> stringResource(R.string.puzzle_review)
                     ui.mode==PuzzleMode.THEME && ui.group!=null -> stringResource(groupName(ui.group))
@@ -91,17 +99,22 @@ import androidx.compose.ui.unit.sp
                 // Two 14 sp lines fit the 56 dp header below font scale 1.25 (measured on the Titan); from
                 // that only the first line shows, so a larger font never makes the board smaller.
                 val oneLine=LocalDensity.current.fontScale>=1.25f
-                Text(if(oneLine) first else listOfNotNull(first,second).joinToString("\n"),fontSize=14.sp,fontWeight=FontWeight.Medium,
+                // The outcome of a move is the line to notice: solved and wrong stand out from the plain status.
+                val outcome=hint==null && (session.state==PuzzleState.SOLVED || ui.feedback==PuzzleFeedback.WRONG)
+                val shown=buildAnnotatedString {
+                    withStyle(SpanStyle(fontWeight=if(outcome) FontWeight.Bold else null,color=if(outcome) palette.accent else Color.Unspecified)) { append(first) }
+                    if(!oneLine && second!=null) append("\n$second")
+                }
+                Text(shown,fontSize=14.sp,fontWeight=FontWeight.Medium,
                     maxLines=if(oneLine) 1 else 2,overflow=TextOverflow.Ellipsis,
                     modifier=Modifier.semantics {
                         liveRegion=LiveRegionMode.Polite
                         if(hint!=null) contentDescription=hint.spoken
                     })
             }
-            if(session.state==PuzzleState.SOLVED) {
-                val last=ui.mode==PuzzleMode.QUICK && ui.quick.size>=QUICK_SET_SIZE
+            if(solved) {
                 Button(onClick=onNext,modifier=Modifier.heightIn(min=48.dp),contentPadding=PaddingValues(horizontal=12.dp)) {
-                    Text(stringResource(if(last) R.string.puzzle_results else R.string.puzzle_next),maxLines=1)
+                    Text(stringResource(if(lastOfSet) R.string.puzzle_results else R.string.puzzle_next),maxLines=1)
                 }
             } else {
                 val shown=ui.hintShown
@@ -125,6 +138,8 @@ import androidx.compose.ui.unit.sp
             }
             // The buddy only uses space the square board cannot: beside it on wide screens, below it on
             // tall ones, and nowhere when neither is free (the header still says how the move went).
+            val gutter=(maxWidth-side)/2
+            val spareBelow=maxHeight-side
             if(prefs.playful) {
                 val moment=when {
                     ui.hintShown -> BuddyMoment.HINT
@@ -132,11 +147,25 @@ import androidx.compose.ui.unit.sp
                     ui.feedback==PuzzleFeedback.CORRECT || session.state==PuzzleState.SOLVED -> BuddyMoment.RIGHT
                     else -> BuddyMoment.THINK
                 }
-                val gutter=(maxWidth-side)/2
-                val spareBelow=maxHeight-side
-                if(gutter>=BUDDY_GUTTER_MIN) BuddyReaction(prefs,earned,moment,Modifier.align(Alignment.TopEnd).padding(end=8.dp).width(gutter-16.dp),large=true)
-                else if(spareBelow>=BUDDY_LARGE_BELOW) BuddyReaction(prefs,earned,moment,Modifier.align(Alignment.TopCenter).padding(top=side+8.dp).width(minOf(side,280.dp)),large=true,maxHeight=spareBelow-8.dp)
-                else if(spareBelow>=BUDDY_ROW_MIN) BuddyReaction(prefs,earned,moment,Modifier.align(Alignment.TopCenter).padding(top=side+8.dp).width(side))
+                // The buddy's own line is cheerful but general; the bubble also says the puzzle is done.
+                val extra=if(solved) stringResource(R.string.puzzle_solved) else null
+                if(gutter>=BUDDY_GUTTER_MIN) BuddyReaction(prefs,earned,moment,Modifier.align(Alignment.TopEnd).padding(end=8.dp).width(gutter-16.dp),extra,large=true)
+                else if(spareBelow>=BUDDY_LARGE_BELOW) BuddyReaction(prefs,earned,moment,Modifier.align(Alignment.TopCenter).padding(top=side+8.dp).width(minOf(side,280.dp)),extra,large=true,maxHeight=spareBelow-8.dp)
+                else if(spareBelow>=BUDDY_ROW_MIN) BuddyReaction(prefs,earned,moment,Modifier.align(Alignment.TopCenter).padding(top=side+8.dp).width(side),extra)
+            } else if(solved) {
+                // Without the buddy, the free space says it plainly, with a Next that is easy to reach.
+                val place=when {
+                    gutter>=BUDDY_GUTTER_MIN -> Modifier.align(Alignment.TopEnd).padding(end=8.dp).width(gutter-16.dp)
+                    spareBelow>=SOLVED_CARD_MIN -> Modifier.align(Alignment.TopCenter).padding(top=side+12.dp).width(minOf(side-16.dp,360.dp))
+                    else -> null
+                }
+                if(place!=null) Column(place.clip(RoundedCornerShape(12.dp)).card(palette).padding(16.dp),
+                    horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(R.string.puzzle_solved),fontFamily=FontFamily.Serif,fontSize=24.sp,color=palette.text)
+                    Button(onClick=onNext,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)) {
+                        Text(stringResource(if(lastOfSet) R.string.puzzle_results else R.string.puzzle_next))
+                    }
+                }
             }
         }
         Spacer(Modifier.height(8.dp))
@@ -146,6 +175,7 @@ import androidx.compose.ui.unit.sp
 private val BUDDY_GUTTER_MIN=180.dp
 private val BUDDY_ROW_MIN=112.dp
 private val BUDDY_LARGE_BELOW=290.dp
+private val SOLVED_CARD_MIN=140.dp
 
 /** The end of a Quick 5 set: counts only, no score. */
 @Composable fun QuickSummary(ui: PuzzleUi, onAgain: () -> Unit, onDone: () -> Unit) {

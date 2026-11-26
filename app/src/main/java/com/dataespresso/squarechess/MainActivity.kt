@@ -706,10 +706,10 @@ class MainActivity: ComponentActivity() {
                     val event=resultDialog!!
                     AppAlertDialog(
                         onDismissRequest={resultDialog=null;vm.acknowledgeResult()},
-                        title={Text(stringResource(resultHeadline(event,s.game)))},
+                        title={Text(stringResource(resultHeadline(event.result,s.game)))},
                         text={Column(Modifier.verticalScroll(rememberScrollState())) {
                             Text(reasonText(resources,event.reason))
-                            Text(stringResource(resultScore(event.result)),modifier=Modifier.padding(top=8.dp),fontWeight=FontWeight.Medium)
+                            Text(resultScore(resources,event.result,s.game),modifier=Modifier.padding(top=8.dp),fontWeight=FontWeight.Medium)
                             if(settings.playful) {
                                 val game=s.game
                                 val playerWon=event.result!="1/2-1/2" && (game?.mode!=GameMode.COMPUTER.name || ((event.result=="1-0")==game.humanWhite))
@@ -1081,25 +1081,11 @@ internal fun historyDate(millis: Long): String =
 }
 
 
-@androidx.annotation.StringRes private fun resultHeadline(event: ResultEvent, game: SavedGame?): Int = when {
-    event.result=="1/2-1/2" -> R.string.draw
-    game?.mode==GameMode.COMPUTER.name && ((event.result=="1-0")==game.humanWhite) -> R.string.you_won
-    game?.mode==GameMode.COMPUTER.name -> R.string.you_lost
-    event.result=="1-0" -> R.string.white_wins
-    else -> R.string.black_wins
-}
-
 @androidx.annotation.StringRes private fun entryErrorText(error: EntryError): Int = when(error) {
     EntryError.POSITION_CHANGED -> R.string.entry_position_changed
     EntryError.ILLEGAL -> R.string.entry_illegal
     EntryError.CLOCK_PAUSED -> R.string.entry_clock_paused
     EntryError.TIME_EXPIRED -> R.string.entry_time_expired
-}
-
-@androidx.annotation.StringRes private fun resultScore(result: String): Int = when(result) {
-    "1-0" -> R.string.score_white
-    "0-1" -> R.string.score_black
-    else -> R.string.score_draw
 }
 
 /** Clock preset labels are data ("3+2"); only "Untimed" is a word. */

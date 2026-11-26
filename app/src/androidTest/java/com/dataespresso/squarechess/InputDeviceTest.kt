@@ -88,18 +88,18 @@ class InputDeviceTest {
                 assertEquals("Result recorded by the players",db.games().latest()!!.resultReason)
                 tap("Review board")
                 scenario.recreate()
-                waitNode("Game over")
+                waitNode("Draw · Result recorded by the players")
                 assertNull(find(activeRoot(),"Play again"))
                 assertFlipped()
                 tap("Menu"); tap("Save & home")
                 tap("View last game")
-                waitNode("Game over")
+                waitNode("Draw · Result recorded by the players")
                 assertFlipped()
             }
             // A fresh Activity/ViewModel loads the saved record rather than replaying the result event.
             ActivityScenario.launch(MainActivity::class.java).use {
                 tap("View last game")
-                waitNode("Game over")
+                waitNode("Draw · Result recorded by the players")
                 assertNull(find(activeRoot(),"Play again"))
                 assertFlipped()
             }

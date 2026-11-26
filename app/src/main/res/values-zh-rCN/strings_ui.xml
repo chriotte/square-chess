@@ -220,9 +220,9 @@
     <string name="play_again">再来一局</string>
     <string name="you_won">你赢了</string>
     <string name="you_lost">你输了</string>
-    <string name="score_white">白方 · 1–0</string>
-    <string name="score_black">黑方 · 0–1</string>
-    <string name="score_draw">和棋 · ½–½</string>
+    <string name="result_played_white">你执白 · %1$s</string>
+    <string name="result_played_black">你执黑 · %1$s</string>
+    <string name="result_score">比分 %1$s</string>
     <string name="reason_checkmate">将死</string>
     <string name="reason_stalemate">逼和</string>
     <string name="reason_insufficient">子力不足，和棋</string>
@@ -401,7 +401,8 @@
     <string name="puzzle_correct">正确</string>
     <string name="puzzle_correct_continue">正确 · 找出下一步</string>
     <string name="puzzle_wrong">不太对 · 再试一次</string>
-    <string name="puzzle_solved_detail">已解出 · 谜题等级分 %1$d</string>
+    <string name="puzzle_solved">谜题已解出</string>
+    <string name="puzzle_rating">谜题等级分 %1$d</string>
     <string name="puzzle_mode_training">训练等级 %1$d</string>
     <string name="puzzle_mode_quick">快速 5 题 · 第 %1$d 题，共 %2$d 题</string>
     <string name="puzzle_next">下一题</string>

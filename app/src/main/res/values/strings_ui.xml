@@ -225,9 +225,9 @@
     <string name="play_again">Play again</string>
     <string name="you_won">You won</string>
     <string name="you_lost">You lost</string>
-    <string name="score_white">White · 1–0</string>
-    <string name="score_black">Black · 0–1</string>
-    <string name="score_draw">Draw · ½–½</string>
+    <string name="result_played_white">You played White · %1$s</string>
+    <string name="result_played_black">You played Black · %1$s</string>
+    <string name="result_score">Score %1$s</string>
     <string name="reason_checkmate">Checkmate</string>
     <string name="reason_stalemate">Stalemate</string>
     <string name="reason_insufficient">Draw by insufficient material</string>
@@ -416,7 +416,8 @@
     <string name="puzzle_correct">Correct</string>
     <string name="puzzle_correct_continue">Correct · find the next move</string>
     <string name="puzzle_wrong">Not quite · try again</string>
-    <string name="puzzle_solved_detail">Solved · puzzle rating %1$d</string>
+    <string name="puzzle_solved">Puzzle solved</string>
+    <string name="puzzle_rating">Puzzle rating %1$d</string>
     <string name="puzzle_mode_training">Training level %1$d</string>
     <string name="puzzle_mode_quick">Quick 5 · puzzle %1$d of %2$d</string>
     <string name="puzzle_next">Next</string>

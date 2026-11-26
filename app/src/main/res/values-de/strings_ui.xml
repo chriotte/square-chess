@@ -221,9 +221,9 @@
     <string name="play_again">Nochmal spielen</string>
     <string name="you_won">Du hast gewonnen</string>
     <string name="you_lost">Du hast verloren</string>
-    <string name="score_white">Weiß · 1–0</string>
-    <string name="score_black">Schwarz · 0–1</string>
-    <string name="score_draw">Remis · ½–½</string>
+    <string name="result_played_white">Du hast Weiß gespielt · %1$s</string>
+    <string name="result_played_black">Du hast Schwarz gespielt · %1$s</string>
+    <string name="result_score">Ergebnis %1$s</string>
     <string name="reason_checkmate">Schachmatt</string>
     <string name="reason_stalemate">Patt</string>
     <string name="reason_insufficient">Remis wegen ungenügenden Materials</string>
@@ -408,7 +408,8 @@
     <string name="puzzle_correct">Richtig</string>
     <string name="puzzle_correct_continue">Richtig · finde den nächsten Zug</string>
     <string name="puzzle_wrong">Nicht ganz · versuche es noch einmal</string>
-    <string name="puzzle_solved_detail">Gelöst · Aufgabenwertung %1$d</string>
+    <string name="puzzle_solved">Aufgabe gelöst</string>
+    <string name="puzzle_rating">Aufgabenwertung %1$d</string>
     <string name="puzzle_mode_training">Trainingsstufe %1$d</string>
     <string name="puzzle_mode_quick">Schnelle 5 · Aufgabe %1$d von %2$d</string>
     <string name="puzzle_next">Weiter</string>
