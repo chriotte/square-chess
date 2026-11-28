@@ -385,16 +385,35 @@ class MainActivity: ComponentActivity() {
                                         onHint={puzzles.showHint()},onHideHint={puzzles.hideHint()},onNext={puzzles.next()},
                                         onExit={ draft=NotationDraft(); puzzles.exit() },
                                         onClearDraft={draft=NotationDraft()},onPlayDraft={submitDraft()},
-                                        cancelDraft={ if(draft.text.isNotEmpty()) { draft=NotationDraft(); true } else false })
+                                        cancelDraft={ if(draft.text.isNotEmpty()) { draft=NotationDraft(); true } else false },
+                                        onTogglePreview={puzzles.togglePreview()})
                                 }
                                 puzzleUi.quickFinished -> {
                                     BackHandler { puzzles.exit() }
                                     QuickSummary(puzzleUi,onAgain={puzzles.startQuick()},onDone={puzzles.exit()})
                                 }
+                                puzzleUi.summaryShown -> {
+                                    BackHandler { puzzles.openView(PuzzleView.COURSE) }
+                                    ChapterSummary(puzzleUi,onChapter={puzzles.startChapter(it)},onBack={puzzles.openView(PuzzleView.COURSE)})
+                                }
+                                puzzleUi.view==PuzzleView.COURSE && !puzzleUi.loading -> {
+                                    BackHandler { puzzles.openView(PuzzleView.HOME) }
+                                    CourseScreen(puzzleUi,onBack={puzzles.openView(PuzzleView.HOME)},onChapter={puzzles.startChapter(it)})
+                                }
+                                puzzleUi.view==PuzzleView.PROGRESS && !puzzleUi.loading -> {
+                                    BackHandler { puzzles.openView(PuzzleView.HOME) }
+                                    ProgressScreen(puzzleUi,onBack={puzzles.openView(PuzzleView.HOME)},onTrain={puzzles.startTag(it)})
+                                }
+                                puzzleUi.view==PuzzleView.REPEAT && !puzzleUi.loading -> {
+                                    BackHandler { puzzles.openView(PuzzleView.HOME) }
+                                    RepeatScreen(puzzleUi,onBack={puzzles.openView(PuzzleView.HOME)},onMake={ size,source -> puzzles.makeRepeatSet(size,source) },
+                                        onStart={puzzles.startRepeat()},onNew={puzzles.clearRepeatSet()})
+                                }
                                 else -> {
                                     BackHandler { screen="home" }
                                     PuzzleLanding(puzzleUi,onHome={screen="home"},onTraining={puzzles.startTraining()},
-                                        onQuick={puzzles.startQuick()},onReview={puzzles.startReview()},onTheme={puzzles.startTheme(it)})
+                                        onQuick={puzzles.startQuick()},onReview={puzzles.startReview()},onTheme={puzzles.startTheme(it)},
+                                        onTag={puzzles.startTag(it)},onView={puzzles.openView(it)},onGoal={puzzles.setGoal(it)})
                                 }
                             }
                             "help" -> HelpAboutScreen(s.game?.mode,onExit={screen="home"})

@@ -39,9 +39,12 @@ class PuzzleDeviceTest {
     }
     private fun node(description: String, match: (String) -> Boolean): AccessibilityNodeInfo {
         val deadline=SystemClock.uptimeMillis()+10_000
+        var attempts=0
         while(SystemClock.uptimeMillis()<deadline) {
             dismissImmersiveModePrompt()
             find(activeRoot(),match)?.let { return it }
+            // The landing screen scrolls on short screens; options below it are not in the tree yet.
+            if(++attempts%15==0) scrollForward()
             SystemClock.sleep(100)
         }
         error("Missing UI node: $description")
