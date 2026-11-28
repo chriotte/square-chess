@@ -20,6 +20,9 @@ data class SyncRecord(val kind: String, val id: String, val updated: Long, val d
         const val KV = "kv"
         const val TRAINING_LEVEL = "trainingLevel"
         const val PLAYROOM = "playroom"
+        const val PUZZLE_GOAL = "puzzleGoal"
+        const val PUZZLE_DAYS = "puzzleDays"
+        const val REPEAT_SET = "repeatSet"
         /** The server accepts these ids; anything else is skipped there, so it is skipped here too. */
         private val ID = Regex("^[A-Za-z0-9_.:-]{1,80}$")
 
@@ -141,6 +144,23 @@ fun puzzleProgressFromSync(id: String, updated: Long, data: JSONObject): PuzzleP
 fun trainingLevelToSyncData(level: Int, base: JSONObject? = null): JSONObject = copyOf(base).put("value", level)
 fun trainingLevelFromSync(data: JSONObject): Int? =
     data.intOrNull("value")?.takeIf { it in MIN_TRAINING_LEVEL..MAX_TRAINING_LEVEL }
+
+fun puzzleGoalToSyncData(goal: Int, base: JSONObject? = null): JSONObject = copyOf(base).put("value", goal)
+fun puzzleGoalFromSync(data: JSONObject): Int? = data.intOrNull("value")?.takeIf { it in PUZZLE_GOALS }
+
+/** Puzzles per day, `{"value": {"2026-11-28": 7}}`. Merged by the larger count per day, never replaced. */
+fun puzzleDaysToSyncData(days: Map<String, Int>, base: JSONObject? = null): JSONObject = copyOf(base).put("value", daysToJson(days))
+fun puzzleDaysFromSync(data: JSONObject): Map<String, Int> = daysFromJson(data.optJSONObject("value"))
+
+/** The repeat set as stored (web format), or false once cleared. */
+fun repeatSetToSyncData(set: JSONObject?, base: JSONObject? = null): JSONObject = copyOf(base).put("value", set ?: false)
+/** The set in a record, null when it was cleared; [valid] false when the value is neither. */
+data class RepeatSetValue(val valid: Boolean, val set: JSONObject?)
+fun repeatSetFromSync(data: JSONObject): RepeatSetValue = when (val v = data.opt("value")) {
+    false -> RepeatSetValue(true, null)
+    is JSONObject -> RepeatSetValue(repeatSetFromJson(v) != null, v)
+    else -> RepeatSetValue(false, null)
+}
 
 /** The synced part of the Playroom. Device choices (sound, e-ink, Playful extras on or off) stay on each device. */
 data class PlayroomChoices(

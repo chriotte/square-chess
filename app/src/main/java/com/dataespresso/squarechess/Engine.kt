@@ -33,8 +33,14 @@ object NativeEngine {
 }
 /** Fairy-Stockfish through the JNI bridge in native/fairy_bridge.cpp. */
 class StockfishController(@Suppress("unused") private val context: Context) : EngineController {
-    private val mutex = Mutex()
-    @Volatile private var started = false
+    /**
+     * The native engine is one per process; games and puzzle explanations share it, so the lock
+     * and the started flag are shared too and two searches never overlap.
+     */
+    private companion object {
+        val mutex = Mutex()
+        @Volatile var started = false
+    }
     override suspend fun start() = withContext(Dispatchers.IO) { mutex.withLock { ensureStarted() } }
     private fun ensureStarted() {
         if (started) return

@@ -1,5 +1,7 @@
 package com.dataespresso.squarechess
 
+import org.json.JSONObject
+
 /**
  * What sync reads and writes on this device. The Room and SharedPreferences version is
  * [AppSyncStore]; tests use an in-memory one.
@@ -20,6 +22,14 @@ interface SyncStore {
     fun setTrainingLevel(level: Int)
     fun playroom(): PlayroomChoices
     fun setPlayroom(choices: PlayroomChoices)
+    /** The daily puzzle goal, or null when it was never chosen here. */
+    fun puzzleGoal(): Int?
+    fun setPuzzleGoal(goal: Int)
+    fun puzzleDays(): Map<String, Int>
+    fun setPuzzleDays(days: Map<String, Int>)
+    /** The repeat set as stored, in the web's JSON format, or null when there is none. */
+    fun repeatSet(): JSONObject?
+    fun setRepeatSet(set: JSONObject?)
     /** When a small value last changed here; 0 when not known (for example before this version). */
     fun kvUpdated(key: String): Long
     fun setKvUpdated(key: String, updated: Long)
@@ -32,15 +42,17 @@ interface SyncStore {
 
 /** What a sync changed on this device, so open screens can refresh. */
 data class SyncChanges(val games: Set<String> = emptySet(), val puzzles: Boolean = false,
-                       val trainingLevel: Boolean = false, val playroom: Boolean = false) {
-    val any: Boolean get() = games.isNotEmpty() || puzzles || trainingLevel || playroom
+                       val trainingLevel: Boolean = false, val playroom: Boolean = false,
+                       /** The daily goal, the puzzles per day or the repeat set. */
+                       val training: Boolean = false) {
+    val any: Boolean get() = games.isNotEmpty() || puzzles || trainingLevel || playroom || training
     operator fun plus(other: SyncChanges) = SyncChanges(games + other.games, puzzles || other.puzzles,
-        trainingLevel || other.trainingLevel, playroom || other.playroom)
+        trainingLevel || other.trainingLevel, playroom || other.playroom, training || other.training)
 }
 
 /** Last write wins per record, by `updated`, as on the website (site/play/js/account.js). */
 object SyncMerge {
-    val KV_KEYS = listOf(SyncRecord.TRAINING_LEVEL, SyncRecord.PLAYROOM)
+    val KV_KEYS = listOf(SyncRecord.TRAINING_LEVEL, SyncRecord.PLAYROOM, SyncRecord.PUZZLE_GOAL, SyncRecord.PUZZLE_DAYS, SyncRecord.REPEAT_SET)
 
     /** Records changed here since the server last saw them, written over their bases. */
     suspend fun localChanges(store: SyncStore): List<SyncRecord> {
@@ -70,13 +82,20 @@ object SyncMerge {
             val updated = store.kvUpdated(key)
             val base = bases["${SyncRecord.KV}:$key"]
             if (updated <= 0 || (base != null && updated <= base.updated)) continue
-            val data = when (key) {
-                SyncRecord.TRAINING_LEVEL -> store.trainingLevel()?.let { trainingLevelToSyncData(it, base?.data) }
-                else -> store.playroom().toSyncData(base?.data)
-            } ?: continue
+            val data = kvData(store, key, base?.data) ?: continue
             out += SyncRecord(SyncRecord.KV, key, updated, data = data)
         }
         return out
+    }
+
+    /** A small value as record data, written over [base] so unknown fields survive; null when not set. */
+    fun kvData(store: SyncStore, key: String, base: JSONObject?): JSONObject? = when (key) {
+        SyncRecord.TRAINING_LEVEL -> store.trainingLevel()?.let { trainingLevelToSyncData(it, base) }
+        SyncRecord.PLAYROOM -> store.playroom().toSyncData(base)
+        SyncRecord.PUZZLE_GOAL -> store.puzzleGoal()?.let { puzzleGoalToSyncData(it, base) }
+        SyncRecord.PUZZLE_DAYS -> store.puzzleDays().takeIf { it.isNotEmpty() }?.let { puzzleDaysToSyncData(it, base) }
+        SyncRecord.REPEAT_SET -> repeatSetToSyncData(store.repeatSet(), base)
+        else -> null
     }
 
     /**
@@ -114,6 +133,7 @@ object SyncMerge {
                 SyncChanges(puzzles = true)
             }
             SyncRecord.KV -> {
+                if (record.id == SyncRecord.PUZZLE_DAYS && !record.deleted) return mergeDays(store, record)
                 if (record.deleted || store.kvUpdated(record.id) >= record.updated) return SyncChanges()
                 val data = record.data ?: return SyncChanges()
                 when (record.id) {
@@ -127,12 +147,38 @@ object SyncMerge {
                         store.setKvUpdated(record.id, record.updated)
                         SyncChanges(playroom = true)
                     }
+                    SyncRecord.PUZZLE_GOAL -> {
+                        store.setPuzzleGoal(puzzleGoalFromSync(data) ?: return SyncChanges())
+                        store.setKvUpdated(record.id, record.updated)
+                        SyncChanges(training = true)
+                    }
+                    SyncRecord.REPEAT_SET -> {
+                        val value = repeatSetFromSync(data)
+                        if (!value.valid) return SyncChanges()
+                        store.setRepeatSet(value.set)
+                        store.setKvUpdated(record.id, record.updated)
+                        SyncChanges(training = true)
+                    }
                     else -> SyncChanges()
                 }
             }
             else -> SyncChanges()
         }
     }
+}
+
+/**
+ * Puzzles per day are merged, not replaced: each device counts its own puzzles, so the larger
+ * count for each day wins. When the merged counts differ from the server's, the change time moves
+ * past the server's copy so the merged counts are sent back.
+ */
+private fun mergeDays(store: SyncStore, record: SyncRecord): SyncChanges {
+    val incoming = record.data?.let(::puzzleDaysFromSync) ?: return SyncChanges()
+    val local = store.puzzleDays()
+    val merged = mergeDays(local, incoming)
+    if (merged != local) store.setPuzzleDays(merged)
+    store.setKvUpdated(record.id, if (merged != incoming) maxOf(store.kvUpdated(record.id), record.updated) + 1 else record.updated)
+    return SyncChanges(training = merged != local)
 }
 
 /** The server's position in its change list, and the account's token; kept by [AccountStore] in the app. */
@@ -160,6 +206,13 @@ class SyncEngine(private val api: SyncApi, private val store: SyncStore, private
             // A runaway server answer must not loop for ever; the rest comes at the next sync.
             if ((pending.isEmpty() && !reply.more) || ++rounds >= MAX_ROUNDS) break
         }
+        // Day counts merged with the server's are sent back at once, so other devices see the total.
+        val merged = SyncMerge.localChanges(store).filter { it.kind == SyncRecord.KV && it.id == SyncRecord.PUZZLE_DAYS }
+        if (merged.isNotEmpty()) {
+            val reply = api.sync(token, session.cursor, merged)
+            for (record in reply.records) changes += SyncMerge.apply(store, record)
+            session.cursor = maxOf(session.cursor, reply.cursor)
+        }
         return changes
     }
 
@@ -172,7 +225,8 @@ class SyncEngine(private val api: SyncApi, private val store: SyncStore, private
         var stamped = false
         for (key in SyncMerge.KV_KEYS) {
             if ("${SyncRecord.KV}:$key" in bases || store.kvUpdated(key) > 0) continue
-            if (key == SyncRecord.TRAINING_LEVEL && store.trainingLevel() == null) continue
+            if (SyncMerge.kvData(store, key, null) == null) continue
+            if (key == SyncRecord.REPEAT_SET && store.repeatSet() == null) continue
             store.setKvUpdated(key, now); stamped = true
         }
         return stamped

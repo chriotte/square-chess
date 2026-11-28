@@ -74,6 +74,9 @@ page or a captive portal) is treated as a server error and does not sign anyone 
 | `puzzle_progress` row | `puzzle` | puzzle id | `puzzleId, attempts, solved, firstTrySolved, mistakes, hints, lastResult, lastAttemptAt, reviewStep, nextReviewAt` |
 | `puzzles` prefs `trainingLevel` | `kv` | `trainingLevel` | `{"value": 1100}` |
 | settings `world, buddy, outfit, unlockAll, seenStickers` | `kv` | `playroom` | `{"value": {world, buddy, outfit, unlockAll, seenStickers}}` |
+| `puzzles` prefs `puzzleGoal` | `kv` | `puzzleGoal` | `{"value": 10}` (0 = off) |
+| `puzzles` prefs `puzzleDays` | `kv` | `puzzleDays` | `{"value": {"2026-11-28": 7}}` |
+| `puzzles` prefs `repeatSet` | `kv` | `repeatSet` | `{"value": {id, created, source, ids, cycles, current}}`, or `{"value": false}` once cleared |
 
 - `moves` is a space-separated string in Room and a JSON array in the record.
 - `clock` is the web client's snapshot: `{config: {baseMs, incrementMs, delayMs}, whiteMs,
@@ -85,6 +88,12 @@ page or a captive portal) is treated as a server error and does not sign anyone 
   `kv` records the app now stores when they last changed: `trainingLevel.updated` in the
   `puzzles` prefs and `playroom.updated` in the `settings` prefs (`SettingsStore.save` sets it
   when a synced Playroom field changes).
+- `puzzleDays` is merged, not replaced: the larger count for each day wins, whichever copy is
+  newer. When the merged counts differ from the server's, the app sends them back in the same
+  sync. `puzzleGoal` and `repeatSet` follow the newest copy, like `trainingLevel`; their change
+  times are `<key>.updated` in the `puzzles` prefs. The stored repeat set keeps fields this
+  version does not know. Course chapters are not synced: both sides work them out from the
+  `puzzle` records and the shared puzzle pack.
 - Device choices stay on each device and are not synced: sound, vibration, e-ink, board
   colours, coordinates, language, Playful extras on/off.
 

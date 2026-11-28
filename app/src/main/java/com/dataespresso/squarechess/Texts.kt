@@ -163,6 +163,14 @@ fun spokenMove(res: Resources, position: ChessPosition, san: String, words: Bool
 
 /** "+1.8 · White better", "Black mates in 3" or "Checkmate". */
 fun leadText(res: Resources, eval: Eval): String {
+    val words = leadWords(res, eval)
+    if (eval.mate == 0) return words
+    val score = scoreText(eval)
+    return if (score.isEmpty()) words else res.getString(R.string.lead_with_score, words, score)
+}
+
+/** Who is ahead in words ("Black winning", "Black mates in 2"), without the score in pawns. */
+fun leadWords(res: Resources, eval: Eval): String {
     if (eval.mate == 0) return res.getString(R.string.lead_checkmate)
     val mate = eval.mate
     val words = when (lead(eval)) {
@@ -176,6 +184,15 @@ fun leadText(res: Resources, eval: Eval): String {
         Lead.WHITE_MATES -> res.getQuantityString(R.plurals.lead_white_mates, mate ?: 0, mate ?: 0)
         Lead.BLACK_MATES -> res.getQuantityString(R.plurals.lead_black_mates, mate ?: 0, mate ?: 0)
     }
-    val score = scoreText(eval)
-    return if (score.isEmpty()) words else res.getString(R.string.lead_with_score, words, score)
+    return words
+}
+
+/** Why a wrong puzzle move fails, in words: "After Rxa6, Black plays Rxh2. Black winning." */
+fun refuteText(res: Resources, refute: Refutation): String = when {
+    refute.endsReason != null -> res.getString(R.string.refute_ends, reasonText(res, refute.endsReason))
+    refute.thinking -> res.getString(R.string.refute_thinking)
+    refute.reply == null || refute.lead == null -> res.getString(R.string.refute_plain, refute.wrongSan)
+    else -> res.getString(R.string.refute_line, refute.wrongSan,
+        res.getString(if (refute.sideToReply) R.string.white else R.string.black), refute.replySan ?: refute.reply) +
+        " " + leadWords(res, refute.lead) + "."
 }

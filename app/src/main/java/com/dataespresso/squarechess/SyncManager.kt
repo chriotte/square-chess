@@ -86,8 +86,20 @@ class AppSyncStore(private val db: ChessDatabase, private val settings: Settings
     override fun setPlayroom(choices: PlayroomChoices) {
         settings.save(settings.load().withPlayroom(choices), playroomUpdated = settings.playroomUpdated)
     }
+    // The training values are written here without a new change time: sync sets that itself.
+    override fun puzzleGoal(): Int? =
+        if (puzzlePrefs.contains(TrainingPrefs.GOAL_KEY)) puzzlePrefs.getInt(TrainingPrefs.GOAL_KEY, DEFAULT_PUZZLE_GOAL) else null
+    override fun setPuzzleGoal(goal: Int) { puzzlePrefs.edit().putInt(TrainingPrefs.GOAL_KEY, goal).apply() }
+    override fun puzzleDays(): Map<String, Int> =
+        daysFromJson(puzzlePrefs.getString(TrainingPrefs.DAYS_KEY, null)?.let { runCatching { JSONObject(it) }.getOrNull() })
+    override fun setPuzzleDays(days: Map<String, Int>) { puzzlePrefs.edit().putString(TrainingPrefs.DAYS_KEY, daysToJson(days).toString()).apply() }
+    override fun repeatSet(): JSONObject? = puzzlePrefs.getString(TrainingPrefs.REPEAT_KEY, null)?.let { runCatching { JSONObject(it) }.getOrNull() }
+    override fun setRepeatSet(set: JSONObject?) {
+        puzzlePrefs.edit().apply { if (set == null) remove(TrainingPrefs.REPEAT_KEY) else putString(TrainingPrefs.REPEAT_KEY, set.toString()) }.apply()
+    }
     override fun kvUpdated(key: String) = when (key) {
         SyncRecord.TRAINING_LEVEL -> puzzlePrefs.getLong(PuzzleViewModel.LEVEL_UPDATED_KEY, 0)
+        SyncRecord.PUZZLE_GOAL, SyncRecord.PUZZLE_DAYS, SyncRecord.REPEAT_SET -> puzzlePrefs.getLong(key + TrainingPrefs.UPDATED, 0)
         SyncRecord.PLAYROOM -> settings.playroomUpdated
         else -> 0
     }
@@ -95,6 +107,7 @@ class AppSyncStore(private val db: ChessDatabase, private val settings: Settings
         when (key) {
             SyncRecord.TRAINING_LEVEL -> puzzlePrefs.edit().putLong(PuzzleViewModel.LEVEL_UPDATED_KEY, updated).apply()
             SyncRecord.PLAYROOM -> settings.setPlayroomUpdated(updated)
+            SyncRecord.PUZZLE_GOAL, SyncRecord.PUZZLE_DAYS, SyncRecord.REPEAT_SET -> puzzlePrefs.edit().putLong(key + TrainingPrefs.UPDATED, updated).apply()
         }
     }
     override fun tombstones() = account.tombstones
@@ -295,7 +308,7 @@ class SyncManager internal constructor(
                 override fun onInvalidated(tables: Set<String>) = manager.requestSync()
             })
             manager.prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-                if (key == "playroom.updated" || key == PuzzleViewModel.LEVEL_UPDATED_KEY) manager.requestSync()
+                if (key == "playroom.updated" || key == PuzzleViewModel.LEVEL_UPDATED_KEY || key?.endsWith(TrainingPrefs.UPDATED) == true) manager.requestSync()
             }.also {
                 context.getSharedPreferences("settings", Context.MODE_PRIVATE).registerOnSharedPreferenceChangeListener(it)
                 puzzlePrefs.registerOnSharedPreferenceChangeListener(it)

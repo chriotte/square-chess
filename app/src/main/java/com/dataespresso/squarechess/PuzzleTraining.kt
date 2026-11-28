@@ -81,12 +81,12 @@ fun nextTrainingLevel(level: Int, result: AttemptResult, puzzleRating: Int): Int
 
 /**
  * A new puzzle near [level]: first unseen puzzles within 150 points, then within 300, then any
- * unseen one, then the least recently seen. [group] limits the themes; [avoid] (for example the
- * last few puzzles, or a Quick 5 set) is never chosen while anything else is left.
+ * unseen one, then the least recently seen. [group] or a single [tag] limits the themes; [avoid]
+ * (for example the last few puzzles, or a Quick 5 set) is never chosen while anything else is left.
  */
 fun choosePuzzle(pool: List<Puzzle>, level: Int, progress: Map<String,PuzzleProgress>, avoid: Set<String>,
-                 group: ThemeGroup?, random: Random): Puzzle? {
-    val matching=pool.filter { (group==null || group in it.group) && it.id !in avoid }
+                 group: ThemeGroup?, random: Random, tag: String? = null): Puzzle? {
+    val matching=pool.filter { (group==null || group in it.group) && (tag==null || tag in it.themes) && it.id !in avoid }
     if(matching.isEmpty()) return null
     val unseen=matching.filter { it.id !in progress }
     for(band in listOf(150,300)) {

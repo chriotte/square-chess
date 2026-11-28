@@ -28,6 +28,15 @@ class MemorySyncStore : SyncStore {
     override fun setTrainingLevel(level: Int) { this.level = level }
     override fun playroom() = choices
     override fun setPlayroom(choices: PlayroomChoices) { this.choices = choices }
+    var goal: Int? = null
+    var days: Map<String, Int> = emptyMap()
+    var repeat: JSONObject? = null
+    override fun puzzleGoal() = goal
+    override fun setPuzzleGoal(goal: Int) { this.goal = goal }
+    override fun puzzleDays() = days
+    override fun setPuzzleDays(days: Map<String, Int>) { this.days = days }
+    override fun repeatSet() = repeat
+    override fun setRepeatSet(set: JSONObject?) { repeat = set }
     override fun kvUpdated(key: String) = kvStamps[key] ?: 0
     override fun setKvUpdated(key: String, updated: Long) { kvStamps[key] = updated }
     override fun tombstones() = tombs
