@@ -73,7 +73,7 @@ Everything runs locally on your device, and the app works fully offline.
 
 You can sign in to an optional squarechess.org account to sync games, puzzles and ratings between devices. The app uses the Internet permission only for that, and only after you sign in. Without an account, your games and settings stay on your device, and you can still save everything to a backup file.
 
-See the [privacy policy](PRIVACY_POLICY.md) (also at [squarechess.org/privacy](https://squarechess.org/privacy)).
+See the [privacy policy](PRIVACY_POLICY.md) (also at [squarechess.org/privacy](https://squarechess.org/privacy)). The squarechess.org server is free software too: [chriotte/squarechess.org](https://github.com/chriotte/squarechess.org) (AGPL-3.0).
 
 ## Installation
 

@@ -37,9 +37,7 @@ is sent until the player signs in. F-Droid picks up the `v1.7.0` tag by itself
 (`AutoUpdateMode: Version`), so no merge request is needed for the version.
 
 - **Anti-feature `NonFreeNet`:** F-Droid adds it to apps that rely on a network service whose code
-  is not free software. If the squarechess.org server code is public under a free licence when
-  1.7.0 is tagged, the app does not need it. If not, expect a reviewer to add
-  `AntiFeatures: NonFreeNet` to the metadata; the app still ships, with that label.
-- Once the server repository is public, mention its address in the merge request or an issue on
-  the app's fdroiddata metadata, so reviewers can check the service is free software.
+  is not free software. The squarechess.org server is free software: its code is public at
+  https://github.com/chriotte/squarechess.org under AGPL-3.0-or-later (published 28 November 2026),
+  so the app should not need the label. If a reviewer asks, point them to that repository.
 - The changelog (`fastlane/.../changelogs/17.txt`) names the new permission and why.

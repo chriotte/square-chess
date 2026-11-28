@@ -207,9 +207,9 @@ unchanged.
 
 **F-Droid**
 - Changelog: mention the new `INTERNET` permission and why (optional sign-in and sync).
-- Anti-features: `NonFreeNet` applies to apps that depend on a non-free network service. To
-  avoid it, publish the server code (`site/api/index.php`) under a free licence. Note the
-  feature in the metadata if the reviewers ask.
+- Anti-features: `NonFreeNet` applies to apps that depend on a non-free network service. The
+  server code is public at https://github.com/chriotte/squarechess.org (AGPL-3.0-or-later), so
+  it should not apply; point reviewers there if they ask.
 - No new runtime libraries: the release policy check still lists no proprietary
   dependencies. Its permission allow-list now includes `android.permission.INTERNET`.
 
