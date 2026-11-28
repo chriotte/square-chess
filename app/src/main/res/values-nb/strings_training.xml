@@ -175,7 +175,7 @@
     <string name="rating_provisional">Et spørsmålstegn betyr at ratingen fortsatt finner sitt nivå. Den endrer seg raskere de første 20 resultatene dine.</string>
     <string name="rating_history">Ratinger, siste 30 dager</string>
     <string name="rating_history_none">Ratingene dine vises her når du løser oppgaver og spiller ratede partier.</string>
-    <string name="rating_games_record">%1$d ratede partier · %2$d vunnet · %3$d remis · %4$d tapt</string>
+    <plurals name="rating_games_record"><item quantity="one">%1$d ratet parti · %2$d vunnet · %3$d remis · %4$d tapt</item><item quantity="other">%1$d ratede partier · %2$d vunnet · %3$d remis · %4$d tapt</item></plurals>
     <string name="rating_help_title">Ratinger</string>
     <string name="rating_help_text">Square Chess har to ratinger: én for oppgaver og én for partier mot datamaskinen. Begge bruker Elo-formelen som sjakkforbund bruker: du vinner mer ved å slå en sterkere motstander og taper mer mot en svakere. Hvert datamaskinnivå har en fast rating, fra 400 på nivå 1 til 2400 på nivå 10. Dette er anslag, så partiratingen din er en Square Chess-rating og kan avvike fra en FIDE- eller nettrating. Et parti teller når du spiller mot datamaskinen fra vanlig utgangsstilling, uten evaluering, tips eller tilbaketrekk. Å gi opp teller som tap.</string>
 </resources>

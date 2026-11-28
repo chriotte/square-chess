@@ -175,7 +175,7 @@
     <string name="rating_provisional">Ein Fragezeichen bedeutet, dass sich die Wertung noch einpendelt. Bei deinen ersten 20 Ergebnissen ändert sie sich schneller.</string>
     <string name="rating_history">Wertungen, letzte 30 Tage</string>
     <string name="rating_history_none">Deine Wertungen erscheinen hier, sobald du Aufgaben löst und gewertete Partien spielst.</string>
-    <string name="rating_games_record">%1$d gewertete Partien · %2$d gewonnen · %3$d remis · %4$d verloren</string>
+    <plurals name="rating_games_record"><item quantity="one">%1$d gewertete Partie · %2$d gewonnen · %3$d remis · %4$d verloren</item><item quantity="other">%1$d gewertete Partien · %2$d gewonnen · %3$d remis · %4$d verloren</item></plurals>
     <string name="rating_help_title">Wertungen</string>
     <string name="rating_help_text">Square Chess führt zwei Wertungen: eine für Aufgaben und eine für Partien gegen den Computer. Beide nutzen die Elo-Formel, die auch Schachverbände verwenden: Gegen einen stärkeren Gegner gewinnst du mehr, gegen einen schwächeren verlierst du mehr. Jede Computerstufe hat eine feste Wertung, von 400 auf Stufe 1 bis 2400 auf Stufe 10. Das sind Schätzungen, deshalb ist deine Partiewertung eine Square-Chess-Wertung und kann von einer FIDE- oder Online-Wertung abweichen. Eine Partie zählt, wenn du aus der normalen Anfangsstellung gegen den Computer spielst, ohne Bewertung, Tipps oder Zugrücknahmen. Aufgeben zählt als Niederlage.</string>
 </resources>

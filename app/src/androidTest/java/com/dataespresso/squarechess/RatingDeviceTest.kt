@@ -149,7 +149,7 @@ class RatingDeviceTest {
                 tap("Puzzles")
                 tap("Progress by theme")
                 node("Ratings")
-                nodeWith("1 rated games · 0 won · 0 drawn · 1 lost")
+                nodeWith("1 rated game · 0 won · 0 drawn · 1 lost")
                 nodeWith("Game rating: 9")
             }
         } finally { db.close() }

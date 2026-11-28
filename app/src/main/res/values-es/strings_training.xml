@@ -175,7 +175,7 @@
     <string name="rating_provisional">Un signo de interrogación significa que la puntuación aún se está ajustando. Cambia más rápido en tus primeros 20 resultados.</string>
     <string name="rating_history">Puntuaciones, últimos 30 días</string>
     <string name="rating_history_none">Tus puntuaciones aparecerán aquí cuando resuelvas problemas y juegues partidas puntuadas.</string>
-    <string name="rating_games_record">%1$d partidas puntuadas · %2$d ganadas · %3$d tablas · %4$d perdidas</string>
+    <plurals name="rating_games_record"><item quantity="one">%1$d partida puntuada · %2$d ganadas · %3$d tablas · %4$d perdidas</item><item quantity="many">%1$d partidas puntuadas · %2$d ganadas · %3$d tablas · %4$d perdidas</item><item quantity="other">%1$d partidas puntuadas · %2$d ganadas · %3$d tablas · %4$d perdidas</item></plurals>
     <string name="rating_help_title">Puntuaciones</string>
     <string name="rating_help_text">Square Chess lleva dos puntuaciones: una para problemas y otra para partidas contra el ordenador. Ambas usan la fórmula Elo que usan las federaciones de ajedrez: ganas más al vencer a un rival más fuerte y pierdes más contra uno más débil. Cada nivel del ordenador tiene una puntuación fija, de 400 en el nivel 1 a 2400 en el nivel 10. Son estimaciones, así que tu puntuación de partidas es una puntuación de Square Chess y puede diferir de un Elo FIDE o en línea. Una partida cuenta cuando juegas contra el ordenador desde la posición inicial normal, sin la evaluación, sin pistas y sin deshacer jugadas. Rendirse cuenta como derrota.</string>
 </resources>

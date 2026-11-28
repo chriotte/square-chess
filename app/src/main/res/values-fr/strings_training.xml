@@ -175,7 +175,7 @@
     <string name="rating_provisional">Un point d\'interrogation signifie que le classement se stabilise encore. Il bouge plus vite pendant vos 20 premiers résultats.</string>
     <string name="rating_history">Classements, 30 derniers jours</string>
     <string name="rating_history_none">Vos classements apparaîtront ici quand vous résoudrez des problèmes et jouerez des parties classées.</string>
-    <string name="rating_games_record">%1$d parties classées · %2$d gagnées · %3$d nulles · %4$d perdues</string>
+    <plurals name="rating_games_record"><item quantity="one">%1$d partie classée · %2$d gagnées · %3$d nulles · %4$d perdues</item><item quantity="many">%1$d parties classées · %2$d gagnées · %3$d nulles · %4$d perdues</item><item quantity="other">%1$d parties classées · %2$d gagnées · %3$d nulles · %4$d perdues</item></plurals>
     <string name="rating_help_title">Classements</string>
     <string name="rating_help_text">Square Chess tient deux classements : un pour les problèmes et un pour les parties contre l\'ordinateur. Tous deux utilisent la formule Elo des fédérations d\'échecs : vous gagnez plus en battant un adversaire plus fort et perdez plus contre un plus faible. Chaque niveau de l\'ordinateur a un classement fixe, de 400 au niveau 1 à 2400 au niveau 10. Ce sont des estimations : votre classement parties est un classement Square Chess et peut différer d\'un classement FIDE ou en ligne. Une partie compte quand vous jouez contre l\'ordinateur depuis la position de départ normale, sans l\'évaluation, sans indice et sans reprendre de coup. Abandonner compte comme une défaite.</string>
 </resources>

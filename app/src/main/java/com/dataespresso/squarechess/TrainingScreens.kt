@@ -237,7 +237,7 @@ private fun percent(x: Double): String = "${(x*100).roundToInt()}%"
             }
         }
     }
-    if(game.games>0) Text(stringResource(R.string.rating_games_record,game.games,game.wins,game.draws,game.losses),fontSize=13.sp,color=palette.muted)
+    if(game.games>0) Text(pluralStringResource(R.plurals.rating_games_record,game.games,game.games,game.wins,game.draws,game.losses),fontSize=13.sp,color=palette.muted)
     val days=remember(ui.today) { (29 downTo 0).map { ui.today.minusDays(it.toLong()) } }
     val series=listOf(PUZZLE_SERIES to stringResource(R.string.rating_puzzle),GAME_SERIES to stringResource(R.string.rating_game)).map { (which,label) ->
         Triple(which,label,days.mapIndexedNotNull { i,day -> ui.ratingDays[dayKey(day)]?.get(which)?.let { i to it.value } })

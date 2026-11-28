@@ -175,7 +175,7 @@
     <string name="rating_provisional">A question mark means the rating is still settling. It moves faster for your first 20 results.</string>
     <string name="rating_history">Ratings, last 30 days</string>
     <string name="rating_history_none">Your ratings will show here as you solve puzzles and play rated games.</string>
-    <string name="rating_games_record">%1$d rated games · %2$d won · %3$d drawn · %4$d lost</string>
+    <plurals name="rating_games_record"><item quantity="one">%1$d rated game · %2$d won · %3$d drawn · %4$d lost</item><item quantity="other">%1$d rated games · %2$d won · %3$d drawn · %4$d lost</item></plurals>
     <string name="rating_help_title">Ratings</string>
     <string name="rating_help_text">Square Chess keeps two ratings: one for puzzles and one for games against the computer. Both use the Elo formula that chess federations use: you gain more for beating a stronger opponent and lose more against a weaker one. Every computer level has a fixed rating, from 400 at level 1 to 2400 at level 10. These are estimates, so your game rating is a Square Chess rating and can differ from a FIDE or online rating. A game counts when you play the computer from the normal starting position, without the evaluation, hints or taking back moves. Resigning counts as a loss.</string>
 </resources>

@@ -34,7 +34,7 @@ Settings → Sign in to sync connects the app to a squarechess.org account. The 
 - **Signing out** deletes the token on the device and revokes it on the server. Your games stay on the device.
 - **Deleting the account** from the same screen (you confirm with your password, which is sent only to squarechess.org) or at https://squarechess.org/account/delete removes the account and everything synced to it from the server. Games on your device stay.
 
-The squarechess.org privacy notice describes how the account service stores this data. If you turn on leaderboards on squarechess.org (they are off by default), your synced ratings appear there under your username.
+The squarechess.org privacy notice describes how the account service stores this data. If you turn on leaderboards on squarechess.org (they are off by default), your ratings, puzzles solved and wins against the computer appear there under your username.
 
 ## Backups
 
