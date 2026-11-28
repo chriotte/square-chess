@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Structured puzzle training. Keys match the web version (site/play/js/i18n.js). -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="course_title">Kurs</string>
     <string name="course_help">Steg for steg, fra matt i ett trekk til sluttspill</string>
     <string name="course_intro">Tjuesju korte kapitler, fra matt i ett trekk til sluttspill. Hvert har ti oppgaver som blir litt vanskeligere underveis. Gå gjennom dem i rekkefølge, eller åpne hvilket kapittel du vil.</string>
@@ -155,4 +155,27 @@
     <string name="refute_ends">Det trekket avslutter partiet: %1$s.</string>
     <string name="refute_show">Vis meg</string>
     <string name="refute_hide">Tilbake til oppgaven</string>
+    <string name="rating_puzzle">Oppgaverating</string>
+    <string name="rating_game">Partirating</string>
+    <string name="rating_puzzles_count" tools:ignore="UnusedResources">%1$d oppgaver uten nett · Oppgaverating %2$s</string>
+    <string name="rating_puzzle_line" tools:ignore="UnusedResources">Oppgaverating %1$s</string>
+    <string name="rating_puzzle_after">Oppgaverating %1$s (%2$s)</string>
+    <string name="rating_puzzle_this">Denne oppgaven har rating %1$d.</string>
+    <string name="rating_puzzle_seen">Ikke ratet: bare første forsøk på en oppgave teller.</string>
+    <string name="rating_puzzle_note" tools:ignore="UnusedResources">Oppgaveratingen din går opp når du løser en oppgave på første forsøk, og ned når du trenger hjelp eller gir opp. Vanskeligere oppgaver gir flere poeng. Hver oppgave teller én gang, første gang du prøver den.</string>
+    <string name="rating_game_after">Partirating %1$s (%2$s)</string>
+    <string name="rating_game_unrated">Dette partiet ble ikke ratet.</string>
+    <string name="rating_rated">Ratet parti</string>
+    <string name="rating_unrated">Uratet parti</string>
+    <string name="rating_setup_rated">Ratet: dette partiet teller for partiratingen din (nå %1$s). Å ta tilbake et trekk eller bruke tips gjør det uratet.</string>
+    <string name="rating_setup_unrated">Uratet: partier med evaluering, eller fra en importert stilling, teller ikke for ratingen din.</string>
+    <string name="rating_level">rating %1$d</string>
+    <string name="rating_undo_note">Dette partiet teller da ikke lenger for ratingen din.</string>
+    <string name="rating_title">Ratinger</string>
+    <string name="rating_provisional">Et spørsmålstegn betyr at ratingen fortsatt finner sitt nivå. Den endrer seg raskere de første 20 resultatene dine.</string>
+    <string name="rating_history">Ratinger, siste 30 dager</string>
+    <string name="rating_history_none">Ratingene dine vises her når du løser oppgaver og spiller ratede partier.</string>
+    <string name="rating_games_record">%1$d ratede partier · %2$d vunnet · %3$d remis · %4$d tapt</string>
+    <string name="rating_help_title">Ratinger</string>
+    <string name="rating_help_text">Square Chess har to ratinger: én for oppgaver og én for partier mot datamaskinen. Begge bruker Elo-formelen som sjakkforbund bruker: du vinner mer ved å slå en sterkere motstander og taper mer mot en svakere. Hvert datamaskinnivå har en fast rating, fra 400 på nivå 1 til 2400 på nivå 10. Dette er anslag, så partiratingen din er en Square Chess-rating og kan avvike fra en FIDE- eller nettrating. Et parti teller når du spiller mot datamaskinen fra vanlig utgangsstilling, uten evaluering, tips eller tilbaketrekk. Å gi opp teller som tap.</string>
 </resources>

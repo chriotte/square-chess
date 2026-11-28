@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Structured puzzle training. Keys match the web version (site/play/js/i18n.js). -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="course_title">Cours</string>
     <string name="course_help">Pas à pas, du mat en un aux finales</string>
     <string name="course_intro">Vingt-sept courts chapitres, du mat en un aux finales. Chacun compte dix problèmes, un peu plus difficiles à mesure. Suivez-les dans l\'ordre ou ouvrez n\'importe quel chapitre.</string>
@@ -155,4 +155,27 @@
     <string name="refute_ends">Ce coup termine la partie : %1$s.</string>
     <string name="refute_show">Montrer</string>
     <string name="refute_hide">Retour au problème</string>
+    <string name="rating_puzzle">Classement problèmes</string>
+    <string name="rating_game">Classement parties</string>
+    <string name="rating_puzzles_count" tools:ignore="UnusedResources">%1$d problèmes hors ligne · Classement problèmes %2$s</string>
+    <string name="rating_puzzle_line" tools:ignore="UnusedResources">Classement problèmes %1$s</string>
+    <string name="rating_puzzle_after">Classement problèmes %1$s (%2$s)</string>
+    <string name="rating_puzzle_this">Ce problème est classé %1$d.</string>
+    <string name="rating_puzzle_seen">Non classé : seul le premier essai d\'un problème compte.</string>
+    <string name="rating_puzzle_note" tools:ignore="UnusedResources">Votre classement problèmes monte quand vous résolvez un problème du premier coup et baisse quand vous avez besoin d\'aide ou abandonnez. Les problèmes plus difficiles rapportent plus de points. Chaque problème compte une fois, au premier essai.</string>
+    <string name="rating_game_after">Classement parties %1$s (%2$s)</string>
+    <string name="rating_game_unrated">Cette partie n\'a pas été classée.</string>
+    <string name="rating_rated">Partie classée</string>
+    <string name="rating_unrated">Partie non classée</string>
+    <string name="rating_setup_rated">Classée : cette partie compte pour votre classement parties (actuellement %1$s). Reprendre un coup ou utiliser un indice la rend non classée.</string>
+    <string name="rating_setup_unrated">Non classée : les parties avec l\'évaluation, ou depuis une position importée, ne comptent pas pour votre classement.</string>
+    <string name="rating_level">classé %1$d</string>
+    <string name="rating_undo_note">Cette partie ne comptera plus pour votre classement.</string>
+    <string name="rating_title">Classements</string>
+    <string name="rating_provisional">Un point d\'interrogation signifie que le classement se stabilise encore. Il bouge plus vite pendant vos 20 premiers résultats.</string>
+    <string name="rating_history">Classements, 30 derniers jours</string>
+    <string name="rating_history_none">Vos classements apparaîtront ici quand vous résoudrez des problèmes et jouerez des parties classées.</string>
+    <string name="rating_games_record">%1$d parties classées · %2$d gagnées · %3$d nulles · %4$d perdues</string>
+    <string name="rating_help_title">Classements</string>
+    <string name="rating_help_text">Square Chess tient deux classements : un pour les problèmes et un pour les parties contre l\'ordinateur. Tous deux utilisent la formule Elo des fédérations d\'échecs : vous gagnez plus en battant un adversaire plus fort et perdez plus contre un plus faible. Chaque niveau de l\'ordinateur a un classement fixe, de 400 au niveau 1 à 2400 au niveau 10. Ce sont des estimations : votre classement parties est un classement Square Chess et peut différer d\'un classement FIDE ou en ligne. Une partie compte quand vous jouez contre l\'ordinateur depuis la position de départ normale, sans l\'évaluation, sans indice et sans reprendre de coup. Abandonner compte comme une défaite.</string>
 </resources>

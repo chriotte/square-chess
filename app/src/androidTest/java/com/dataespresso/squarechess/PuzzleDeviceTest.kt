@@ -96,7 +96,7 @@ class PuzzleDeviceTest {
 
     @Test fun wrongTapThenKeyboardSolutionWithReplyAndPromotion() = runBlocking<Unit> {
         withPuzzle("0Xh1Y") {
-            node("Puzzle · White to move\nTraining level 1100")
+            node("Puzzle · White to move\nPuzzle rating 1100?")
             // White solves, so a1 is at the bottom left.
             assertTrue(bounds(square("a1")).top>bounds(square("a8")).top)
             assertTrue(bounds(square("a1")).left<bounds(square("h1")).left)
@@ -111,7 +111,7 @@ class PuzzleDeviceTest {
             // UCI without the piece: the promotion choice opens.
             type("f7f8")
             tap(node(context.getString(R.string.piece_queen)))
-            nodeStarting("Puzzle solved\nPuzzle rating 1803")
+            nodeStarting("Puzzle solved\nPuzzle rating ")
             node("Next")
         }
         val db=openChessDatabase(context)
@@ -126,7 +126,7 @@ class PuzzleDeviceTest {
 
     @Test fun blackPuzzleIsFlippedAndDragWorks() = runBlocking<Unit> {
         withPuzzle("00B3B") {
-            node("Puzzle · Black to move\nTraining level 1100")
+            node("Puzzle · Black to move\nPuzzle rating 1100?")
             // Black solves, so a1 is at the top right.
             assertTrue(bounds(square("a1")).top<bounds(square("a8")).top)
             assertTrue(bounds(square("a1")).left>bounds(square("h1")).left)

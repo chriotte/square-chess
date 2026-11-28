@@ -28,6 +28,7 @@ import java.time.format.FormatStyle
 import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.math.roundToInt
+import androidx.compose.ui.text.drawText
 
 /*
  * The structured training pages: the daily goal card on the landing screen, the course, the
@@ -204,6 +205,7 @@ private fun percent(x: Double): String = "${(x*100).roundToInt()}%"
                 }
             }
         }
+        RatingsSection(ui)
         SectionTitle(stringResource(R.string.progress_days))
         DayBars(ui)
         if(ui.goal>0) Text(stringResource(R.string.goal_today,ui.days[dayKey(ui.today)] ?: 0,ui.goal),fontSize=13.sp,color=palette.muted)
@@ -218,6 +220,90 @@ private fun percent(x: Double): String = "${(x*100).roundToInt()}%"
         }
         if(untried.isNotEmpty()) Text(stringResource(R.string.progress_not_tried)+": "+
             untried.joinToString(", ") { s -> tagName(s.tag)?.let { res.getString(it) } ?: s.tag },fontSize=13.sp,color=palette.muted)
+    }
+}
+
+/** Both ratings, the game record, and a line chart of the last 30 days. */
+@Composable private fun RatingsSection(ui: PuzzleUi) {
+    val palette=LocalPalette.current
+    val game=ui.gameRating
+    SectionTitle(stringResource(R.string.rating_title))
+    Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+        listOf(ratingText(ui.level,ui.ratedCount) to stringResource(R.string.rating_puzzle),
+            (if(game.games>0) ratingText(game.rating,game.games) else "—") to stringResource(R.string.rating_game)).forEach { (value,label) ->
+            Column(Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).card(palette).padding(12.dp).semantics(mergeDescendants=true) {}) {
+                Text(value,fontSize=22.sp,fontWeight=FontWeight.Bold)
+                Text(label,fontSize=12.sp,color=palette.muted)
+            }
+        }
+    }
+    if(game.games>0) Text(stringResource(R.string.rating_games_record,game.games,game.wins,game.draws,game.losses),fontSize=13.sp,color=palette.muted)
+    val days=remember(ui.today) { (29 downTo 0).map { ui.today.minusDays(it.toLong()) } }
+    val series=listOf(PUZZLE_SERIES to stringResource(R.string.rating_puzzle),GAME_SERIES to stringResource(R.string.rating_game)).map { (which,label) ->
+        Triple(which,label,days.mapIndexedNotNull { i,day -> ui.ratingDays[dayKey(day)]?.get(which)?.let { i to it.value } })
+    }
+    if(series.any { it.third.isNotEmpty() }) RatingChart(series,days)
+    else Text(stringResource(R.string.rating_history_none),fontSize=13.sp,color=palette.muted)
+    if(ui.ratedCount<PROVISIONAL || game.games in 1 until PROVISIONAL) Text(stringResource(R.string.rating_provisional),fontSize=13.sp,color=palette.muted)
+}
+
+/**
+ * Thirty days of both ratings: puzzle rating solid, game rating dashed, a point on each line's
+ * latest day. Read aloud as the values of each line.
+ */
+@Composable private fun RatingChart(series: List<Triple<String,String,List<Pair<Int,Int>>>>, days: List<java.time.LocalDate>) {
+    val palette=LocalPalette.current
+    val measurer=androidx.compose.ui.text.rememberTextMeasurer()
+    val shown=series.filter { it.third.isNotEmpty() }
+    val values=shown.flatMap { s -> s.third.map { it.second } }
+    var lo=Math.floorDiv(values.min()-50,100)*100
+    var hi=-Math.floorDiv(-(values.max()+50),100)*100
+    if(hi-lo<200) hi=lo+200
+    val step=if((hi-lo)/100>6) 200 else 100
+    val axis=androidx.compose.ui.text.TextStyle(fontSize=10.sp,color=palette.muted)
+    val dateFormat=remember { DateTimeFormatter.ofPattern("d MMM",Locale.getDefault()) }
+    val spoken=shown.joinToString(". ") { s -> "${s.second}: ${s.third.joinToString(", ") { it.second.toString() }}" }
+    val puzzleColour=if(palette.eink) palette.text else palette.accent
+    val gameColour=palette.text
+    Text(stringResource(R.string.rating_history),fontSize=13.sp,color=palette.muted)
+    androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().height(180.dp).clearAndSetSemantics { contentDescription=spoken }) {
+        val left=40.dp.toPx(); val right=8.dp.toPx(); val top=8.dp.toPx(); val bottom=20.dp.toPx()
+        fun x(i: Int) = left+i/(days.size-1f)*(size.width-left-right)
+        fun y(v: Int) = top+(1-(v-lo)/(hi-lo).toFloat())*(size.height-top-bottom)
+        var v=lo
+        while(v<=hi) {
+            drawLine(palette.muted.copy(alpha=0.3f),androidx.compose.ui.geometry.Offset(left,y(v)),androidx.compose.ui.geometry.Offset(size.width-right,y(v)),1.dp.toPx())
+            val label=measurer.measure(v.toString(),axis)
+            drawText(label,topLeft=androidx.compose.ui.geometry.Offset(left-6.dp.toPx()-label.size.width,y(v)-label.size.height/2f))
+            v+=step
+        }
+        for(i in listOf(0,(days.size-1)/2,days.size-1)) {
+            val label=measurer.measure(dateFormat.format(days[i]),axis)
+            val lx=when(i) { 0 -> x(i); days.size-1 -> x(i)-label.size.width; else -> x(i)-label.size.width/2f }
+            drawText(label,topLeft=androidx.compose.ui.geometry.Offset(lx,size.height-label.size.height))
+        }
+        for(s in shown) {
+            val colour=if(s.first==PUZZLE_SERIES) puzzleColour else gameColour
+            val dash=if(s.first==GAME_SERIES) androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(),5.dp.toPx())) else null
+            val path=androidx.compose.ui.graphics.Path()
+            s.third.forEachIndexed { n,(i,value) -> if(n==0) path.moveTo(x(i),y(value)) else path.lineTo(x(i),y(value)) }
+            drawPath(path,colour,style=androidx.compose.ui.graphics.drawscope.Stroke(width=2.5.dp.toPx(),pathEffect=dash))
+            val (li,lv)=s.third.last()
+            drawCircle(colour,4.dp.toPx(),androidx.compose.ui.geometry.Offset(x(li),y(lv)))
+        }
+    }
+    // The legend: a solid and a dashed sample, not colour alone.
+    Row(horizontalArrangement=Arrangement.spacedBy(16.dp),verticalAlignment=Alignment.CenterVertically) {
+        shown.forEach { s ->
+            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                val colour=if(s.first==PUZZLE_SERIES) puzzleColour else gameColour
+                androidx.compose.foundation.Canvas(Modifier.width(24.dp).height(10.dp)) {
+                    val dash=if(s.first==GAME_SERIES) androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(),3.dp.toPx())) else null
+                    drawLine(colour,androidx.compose.ui.geometry.Offset(0f,size.height/2),androidx.compose.ui.geometry.Offset(size.width,size.height/2),2.5.dp.toPx(),pathEffect=dash)
+                }
+                Text(s.second,fontSize=12.sp,color=palette.muted)
+            }
+        }
     }
 }
 

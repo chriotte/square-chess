@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Structured puzzle training. Keys match the web version (site/play/js/i18n.js). -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="course_title">Curso</string>
     <string name="course_help">Paso a paso, del mate en uno a los finales</string>
     <string name="course_intro">Veintisiete capítulos cortos, del mate en uno a los finales. Cada uno tiene diez problemas que se vuelven un poco más difíciles. Hazlos en orden o abre el capítulo que quieras.</string>
@@ -155,4 +155,27 @@
     <string name="refute_ends">Esa jugada termina la partida: %1$s.</string>
     <string name="refute_show">Muéstramelo</string>
     <string name="refute_hide">Volver al problema</string>
+    <string name="rating_puzzle">Puntuación de problemas</string>
+    <string name="rating_game">Puntuación de partidas</string>
+    <string name="rating_puzzles_count" tools:ignore="UnusedResources">%1$d problemas sin conexión · Puntuación de problemas %2$s</string>
+    <string name="rating_puzzle_line" tools:ignore="UnusedResources">Puntuación de problemas %1$s</string>
+    <string name="rating_puzzle_after">Puntuación de problemas %1$s (%2$s)</string>
+    <string name="rating_puzzle_this">Este problema tiene una puntuación de %1$d.</string>
+    <string name="rating_puzzle_seen">Sin puntuar: solo cuenta el primer intento de cada problema.</string>
+    <string name="rating_puzzle_note" tools:ignore="UnusedResources">Tu puntuación de problemas sube cuando resuelves un problema al primer intento y baja cuando necesitas ayuda o te rindes. Los problemas más difíciles dan más puntos. Cada problema cuenta una vez, la primera vez que lo intentas.</string>
+    <string name="rating_game_after">Puntuación de partidas %1$s (%2$s)</string>
+    <string name="rating_game_unrated">Esta partida no ha puntuado.</string>
+    <string name="rating_rated">Partida puntuada</string>
+    <string name="rating_unrated">Partida sin puntuar</string>
+    <string name="rating_setup_rated">Puntuada: esta partida cuenta para tu puntuación de partidas (ahora %1$s). Deshacer una jugada o usar una pista hace que no puntúe.</string>
+    <string name="rating_setup_unrated">Sin puntuar: las partidas con la evaluación activada, o desde una posición importada, no cuentan para tu puntuación.</string>
+    <string name="rating_level">puntuación %1$d</string>
+    <string name="rating_undo_note">Esta partida dejará de contar para tu puntuación.</string>
+    <string name="rating_title">Puntuaciones</string>
+    <string name="rating_provisional">Un signo de interrogación significa que la puntuación aún se está ajustando. Cambia más rápido en tus primeros 20 resultados.</string>
+    <string name="rating_history">Puntuaciones, últimos 30 días</string>
+    <string name="rating_history_none">Tus puntuaciones aparecerán aquí cuando resuelvas problemas y juegues partidas puntuadas.</string>
+    <string name="rating_games_record">%1$d partidas puntuadas · %2$d ganadas · %3$d tablas · %4$d perdidas</string>
+    <string name="rating_help_title">Puntuaciones</string>
+    <string name="rating_help_text">Square Chess lleva dos puntuaciones: una para problemas y otra para partidas contra el ordenador. Ambas usan la fórmula Elo que usan las federaciones de ajedrez: ganas más al vencer a un rival más fuerte y pierdes más contra uno más débil. Cada nivel del ordenador tiene una puntuación fija, de 400 en el nivel 1 a 2400 en el nivel 10. Son estimaciones, así que tu puntuación de partidas es una puntuación de Square Chess y puede diferir de un Elo FIDE o en línea. Una partida cuenta cuando juegas contra el ordenador desde la posición inicial normal, sin la evaluación, sin pistas y sin deshacer jugadas. Rendirse cuenta como derrota.</string>
 </resources>

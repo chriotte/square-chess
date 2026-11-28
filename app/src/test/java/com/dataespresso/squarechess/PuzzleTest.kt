@@ -197,15 +197,6 @@ class PuzzleTrainingTest {
         val c=recordAttempt(null,"c",AttemptResult.WITH_HELP,1,false,900)
         assertEquals(listOf("b","a"),dueForReview(listOf(a,b,c),500))
     }
-    @Test fun trainingLevelMovesInSmallSteps() {
-        assertEquals(1115,nextTrainingLevel(1100,AttemptResult.FIRST_TRY,1100))
-        assertEquals(1125,nextTrainingLevel(1100,AttemptResult.FIRST_TRY,1500))   // harder puzzle: capped step
-        assertEquals(1105,nextTrainingLevel(1100,AttemptResult.FIRST_TRY,900))    // easier puzzle: small step
-        assertEquals(1095,nextTrainingLevel(1100,AttemptResult.WITH_HELP,1100))
-        assertEquals(1080,nextTrainingLevel(1100,AttemptResult.ABANDONED,1100))
-        assertEquals(MIN_TRAINING_LEVEL,nextTrainingLevel(MIN_TRAINING_LEVEL,AttemptResult.ABANDONED,700))
-        assertEquals(MAX_TRAINING_LEVEL,nextTrainingLevel(MAX_TRAINING_LEVEL,AttemptResult.FIRST_TRY,2600))
-    }
 
     private fun p(id: String, rating: Int, vararg themes: String) = Puzzle(id,"8/8/8/8/8/8/8/K6k w - - 0 1",listOf("a1a2","h1h2"),rating,90,themes.toSet())
     private val pool=listOf(p("a",1000,"fork"),p("b",1100,"pin"),p("c",1120,"mateIn1"),p("d",1500,"fork"),p("e",2200,"endgame"))

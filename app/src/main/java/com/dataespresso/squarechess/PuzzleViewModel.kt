@@ -25,6 +25,9 @@ enum class PuzzleNote { NONE, NO_REVIEW_DUE, REVIEW_DONE, NO_PUZZLE, PACK_MISSIN
 /** The page shown when no puzzle is on the board. */
 enum class PuzzleView { HOME, COURSE, PROGRESS, REPEAT }
 
+/** What a finished puzzle did to the puzzle rating: [change] is null when it was not the first attempt. */
+data class PuzzleRated(val puzzleId: String, val change: Int?)
+
 /** A finished pass through a chapter: the chapter and how each puzzle of this pass went. */
 data class ChapterDone(val chapterId: String, val round: List<AttemptResult>)
 
@@ -51,7 +54,8 @@ data class Refutation(
 
 data class PuzzleUi(
     val loading: Boolean = true,
-    val level: Int = START_TRAINING_LEVEL,
+    /** The puzzle rating; it also chooses which puzzles come next. */
+    val level: Int = START_PUZZLE_RATING,
     val totals: PuzzleTotals = PuzzleTotals(0,0,0,0),
     val puzzleCount: Int = 0,
     /** Null on the landing screen. */
@@ -83,7 +87,12 @@ data class PuzzleUi(
     val refute: Refutation? = null,
     /** "Show me": the board shows the wrong move and the reply, and takes no moves. */
     val preview: Boolean = false,
+    val rated: PuzzleRated? = null,
+    val gameRating: GameRating = GameRating(),
+    val ratingDays: RatingDays = emptyMap(),
 ) {
+    /** Rated puzzles so far, for the question mark of a provisional rating. */
+    val ratedCount: Int get() = puzzleCount(progress)
     val quickFinished: Boolean get() = mode==PuzzleMode.QUICK && quick.size>=QUICK_SET_SIZE && session==null
     val currentChapter: Chapter? get() = chapter?.let { id -> course.firstOrNull { it.id==id } }
     /** The page under the puzzle: the summary of a chapter or a page of its own. */
@@ -137,7 +146,7 @@ class PuzzleViewModel internal constructor(
             byId=puzzles.associateBy { it.id }
             progress=db.puzzleProgress().all().associateBy { it.puzzleId }
             val course=buildCourse(puzzles)
-            state.value=state.value.copy(loading=false,level=prefs.getInt(LEVEL_KEY,START_TRAINING_LEVEL),puzzleCount=puzzles.size,
+            state.value=state.value.copy(loading=false,level=training.puzzleRating,puzzleCount=puzzles.size,
                 note=if(puzzles.isEmpty()) PuzzleNote.PACK_MISSING else PuzzleNote.NONE,course=course)
             refreshLocked()
             restoreSaved()
@@ -371,16 +380,20 @@ class PuzzleViewModel internal constructor(
 
     private suspend fun finishLocked(session: PuzzleSession, result: AttemptResult) {
         val id=session.puzzle.id
+        var s=state.value
+        // Only a puzzle's first attempt changes the puzzle rating (Elo against the puzzle's rating),
+        // in every mode; a puzzle seen before is not a fair test. Checked before the attempt is recorded.
+        val rated=if(isFirstAttempt(progress[id])) {
+            val level=applyPuzzle(s.level,puzzleChange(s.level,result,session.puzzle.rating,puzzleCount(progress)))
+            training.savePuzzleRating(level)
+            s=s.copy(level=level)
+            PuzzleRated(id,level-state.value.level)
+        } else PuzzleRated(id,null)
         val record=recordAttempt(progress[id],id,result,session.mistakes,session.hintUsed,now())
         db.puzzleProgress().save(record)
         progress=progress+(id to record)
-        var s=state.value
-        // The level follows the puzzles chosen for it; course, review and repeat puzzles leave it alone.
-        val level=if(s.mode in LEVEL_MODES) nextTrainingLevel(s.level,result,session.puzzle.rating) else s.level
-        // The time of a change lets the newest training level win when the account syncs.
-        if(level!=s.level) prefs.edit().putInt(LEVEL_KEY,level).putLong(LEVEL_UPDATED_KEY,now()).apply()
         if(result!=AttemptResult.ABANDONED) training.days=addToDay(training.days,today())
-        s=s.copy(level=level)
+        s=s.copy(rated=rated)
         if(s.mode==PuzzleMode.QUICK) s=s.copy(quick=s.quick+QuickResult(id,result,session.hintUsed))
         if(s.mode==PuzzleMode.COURSE) s=s.copy(round=s.round+result)
         if(s.mode==PuzzleMode.REPEAT) {
@@ -400,7 +413,8 @@ class PuzzleViewModel internal constructor(
 
     private fun refreshLocked() {
         update(state.value.copy(totals=puzzleTotals(progress.values,now()),progress=progress,stats=themeStats(puzzles,progress),
-            goal=training.goal,days=training.days,today=today(),repeatSet=training.repeatSet))
+            goal=training.goal,days=training.days,today=today(),repeatSet=training.repeatSet,
+            gameRating=training.gameRating,ratingDays=training.ratingDays))
     }
 
     private fun update(value: PuzzleUi) {
@@ -448,8 +462,6 @@ class PuzzleViewModel internal constructor(
     companion object {
         const val REPLY_DELAY_MS=450L
         private const val RECENT_LIMIT=30
-        /** Puzzles chosen for the training level move it; the others leave it alone. */
-        private val LEVEL_MODES=setOf(PuzzleMode.TRAINING,PuzzleMode.QUICK,PuzzleMode.THEME)
         internal const val PREFS="puzzles"
         internal const val LEVEL_KEY="trainingLevel"
         internal const val LEVEL_UPDATED_KEY="trainingLevel.updated"

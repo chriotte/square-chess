@@ -371,10 +371,10 @@
     <!-- Puzzles -->
     <string name="puzzles">谜题</string>
     <string name="puzzles_subtitle">离线战术训练</string>
-    <string name="puzzles_count">%1$d 道离线谜题 · 训练等级 %2$d</string>
+    <string name="puzzles_count">%1$d 道离线谜题 · 谜题等级分 %2$s</string>
     <string name="puzzle_loading">正在加载谜题…</string>
     <string name="puzzle_continue">继续训练</string>
-    <string name="puzzle_continue_help">接近你训练等级的新谜题</string>
+    <string name="puzzle_continue_help">接近你谜题等级分的新谜题</string>
     <string name="puzzle_quick">快速 5 题</string>
     <string name="puzzle_quick_help">五道谜题，然后是简短总结</string>
     <string name="puzzle_review">复习错题</string>
@@ -391,7 +391,7 @@
     <string name="puzzle_progress_attempted">已尝试的谜题：%1$d</string>
     <string name="puzzle_progress_first">首次即解出：%1$d</string>
     <string name="puzzle_progress_help">借助帮助解出：%1$d</string>
-    <string name="puzzle_level_note">训练等级决定接下来谜题的难度。它不是国际象棋等级分。</string>
+    <string name="puzzle_level_note">首次即解出谜题时，谜题等级分会上升；需要帮助或放弃时会下降。越难的谜题分数越多。每道谜题只在第一次尝试时计分一次。</string>
     <string name="note_no_review_due">没有待复习的谜题。你出错或使用提示后解出的谜题会回到这里。</string>
     <string name="note_review_done">复习完成。现在没有更多待复习的谜题。</string>
     <string name="note_no_puzzle">没有符合的谜题。请尝试其他主题。</string>
@@ -403,7 +403,7 @@
     <string name="puzzle_wrong">不太对 · 再试一次</string>
     <string name="puzzle_solved">谜题已解出</string>
     <string name="puzzle_rating">谜题等级分 %1$d</string>
-    <string name="puzzle_mode_training">训练等级 %1$d</string>
+    <string name="puzzle_mode_training">谜题等级分 %1$s</string>
     <string name="puzzle_mode_quick">快速 5 题 · 第 %1$d 题，共 %2$d 题</string>
     <string name="puzzle_next">下一题</string>
     <string name="puzzle_results">结果</string>

@@ -23,6 +23,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,7 +45,7 @@ import androidx.compose.ui.unit.sp
         TextButton(onClick=onHome,contentPadding=PaddingValues(0.dp)) { Text(stringResource(R.string.home_back)) }
         Text(stringResource(R.string.puzzles),fontFamily=FontFamily.Serif,fontSize=30.sp)
         if(ui.loading) { Text(stringResource(R.string.puzzle_loading)); return@Column }
-        Text(stringResource(R.string.puzzles_count,ui.puzzleCount,ui.level),fontSize=13.sp,color=palette.muted)
+        Text(stringResource(R.string.puzzles_count,ui.puzzleCount,ratingText(ui.level,ui.ratedCount)),fontSize=13.sp,color=palette.muted)
         noteText(ui.note)?.let { Text(stringResource(it),fontWeight=FontWeight.Medium,modifier=Modifier.semantics { liveRegion=LiveRegionMode.Polite }) }
         if(ui.puzzleCount==0) return@Column
         GoalCard(ui,onGoal)
@@ -108,6 +109,10 @@ import androidx.compose.ui.unit.sp
     // The course tip shows until the player has moved, and again whenever no feedback is showing.
     val tip=chapter?.takeIf { ui.feedback==PuzzleFeedback.NONE && refute==null && !solved }?.let { stringResource(chapterTip(it.id)) }
     val preview=ui.preview && refute?.reply!=null
+    // After a solve: the new puzzle rating and its change, or why this attempt did not count.
+    val rated=ui.rated?.takeIf { it.puzzleId==session.puzzle.id }
+    val ratedLine=if(rated?.change!=null) stringResource(R.string.rating_puzzle_after,ratingText(ui.level,ui.ratedCount),changeText(rated.change))
+        else stringResource(R.string.rating_puzzle_seen)
     // Room for a note beside or below the board; without it the explanation takes the header's line.
     var noteRoom by remember { mutableStateOf(true) }
     Column(Modifier.fillMaxSize()) {
@@ -126,7 +131,7 @@ import androidx.compose.ui.unit.sp
                 val second=when {
                     // Without room for the note, the explanation of a wrong move takes the second line.
                     refuteLine!=null && !noteRoom && hint==null -> refuteLine
-                    session.state==PuzzleState.SOLVED -> (listOf(res.getString(R.string.puzzle_rating,session.puzzle.rating))+
+                    session.state==PuzzleState.SOLVED -> (listOf(ratedLine,res.getString(R.string.rating_puzzle_this,session.puzzle.rating).trimEnd('.','。'))+
                         session.puzzle.group.map { res.getString(groupName(it)) }).joinToString(" · ")
                     ui.mode==PuzzleMode.QUICK -> stringResource(R.string.puzzle_mode_quick,ui.quick.size+1,QUICK_SET_SIZE)
                     ui.mode==PuzzleMode.REVIEW -> stringResource(R.string.puzzle_review)
@@ -136,7 +141,7 @@ import androidx.compose.ui.unit.sp
                         stringResource(R.string.repeat_mode,round.index,minOf(round.results.size+1,ui.repeatSet.ids.size),ui.repeatSet.ids.size) }
                     ui.mode==PuzzleMode.THEME && ui.tag!=null -> tagName(ui.tag)?.let { stringResource(it) } ?: ui.tag
                     ui.mode==PuzzleMode.THEME && ui.group!=null -> stringResource(groupName(ui.group))
-                    else -> stringResource(R.string.puzzle_mode_training,ui.level)
+                    else -> stringResource(R.string.puzzle_mode_training,ratingText(ui.level,ui.ratedCount))
                 }
                 // Two 14 sp lines fit the 56 dp header below font scale 1.25 (measured on the Titan); from
                 // that only the first line shows, so a larger font never makes the board smaller.
@@ -147,11 +152,13 @@ import androidx.compose.ui.unit.sp
                     withStyle(SpanStyle(fontWeight=if(outcome) FontWeight.Bold else null,color=if(outcome) palette.accent else Color.Unspecified)) { append(first) }
                     if(!oneLine && second!=null) append("\n$second")
                 }
+                // "−9" is read as "minus 9": the real minus sign becomes a plain one for speech.
+                val spokenHeader=shown.text.replace('−','-')
                 Text(shown,fontSize=14.sp,fontWeight=FontWeight.Medium,
                     maxLines=if(oneLine) 1 else 2,overflow=TextOverflow.Ellipsis,
                     modifier=Modifier.semantics {
                         liveRegion=LiveRegionMode.Polite
-                        if(hint!=null) contentDescription=hint.spoken
+                        contentDescription=if(hint!=null) hint.spoken else spokenHeader
                     })
             }
             if(solved) {
@@ -227,6 +234,9 @@ import androidx.compose.ui.unit.sp
                 if(place!=null) Column(place.clip(RoundedCornerShape(12.dp)).card(palette).padding(16.dp),
                     horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(12.dp)) {
                     Text(stringResource(R.string.puzzle_solved),fontFamily=FontFamily.Serif,fontSize=24.sp,color=palette.text)
+                    Text(ratedLine,fontWeight=FontWeight.Medium,textAlign=TextAlign.Center,
+                        modifier=Modifier.semantics { contentDescription=ratedLine.replace('−','-') })
+                    Text(stringResource(R.string.rating_puzzle_this,session.puzzle.rating),fontSize=13.sp,color=palette.muted,textAlign=TextAlign.Center)
                     Button(onClick=onNext,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)) {
                         Text(stringResource(nextLabel))
                     }

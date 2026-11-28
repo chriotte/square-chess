@@ -378,10 +378,10 @@
     <!-- Puzzles -->
     <string name="puzzles">Oppgaver</string>
     <string name="puzzles_subtitle">Taktikktrening uten nett</string>
-    <string name="puzzles_count">%1$d oppgaver uten nett · Treningsnivå %2$d</string>
+    <string name="puzzles_count">%1$d oppgaver uten nett · Oppgaverating %2$s</string>
     <string name="puzzle_loading">Laster oppgaver…</string>
     <string name="puzzle_continue">Fortsett treningen</string>
-    <string name="puzzle_continue_help">Nye oppgaver nær treningsnivået ditt</string>
+    <string name="puzzle_continue_help">Nye oppgaver nær oppgaveratingen din</string>
     <string name="puzzle_quick">Rask 5</string>
     <string name="puzzle_quick_help">Fem oppgaver, så en kort oppsummering</string>
     <string name="puzzle_review">Repeter feil</string>
@@ -398,7 +398,7 @@
     <string name="puzzle_progress_attempted">Oppgaver prøvd: %1$d</string>
     <string name="puzzle_progress_first">Løst på første forsøk: %1$d</string>
     <string name="puzzle_progress_help">Løst med hjelp: %1$d</string>
-    <string name="puzzle_level_note">Treningsnivået bestemmer hvor vanskelige de neste oppgavene er. Det er ikke en sjakkrating.</string>
+    <string name="puzzle_level_note">Oppgaveratingen din går opp når du løser en oppgave på første forsøk, og ned når du trenger hjelp eller gir opp. Vanskeligere oppgaver gir flere poeng. Hver oppgave teller én gang, første gang du prøver den.</string>
     <string name="note_no_review_due">Ingen oppgaver skal repeteres. Oppgaver som du løser med en feil eller et tips, kommer tilbake hit.</string>
     <string name="note_review_done">Repetisjonen er ferdig. Ingen flere oppgaver skal repeteres nå.</string>
     <string name="note_no_puzzle">Ingen oppgave passer. Prøv et annet tema.</string>
@@ -410,7 +410,7 @@
     <string name="puzzle_wrong">Ikke helt · prøv igjen</string>
     <string name="puzzle_solved">Oppgaven er løst</string>
     <string name="puzzle_rating">Oppgaverating %1$d</string>
-    <string name="puzzle_mode_training">Treningsnivå %1$d</string>
+    <string name="puzzle_mode_training">Oppgaverating %1$s</string>
     <string name="puzzle_mode_quick">Rask 5 · oppgave %1$d av %2$d</string>
     <string name="puzzle_next">Neste</string>
     <string name="puzzle_results">Resultat</string>
