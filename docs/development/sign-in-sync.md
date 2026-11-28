@@ -76,6 +76,8 @@ page or a captive portal) is treated as a server error and does not sign anyone 
 | settings `world, buddy, outfit, unlockAll, seenStickers` | `kv` | `playroom` | `{"value": {world, buddy, outfit, unlockAll, seenStickers}}` |
 | `puzzles` prefs `puzzleGoal` | `kv` | `puzzleGoal` | `{"value": 10}` (0 = off) |
 | `puzzles` prefs `puzzleDays` | `kv` | `puzzleDays` | `{"value": {"2026-11-28": 7}}` |
+| `puzzles` prefs `gameRating` | `kv` | `gameRating` | `{"value": {rating, games, wins, draws, losses}}` |
+| `puzzles` prefs `ratingDays` | `kv` | `ratingDays` | `{"value": {"2026-11-28": {"p": [1243, ms], "g": [1180, ms]}}}` |
 | `puzzles` prefs `repeatSet` | `kv` | `repeatSet` | `{"value": {id, created, source, ids, cycles, current}}`, or `{"value": false}` once cleared |
 
 - `moves` is a space-separated string in Room and a JSON array in the record.
@@ -88,6 +90,11 @@ page or a captive portal) is treated as a server error and does not sign anyone 
   `kv` records the app now stores when they last changed: `trainingLevel.updated` in the
   `puzzles` prefs and `playroom.updated` in the `settings` prefs (`SettingsStore.save` sets it
   when a synced Playroom field changes).
+- Game records also carry `unrated` and, once rated, `rating: {before, after, change, opponent,
+  provisional}`. The server caps the game rating leaderboard with `rating`, so the app always
+  writes it back. `trainingLevel` is the puzzle rating.
+- `gameRating` keeps the copy with more games, then the higher rating; `ratingDays` keeps, per day
+  and rating, the later value (then the higher). Both are merged like `puzzleDays`.
 - `puzzleDays` is merged, not replaced: the larger count for each day wins, whichever copy is
   newer. When the merged counts differ from the server's, the app sends them back in the same
   sync. `puzzleGoal` and `repeatSet` follow the newest copy, like `trainingLevel`; their change
@@ -99,8 +106,8 @@ page or a captive portal) is treated as a server error and does not sign anyone 
 
 ### Unknown fields
 
-Each record's last server copy is kept in the Room table `sync_base` (database version 8,
-migration 7→8 only adds this table). When a record goes back up, the app writes its own
+Each record's last server copy is kept in the Room table `sync_base` (database version 9,
+migration 8→9 adds this table; version 8 added the games' rating columns). When a record goes back up, the app writes its own
 fields over a copy of that JSON, so fields added by a newer app or the website survive. For
 `playroom`, names this version does not know (a world, buddy, outfit item, colour or sticker)
 are kept when saving, as the format asks.
@@ -174,7 +181,7 @@ unchanged.
   against `FakeSyncServer`, a small HTTP server in the test JVM that follows the PHP API, plus
   backup round trips). The only test dependency added is `org.json:json` (Android's `org.json`
   is a stub off-device).
-- Device: the existing suite covers the database migration to version 8 through
+- Device: the existing suite covers the database migration to version 9 through
   `openChessDatabase`.
 - Not automated: the real browser round trip. To try it on a device, sign in to a test account
   on squarechess.org in the device's browser, then in the app tap Settings → Sign in to sync →

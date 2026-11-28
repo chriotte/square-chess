@@ -97,9 +97,16 @@ class AppSyncStore(private val db: ChessDatabase, private val settings: Settings
     override fun setRepeatSet(set: JSONObject?) {
         puzzlePrefs.edit().apply { if (set == null) remove(TrainingPrefs.REPEAT_KEY) else putString(TrainingPrefs.REPEAT_KEY, set.toString()) }.apply()
     }
+    override fun gameRating(): GameRating? =
+        gameRatingFromJson(puzzlePrefs.getString(TrainingPrefs.GAME_RATING_KEY, null)?.let { runCatching { JSONObject(it) }.getOrNull() })
+    override fun setGameRating(rating: GameRating) { puzzlePrefs.edit().putString(TrainingPrefs.GAME_RATING_KEY, rating.toJson().toString()).apply() }
+    override fun ratingDays(): RatingDays =
+        ratingDaysFromJson(puzzlePrefs.getString(TrainingPrefs.RATING_DAYS_KEY, null)?.let { runCatching { JSONObject(it) }.getOrNull() })
+    override fun setRatingDays(days: RatingDays) { puzzlePrefs.edit().putString(TrainingPrefs.RATING_DAYS_KEY, ratingDaysToJson(days).toString()).apply() }
     override fun kvUpdated(key: String) = when (key) {
         SyncRecord.TRAINING_LEVEL -> puzzlePrefs.getLong(PuzzleViewModel.LEVEL_UPDATED_KEY, 0)
-        SyncRecord.PUZZLE_GOAL, SyncRecord.PUZZLE_DAYS, SyncRecord.REPEAT_SET -> puzzlePrefs.getLong(key + TrainingPrefs.UPDATED, 0)
+        SyncRecord.PUZZLE_GOAL, SyncRecord.PUZZLE_DAYS, SyncRecord.REPEAT_SET, SyncRecord.GAME_RATING, SyncRecord.RATING_DAYS ->
+            puzzlePrefs.getLong(key + TrainingPrefs.UPDATED, 0)
         SyncRecord.PLAYROOM -> settings.playroomUpdated
         else -> 0
     }
@@ -107,7 +114,8 @@ class AppSyncStore(private val db: ChessDatabase, private val settings: Settings
         when (key) {
             SyncRecord.TRAINING_LEVEL -> puzzlePrefs.edit().putLong(PuzzleViewModel.LEVEL_UPDATED_KEY, updated).apply()
             SyncRecord.PLAYROOM -> settings.setPlayroomUpdated(updated)
-            SyncRecord.PUZZLE_GOAL, SyncRecord.PUZZLE_DAYS, SyncRecord.REPEAT_SET -> puzzlePrefs.edit().putLong(key + TrainingPrefs.UPDATED, updated).apply()
+            SyncRecord.PUZZLE_GOAL, SyncRecord.PUZZLE_DAYS, SyncRecord.REPEAT_SET, SyncRecord.GAME_RATING, SyncRecord.RATING_DAYS ->
+                puzzlePrefs.edit().putLong(key + TrainingPrefs.UPDATED, updated).apply()
         }
     }
     override fun tombstones() = account.tombstones

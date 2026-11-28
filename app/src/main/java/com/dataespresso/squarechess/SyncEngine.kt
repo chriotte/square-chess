@@ -30,6 +30,11 @@ interface SyncStore {
     /** The repeat set as stored, in the web's JSON format, or null when there is none. */
     fun repeatSet(): JSONObject?
     fun setRepeatSet(set: JSONObject?)
+    /** The game rating, or null before the first rated game here. */
+    fun gameRating(): GameRating?
+    fun setGameRating(rating: GameRating)
+    fun ratingDays(): RatingDays
+    fun setRatingDays(days: RatingDays)
     /** When a small value last changed here; 0 when not known (for example before this version). */
     fun kvUpdated(key: String): Long
     fun setKvUpdated(key: String, updated: Long)
@@ -52,7 +57,10 @@ data class SyncChanges(val games: Set<String> = emptySet(), val puzzles: Boolean
 
 /** Last write wins per record, by `updated`, as on the website (site/play/js/account.js). */
 object SyncMerge {
-    val KV_KEYS = listOf(SyncRecord.TRAINING_LEVEL, SyncRecord.PLAYROOM, SyncRecord.PUZZLE_GOAL, SyncRecord.PUZZLE_DAYS, SyncRecord.REPEAT_SET)
+    val KV_KEYS = listOf(SyncRecord.TRAINING_LEVEL, SyncRecord.PLAYROOM, SyncRecord.PUZZLE_GOAL, SyncRecord.PUZZLE_DAYS, SyncRecord.REPEAT_SET,
+        SyncRecord.GAME_RATING, SyncRecord.RATING_DAYS)
+    /** Values merged with the server's copy rather than replaced by the newer one. */
+    val MERGED = setOf(SyncRecord.PUZZLE_DAYS, SyncRecord.GAME_RATING, SyncRecord.RATING_DAYS)
 
     /** Records changed here since the server last saw them, written over their bases. */
     suspend fun localChanges(store: SyncStore): List<SyncRecord> {
@@ -95,6 +103,8 @@ object SyncMerge {
         SyncRecord.PUZZLE_GOAL -> store.puzzleGoal()?.let { puzzleGoalToSyncData(it, base) }
         SyncRecord.PUZZLE_DAYS -> store.puzzleDays().takeIf { it.isNotEmpty() }?.let { puzzleDaysToSyncData(it, base) }
         SyncRecord.REPEAT_SET -> repeatSetToSyncData(store.repeatSet(), base)
+        SyncRecord.GAME_RATING -> store.gameRating()?.let { gameRatingToSyncData(it, base) }
+        SyncRecord.RATING_DAYS -> store.ratingDays().takeIf { it.isNotEmpty() }?.let { ratingDaysToSyncData(it, base) }
         else -> null
     }
 
@@ -133,7 +143,7 @@ object SyncMerge {
                 SyncChanges(puzzles = true)
             }
             SyncRecord.KV -> {
-                if (record.id == SyncRecord.PUZZLE_DAYS && !record.deleted) return mergeDays(store, record)
+                if (record.id in MERGED && !record.deleted) return mergeValue(store, record)
                 if (record.deleted || store.kvUpdated(record.id) >= record.updated) return SyncChanges()
                 val data = record.data ?: return SyncChanges()
                 when (record.id) {
@@ -168,17 +178,37 @@ object SyncMerge {
 }
 
 /**
- * Puzzles per day are merged, not replaced: each device counts its own puzzles, so the larger
- * count for each day wins. When the merged counts differ from the server's, the change time moves
- * past the server's copy so the merged counts are sent back.
+ * Values merged, not replaced, the same way on every device: puzzles per day (the larger count for
+ * each day), the game rating (the copy with more games, then the higher rating) and the rating
+ * history (per day and rating, the later value). When the merged value differs from the server's,
+ * the change time moves past the server's copy so the merged value is sent back.
  */
-private fun mergeDays(store: SyncStore, record: SyncRecord): SyncChanges {
-    val incoming = record.data?.let(::puzzleDaysFromSync) ?: return SyncChanges()
-    val local = store.puzzleDays()
-    val merged = mergeDays(local, incoming)
-    if (merged != local) store.setPuzzleDays(merged)
-    store.setKvUpdated(record.id, if (merged != incoming) maxOf(store.kvUpdated(record.id), record.updated) + 1 else record.updated)
-    return SyncChanges(training = merged != local)
+private fun mergeValue(store: SyncStore, record: SyncRecord): SyncChanges {
+    val data = record.data ?: return SyncChanges()
+    val (changedHere, sameAsServer) = when (record.id) {
+        SyncRecord.PUZZLE_DAYS -> {
+            val incoming = puzzleDaysFromSync(data); val local = store.puzzleDays()
+            val merged = mergeDays(local, incoming)
+            if (merged != local) store.setPuzzleDays(merged)
+            (merged != local) to (merged == incoming)
+        }
+        SyncRecord.GAME_RATING -> {
+            val incoming = gameRatingFromSync(data) ?: return SyncChanges()
+            val local = store.gameRating()
+            val merged = mergeGameRating(local, incoming)!!
+            if (merged != local) store.setGameRating(merged)
+            (merged != local) to (merged == incoming)
+        }
+        SyncRecord.RATING_DAYS -> {
+            val incoming = ratingDaysFromSync(data); val local = store.ratingDays()
+            val merged = mergeRatingDays(local, incoming)
+            if (merged != local) store.setRatingDays(merged)
+            (merged != local) to (merged == incoming)
+        }
+        else -> return SyncChanges()
+    }
+    store.setKvUpdated(record.id, if (!sameAsServer) maxOf(store.kvUpdated(record.id), record.updated) + 1 else record.updated)
+    return SyncChanges(training = changedHere)
 }
 
 /** The server's position in its change list, and the account's token; kept by [AccountStore] in the app. */
@@ -206,8 +236,8 @@ class SyncEngine(private val api: SyncApi, private val store: SyncStore, private
             // A runaway server answer must not loop for ever; the rest comes at the next sync.
             if ((pending.isEmpty() && !reply.more) || ++rounds >= MAX_ROUNDS) break
         }
-        // Day counts merged with the server's are sent back at once, so other devices see the total.
-        val merged = SyncMerge.localChanges(store).filter { it.kind == SyncRecord.KV && it.id == SyncRecord.PUZZLE_DAYS }
+        // Values merged with the server's are sent back at once, so other devices see the merged copy.
+        val merged = SyncMerge.localChanges(store).filter { it.kind == SyncRecord.KV && it.id in SyncMerge.MERGED }
         if (merged.isNotEmpty()) {
             val reply = api.sync(token, session.cursor, merged)
             for (record in reply.records) changes += SyncMerge.apply(store, record)

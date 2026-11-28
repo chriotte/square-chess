@@ -117,7 +117,13 @@ class HeaderReviewNav(val onFirst: ()->Unit, val onPrevious: ()->Unit, val onNex
                 val table=Openings.table
                 val opening=remember(table,s.position,shownPly) {
                     table?.let { openingAt(it,s.position.initialFen,s.position.moves,shownPly) }
-                }?.let { stringResource(R.string.opening_line,it.eco,it.name) }
+                }?.let { stringResource(R.string.opening_line,it.eco,it.name) }.let { name ->
+                    // While a game against the computer is going on, the second line starts with whether it is rated.
+                    val g=s.game
+                    val rated=if(g?.mode==GameMode.COMPUTER.name && g.result=="*" && reviewPly==null)
+                        stringResource(if(isRatedGame(g)) R.string.rating_rated else R.string.rating_unrated) else null
+                    listOfNotNull(rated,name).joinToString(" · ").ifEmpty { null }
+                }
                 val status=gameStatus(s)
                 val statusFirst=reviewPly==null && status in STATUS_BEFORE_EVALUATION
                 // A hint replaces the status in the same text line, so the header keeps its height.

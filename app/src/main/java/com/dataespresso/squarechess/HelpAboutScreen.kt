@@ -193,6 +193,7 @@ private val HOW_TO_PLAY=listOf(
     R.string.howto_move_title to R.string.howto_move_body,
     R.string.howto_keyboard_title to R.string.howto_keyboard_body,
     R.string.howto_levels_title to R.string.howto_levels_body,
+    R.string.rating_help_title to R.string.rating_help_text,
     R.string.howto_clock_title to R.string.howto_clock_body,
     R.string.howto_review_title to R.string.howto_review_body,
     R.string.howto_end_title to R.string.howto_end_body,

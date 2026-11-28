@@ -38,7 +38,7 @@ object Backup {
         records.put(SyncRecord(SyncRecord.KV, SyncRecord.PLAYROOM, store.kvUpdated(SyncRecord.PLAYROOM).coerceAtLeast(1),
             data = settings.playroom.toSyncData()).toJson())
         // The daily goal, puzzles per day and repeat set, when this device has them.
-        for (key in listOf(SyncRecord.PUZZLE_GOAL, SyncRecord.PUZZLE_DAYS, SyncRecord.REPEAT_SET)) {
+        for (key in listOf(SyncRecord.PUZZLE_GOAL, SyncRecord.PUZZLE_DAYS, SyncRecord.REPEAT_SET, SyncRecord.GAME_RATING, SyncRecord.RATING_DAYS)) {
             if (key == SyncRecord.REPEAT_SET && store.repeatSet() == null) continue
             val data = SyncMerge.kvData(store, key, null) ?: continue
             records.put(SyncRecord(SyncRecord.KV, key, store.kvUpdated(key).coerceAtLeast(1), data = data).toJson())

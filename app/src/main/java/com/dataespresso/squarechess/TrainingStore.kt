@@ -60,6 +60,38 @@ fun repeatSetFromJson(json: JSONObject?): RepeatSet? = json?.let {
     }.getOrNull()
 }
 
+fun GameRating.toJson(): JSONObject = JSONObject().put("rating", rating).put("games", games).put("wins", wins)
+    .put("draws", draws).put("losses", losses)
+fun gameRatingFromJson(json: JSONObject?): GameRating? = json?.let {
+    runCatching {
+        GameRating(it.getInt("rating"), it.optInt("games"), it.optInt("wins"), it.optInt("draws"), it.optInt("losses"))
+    }.getOrNull()
+}
+
+/** `{"2026-11-28": {"p": [1243, ms], "g": [1180, ms]}}`; anything unreadable is skipped. */
+fun ratingDaysToJson(days: RatingDays): JSONObject = JSONObject().apply {
+    days.toSortedMap().forEach { (day, values) ->
+        put(day, JSONObject().apply { values.toSortedMap().forEach { (which, p) -> put(which, JSONArray().put(p.value).put(p.ms)) } })
+    }
+}
+fun ratingDaysFromJson(json: JSONObject?): RatingDays {
+    if (json == null) return emptyMap()
+    val out = HashMap<String, Map<String, RatingPoint>>()
+    for (day in json.keys()) {
+        val values = json.optJSONObject(day) ?: continue
+        if (!DAY.matches(day)) continue
+        val points = HashMap<String, RatingPoint>()
+        for (which in values.keys()) {
+            val pair = values.optJSONArray(which) ?: continue
+            val v = (pair.opt(0) as? Number)?.toInt() ?: continue
+            val ms = (pair.opt(1) as? Number)?.toLong() ?: continue
+            points[which] = RatingPoint(v, ms)
+        }
+        out[day] = points
+    }
+    return out
+}
+
 /**
  * The training values in the puzzle preferences. Each change also stores when it was made
  * (`<key>.updated`), which sync uses to keep the newer copy.
@@ -84,7 +116,47 @@ class TrainingPrefs(private val prefs: SharedPreferences, private val now: () ->
             edit.apply()
         }
 
+    /** The puzzle rating, stored as the training level so existing players keep their number. */
+    val puzzleRating: Int get() = prefs.getInt(LEVEL_KEY, START_PUZZLE_RATING)
+
+    var gameRating: GameRating
+        get() = gameRatingFromJson(prefs.getString(GAME_RATING_KEY, null)?.let { runCatching { JSONObject(it) }.getOrNull() }) ?: GameRating()
+        set(value) { prefs.edit().putString(GAME_RATING_KEY, value.toJson().toString()).putLong(GAME_RATING_KEY + UPDATED, now()).apply() }
+
+    var ratingDays: RatingDays
+        get() = ratingDaysFromJson(prefs.getString(RATING_DAYS_KEY, null)?.let { runCatching { JSONObject(it) }.getOrNull() })
+        set(value) { prefs.edit().putString(RATING_DAYS_KEY, ratingDaysToJson(value).toString()).putLong(RATING_DAYS_KEY + UPDATED, now()).apply() }
+
+    private fun remember(which: String, value: Int) {
+        val time = now()
+        val today = java.time.Instant.ofEpochMilli(time).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+        ratingDays = recordRatingDay(ratingDays, which, value, dayKey(today), time, dayKey(today.minusDays(RATING_KEEP_DAYS)))
+    }
+
+    /** Saves a new puzzle rating and today's point for the chart. */
+    fun savePuzzleRating(value: Int) {
+        prefs.edit().putInt(LEVEL_KEY, value).putLong(LEVEL_KEY + UPDATED, now()).apply()
+        remember(PUZZLE_SERIES, value)
+    }
+
+    /**
+     * Rates a finished game, once: returns it with its rating change, or unchanged when it does not
+     * count (not rated, too short, still in progress, or rated already).
+     */
+    fun rateFinishedGame(g: SavedGame): SavedGame {
+        if (!countsForRating(g) || g.rating != null) return g
+        val score = humanScore(g) ?: return g
+        val before = gameRating
+        val (state, change, opponent) = rateGame(before, g.level, score)
+        gameRating = state
+        remember(GAME_SERIES, state.rating)
+        return g.withRating(GameRatingChange(before.rating, state.rating, change, opponent, before.games < PROVISIONAL))
+    }
+
     companion object {
+        const val LEVEL_KEY = "trainingLevel"
+        const val GAME_RATING_KEY = "gameRating"
+        const val RATING_DAYS_KEY = "ratingDays"
         const val GOAL_KEY = "puzzleGoal"
         const val DAYS_KEY = "puzzleDays"
         const val REPEAT_KEY = "repeatSet"

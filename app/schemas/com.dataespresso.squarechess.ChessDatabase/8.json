@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 8,
-    "identityHash": "27a522115f7d0f27efe62182ab9a63e5",
+    "identityHash": "e656c94b0a8249f00e0f164d882567b9",
     "entities": [
       {
         "tableName": "games",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `mode` TEXT NOT NULL, `initialFen` TEXT NOT NULL, `moves` TEXT NOT NULL, `white` TEXT NOT NULL, `black` TEXT NOT NULL, `humanWhite` INTEGER NOT NULL, `level` INTEGER NOT NULL, `result` TEXT NOT NULL, `updated` INTEGER NOT NULL, `orientationFlipped` INTEGER DEFAULT NULL, `resultReason` TEXT NOT NULL DEFAULT '', `clockBaseMs` INTEGER DEFAULT NULL, `clockIncrementMs` INTEGER DEFAULT NULL, `clockWhiteMs` INTEGER DEFAULT NULL, `clockBlackMs` INTEGER DEFAULT NULL, `clockActive` TEXT DEFAULT NULL, `clockPhase` TEXT DEFAULT NULL, `clockInterrupted` INTEGER DEFAULT NULL, `clockDelayMs` INTEGER DEFAULT NULL, `clockDelayRemainingMs` INTEGER DEFAULT NULL, `hintsEnabled` INTEGER NOT NULL DEFAULT 0, `evaluationEnabled` INTEGER NOT NULL DEFAULT 0, `evaluations` TEXT NOT NULL DEFAULT '', PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `mode` TEXT NOT NULL, `initialFen` TEXT NOT NULL, `moves` TEXT NOT NULL, `white` TEXT NOT NULL, `black` TEXT NOT NULL, `humanWhite` INTEGER NOT NULL, `level` INTEGER NOT NULL, `result` TEXT NOT NULL, `updated` INTEGER NOT NULL, `orientationFlipped` INTEGER DEFAULT NULL, `resultReason` TEXT NOT NULL DEFAULT '', `clockBaseMs` INTEGER DEFAULT NULL, `clockIncrementMs` INTEGER DEFAULT NULL, `clockWhiteMs` INTEGER DEFAULT NULL, `clockBlackMs` INTEGER DEFAULT NULL, `clockActive` TEXT DEFAULT NULL, `clockPhase` TEXT DEFAULT NULL, `clockInterrupted` INTEGER DEFAULT NULL, `clockDelayMs` INTEGER DEFAULT NULL, `clockDelayRemainingMs` INTEGER DEFAULT NULL, `hintsEnabled` INTEGER NOT NULL DEFAULT 0, `evaluationEnabled` INTEGER NOT NULL DEFAULT 0, `evaluations` TEXT NOT NULL DEFAULT '', `unrated` INTEGER NOT NULL DEFAULT 0, `ratingBefore` INTEGER DEFAULT NULL, `ratingAfter` INTEGER DEFAULT NULL, `ratingChange` INTEGER DEFAULT NULL, `ratingOpponent` INTEGER DEFAULT NULL, `ratingProvisional` INTEGER DEFAULT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -155,6 +155,43 @@
             "affinity": "TEXT",
             "notNull": true,
             "defaultValue": "''"
+          },
+          {
+            "fieldPath": "unrated",
+            "columnName": "unrated",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "ratingBefore",
+            "columnName": "ratingBefore",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "ratingAfter",
+            "columnName": "ratingAfter",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "ratingChange",
+            "columnName": "ratingChange",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "ratingOpponent",
+            "columnName": "ratingOpponent",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "ratingProvisional",
+            "columnName": "ratingProvisional",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
           }
         ],
         "primaryKey": {
@@ -233,53 +270,11 @@
             "puzzleId"
           ]
         }
-      },
-      {
-        "tableName": "sync_base",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`kind` TEXT NOT NULL, `id` TEXT NOT NULL, `updated` INTEGER NOT NULL, `deleted` INTEGER NOT NULL, `data` TEXT, PRIMARY KEY(`kind`, `id`))",
-        "fields": [
-          {
-            "fieldPath": "kind",
-            "columnName": "kind",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "updated",
-            "columnName": "updated",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "deleted",
-            "columnName": "deleted",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "data",
-            "columnName": "data",
-            "affinity": "TEXT"
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "kind",
-            "id"
-          ]
-        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '27a522115f7d0f27efe62182ab9a63e5')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e656c94b0a8249f00e0f164d882567b9')"
     ]
   }
 }

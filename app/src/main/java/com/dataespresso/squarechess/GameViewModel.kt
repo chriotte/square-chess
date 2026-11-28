@@ -40,6 +40,8 @@ class GameViewModel private constructor(
     internal constructor(app: Application, engine: EngineController): this(app,engine,appChessDatabase(app))
     val state = MutableStateFlow(GameUi())
     val history = db.games().observeGames()
+    /** The game rating lives with the puzzle values; finished rated games update it once. */
+    private val ratings = TrainingPrefs(app.getSharedPreferences(PuzzleViewModel.PREFS, android.content.Context.MODE_PRIVATE))
     private var revision = 0L
     private val commitLock = Mutex()
     private var foreground = true
@@ -153,9 +155,10 @@ class GameViewModel private constructor(
         val p=s.position.append(move)
         val result=p.automaticResult() ?: "*"
         if (result != "*" && clock != null) clock = clock.finish(now)
-        val saved=g.copy(moves=p.moves.joinToString(" "),result=result,
+        val played=g.copy(moves=p.moves.joinToString(" "),result=result,
             resultReason=if(result!="*") p.automaticResultReason() ?: "Game finished" else "",updated=System.currentTimeMillis())
             .withClock(clock, now)
+        val saved=if(result!="*") ratings.rateFinishedGame(played) else played
         db.games().save(saved)
         revision++
         if(s.hintBusy) { hintJob?.cancel(); hintJob=null; engine.stop() }
@@ -245,6 +248,16 @@ class GameViewModel private constructor(
         if(!foreground || !s.hintsAvailable() || !s.canEnterMove() || s.hintBusy) return
         val key=s.positionKey()
         val token=revision
+        // Using a hint makes the game unrated; allowing hints at the start does not.
+        val marked=if(!g.unrated && g.mode==GameMode.COMPUTER.name) g.copy(unrated=true,updated=System.currentTimeMillis()) else g
+        if(marked!==g) viewModelScope.launch { commitLock.withLock {
+            val current=state.value.game
+            if(current?.id==marked.id && !current.unrated) {
+                val saved=current.copy(unrated=true,updated=System.currentTimeMillis()).withClock(state.value.clock,SystemClock.elapsedRealtime())
+                db.games().save(saved)
+                state.value=state.value.copy(game=saved)
+            }
+        } }
         state.value=s.copy(hint=null,hintBusy=true,hintFailed=false)
         hintJob=viewModelScope.launch {
             val best=try { engine.hint(g.initialFen,s.position.moves) }
@@ -283,8 +296,9 @@ class GameViewModel private constructor(
             anchorMs = 0,
             interrupted = false
         )
+        // Taking a move back makes a game against the computer unrated (a rating already given stays).
         val saved=g.copy(moves=moves.joinToString(" "),result="*",resultReason="",updated=System.currentTimeMillis(),
-            evaluations=encodeEvaluations(s.evals.filterKeys { it<=moves.size }))
+            evaluations=encodeEvaluations(s.evals.filterKeys { it<=moves.size }),unrated=g.unrated || g.mode==GameMode.COMPUTER.name)
             .withClock(clock, now)
         db.games().save(saved)
         load(saved, recoverClock=false)
@@ -301,7 +315,7 @@ class GameViewModel private constructor(
         }
         invalidate()
         val clock = currentClock?.finish(now)
-        val saved=g.copy(result=result,resultReason=reason,updated=System.currentTimeMillis()).withClock(clock, now)
+        val saved=ratings.rateFinishedGame(g.copy(result=result,resultReason=reason,updated=System.currentTimeMillis()).withClock(clock, now))
         db.games().save(saved)
         state.value=s.copy(game=saved,clock=clock,busy=false,engineError=null,resultEvent=ResultEvent(result,reason),message="Game finished · $result")
     } }
@@ -442,7 +456,7 @@ class GameViewModel private constructor(
         val result = if (s.position.provenUnableToMate(opponent)) "1/2-1/2"
             else if (flagged == ClockSide.WHITE) "0-1" else "1-0"
         val reason = "${flagged.name.lowercase().replaceFirstChar(Char::titlecase)} ran out of time"
-        val saved = game.copy(result=result,resultReason=reason,updated=System.currentTimeMillis()).withClock(clock,SystemClock.elapsedRealtime())
+        val saved = ratings.rateFinishedGame(game.copy(result=result,resultReason=reason,updated=System.currentTimeMillis()).withClock(clock,SystemClock.elapsedRealtime()))
         db.games().save(saved)
         state.value=s.copy(game=saved,clock=clock,busy=false,engineError=null,hint=null,hintBusy=false,hintFailed=false,
             resultEvent=ResultEvent(result,reason),message="Time expired · $result")

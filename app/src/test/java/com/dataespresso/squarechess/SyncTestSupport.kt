@@ -37,6 +37,12 @@ class MemorySyncStore : SyncStore {
     override fun setPuzzleDays(days: Map<String, Int>) { this.days = days }
     override fun repeatSet() = repeat
     override fun setRepeatSet(set: JSONObject?) { repeat = set }
+    var game: GameRating? = null
+    var history: RatingDays = emptyMap()
+    override fun gameRating() = game
+    override fun setGameRating(rating: GameRating) { game = rating }
+    override fun ratingDays() = history
+    override fun setRatingDays(days: RatingDays) { history = days }
     override fun kvUpdated(key: String) = kvStamps[key] ?: 0
     override fun setKvUpdated(key: String, updated: Long) { kvStamps[key] = updated }
     override fun tombstones() = tombs

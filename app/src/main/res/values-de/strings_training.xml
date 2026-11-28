@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Structured puzzle training. Keys match the web version (site/play/js/i18n.js). -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="course_title">Kurs</string>
     <string name="course_help">Schritt für Schritt, vom Matt in einem Zug bis zum Endspiel</string>
     <string name="course_intro">Siebenundzwanzig kurze Kapitel, vom Matt in einem Zug bis zum Endspiel. Jedes hat zehn Aufgaben, die nach und nach etwas schwerer werden. Arbeite sie der Reihe nach durch oder öffne ein beliebiges Kapitel.</string>
@@ -155,4 +155,27 @@
     <string name="refute_ends">Dieser Zug beendet die Partie: %1$s.</string>
     <string name="refute_show">Zeig es mir</string>
     <string name="refute_hide">Zurück zur Aufgabe</string>
+    <string name="rating_puzzle">Aufgabenwertung</string>
+    <string name="rating_game">Partiewertung</string>
+    <string name="rating_puzzles_count" tools:ignore="UnusedResources">%1$d Offline-Aufgaben · Aufgabenwertung %2$s</string>
+    <string name="rating_puzzle_line" tools:ignore="UnusedResources">Aufgabenwertung %1$s</string>
+    <string name="rating_puzzle_after">Aufgabenwertung %1$s (%2$s)</string>
+    <string name="rating_puzzle_this">Diese Aufgabe hat die Wertung %1$d.</string>
+    <string name="rating_puzzle_seen">Nicht gewertet: Nur der erste Versuch an einer Aufgabe zählt.</string>
+    <string name="rating_puzzle_note" tools:ignore="UnusedResources">Deine Aufgabenwertung steigt, wenn du eine Aufgabe beim ersten Versuch löst, und sinkt, wenn du Hilfe brauchst oder aufgibst. Schwerere Aufgaben bringen mehr Punkte. Jede Aufgabe zählt einmal, beim ersten Versuch.</string>
+    <string name="rating_game_after">Partiewertung %1$s (%2$s)</string>
+    <string name="rating_game_unrated">Diese Partie wurde nicht gewertet.</string>
+    <string name="rating_rated">Gewertete Partie</string>
+    <string name="rating_unrated">Ungewertete Partie</string>
+    <string name="rating_setup_rated">Gewertet: Diese Partie zählt für deine Partiewertung (jetzt %1$s). Ein zurückgenommener Zug oder ein Tipp macht sie ungewertet.</string>
+    <string name="rating_setup_unrated">Ungewertet: Partien mit Bewertung oder aus einer importierten Stellung zählen nicht für deine Wertung.</string>
+    <string name="rating_level">Wertung %1$d</string>
+    <string name="rating_undo_note">Diese Partie zählt dann nicht mehr für deine Wertung.</string>
+    <string name="rating_title">Wertungen</string>
+    <string name="rating_provisional">Ein Fragezeichen bedeutet, dass sich die Wertung noch einpendelt. Bei deinen ersten 20 Ergebnissen ändert sie sich schneller.</string>
+    <string name="rating_history">Wertungen, letzte 30 Tage</string>
+    <string name="rating_history_none">Deine Wertungen erscheinen hier, sobald du Aufgaben löst und gewertete Partien spielst.</string>
+    <string name="rating_games_record">%1$d gewertete Partien · %2$d gewonnen · %3$d remis · %4$d verloren</string>
+    <string name="rating_help_title">Wertungen</string>
+    <string name="rating_help_text">Square Chess führt zwei Wertungen: eine für Aufgaben und eine für Partien gegen den Computer. Beide nutzen die Elo-Formel, die auch Schachverbände verwenden: Gegen einen stärkeren Gegner gewinnst du mehr, gegen einen schwächeren verlierst du mehr. Jede Computerstufe hat eine feste Wertung, von 400 auf Stufe 1 bis 2400 auf Stufe 10. Das sind Schätzungen, deshalb ist deine Partiewertung eine Square-Chess-Wertung und kann von einer FIDE- oder Online-Wertung abweichen. Eine Partie zählt, wenn du aus der normalen Anfangsstellung gegen den Computer spielst, ohne Bewertung, Tipps oder Zugrücknahmen. Aufgeben zählt als Niederlage.</string>
 </resources>

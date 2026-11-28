@@ -183,6 +183,7 @@ class MainActivity: ComponentActivity() {
                 var clockPreset by rememberSaveable { mutableStateOf("Untimed") }
                 var clockPresetMenu by remember { mutableStateOf(false) }
                 var importedFen by rememberSaveable { mutableStateOf<String?>(null) }
+                val ratingPrefs=remember { TrainingPrefs(getSharedPreferences(PuzzleViewModel.PREFS,MODE_PRIVATE)) }
                 // The position editor's board, and whether the new game starts from it.
                 var editorFen by rememberSaveable { mutableStateOf(START_FEN) }
                 var fromEditor by rememberSaveable { mutableStateOf(false) }
@@ -559,7 +560,7 @@ class MainActivity: ComponentActivity() {
                         if(selectedMode==GameMode.COMPUTER) {
                             val shownLevel=level.coerceIn(1,ENGINE_LEVELS.size)
                             val difficultyDescription=stringResource(R.string.difficulty)
-                            Text("${levelLabel(shownLevel)} · ${stringResource(engineLevel(shownLevel).description)}")
+                            Text("${levelLabel(shownLevel)} · ${stringResource(engineLevel(shownLevel).description)} · ${stringResource(R.string.rating_level,levelRating(shownLevel))}")
                             Slider(value=shownLevel.toFloat(),onValueChange={level=it.roundToInt()},valueRange=1f..10f,steps=8,
                                 colors=SliderDefaults.colors(inactiveTrackColor=palette.inactiveTrack),
                                 modifier=Modifier.semantics { contentDescription=difficultyDescription })
@@ -580,6 +581,13 @@ class MainActivity: ComponentActivity() {
                         // Recording a real-board game has no engine help; see recording_help.
                         if(selectedMode!=GameMode.PHYSICAL_BOARD_RECORDING)
                             OptionCheckbox(showEvaluation,{showEvaluation=it},stringResource(R.string.show_evaluation),stringResource(R.string.show_evaluation_help))
+                        // Whether this game will count for the game rating, and why not.
+                        if(selectedMode==GameMode.COMPUTER) {
+                            val rated=!showEvaluation && (importedFen==null || importedFen==START_FEN)
+                            val current=remember(dialog) { ratingPrefs.gameRating }
+                            Text(if(rated) stringResource(R.string.rating_setup_rated,ratingText(current.rating,current.games)) else stringResource(R.string.rating_setup_unrated),
+                                fontSize=13.sp,color=LocalPalette.current.muted,modifier=Modifier.padding(top=4.dp))
+                        }
                         Spacer(Modifier.height(8.dp))
                         if(selectedMode!=GameMode.PHYSICAL_BOARD_RECORDING) Box {
                             val presetName=presetText(clockPreset)
@@ -715,7 +723,7 @@ class MainActivity: ComponentActivity() {
                     AppAlertDialog(onDismissRequest={exportMessage=null},title={Text(stringResource(R.string.export_action))},text={Text(message)},
                         confirmButton={TextButton(onClick={exportMessage=null}){Text(stringResource(R.string.ok))}})
                 }
-                if(dialog=="undo") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.undo_title))},text={Text(stringResource(R.string.undo_text))},confirmButton={TextButton(onClick={vm.undo();dialog=""}){Text(stringResource(R.string.take_back))}},dismissButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.keep_playing))}})
+                if(dialog=="undo") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.undo_title))},text={Text(stringResource(R.string.undo_text)+if(isRatedGame(s.game) && s.game?.result=="*") "\n\n"+stringResource(R.string.rating_undo_note) else "")},confirmButton={TextButton(onClick={vm.undo();dialog=""}){Text(stringResource(R.string.take_back))}},dismissButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.keep_playing))}})
                 if(dialog=="end") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.end_title))},text={Column{ Text(stringResource(R.string.end_text)); listOf(R.string.white_wins to "1-0",R.string.black_wins to "0-1",R.string.draw to "1/2-1/2").forEach{(name,result)->TextButton(onClick={vm.end(result,"Result recorded by the players");dialog=""}){Text(stringResource(name))}} }},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.cancel))}})
                 if(dialog=="history") AppAlertDialog(onDismissRequest={dialog=""},title={Text(stringResource(R.string.moves_title))},text={Column(Modifier.verticalScroll(rememberScrollState())){MoveListSummary(s); if(s.position.moves.isEmpty()) Text(stringResource(R.string.no_moves)) else s.position.san.chunked(2).forEachIndexed { i,pair-> Text("${i+1}.  ${pair.joinToString("    ")}",fontFamily=FontFamily.Monospace,modifier=Modifier.padding(4.dp)) }}},confirmButton={TextButton(onClick={dialog=""}){Text(stringResource(R.string.close))}})
                 if(entryPromotions.isNotEmpty()) PromotionDialog(entryPromotions,
@@ -729,6 +737,14 @@ class MainActivity: ComponentActivity() {
                         text={Column(Modifier.verticalScroll(rememberScrollState())) {
                             Text(reasonText(resources,event.reason))
                             Text(resultScore(resources,event.result,s.game),modifier=Modifier.padding(top=8.dp),fontWeight=FontWeight.Medium)
+                            // Against the computer: what the game did to the game rating, or that it did not count.
+                            val ratedGame=s.game
+                            if(ratedGame?.mode==GameMode.COMPUTER.name) {
+                                val r=ratedGame.rating
+                                val line=if(r!=null) stringResource(R.string.rating_game_after,ratingText(r.after,if(r.provisional) 0 else PROVISIONAL),changeText(r.change))
+                                    else stringResource(R.string.rating_game_unrated)
+                                Text(line,modifier=Modifier.padding(top=4.dp).semantics { contentDescription=line.replace('−','-') })
+                            }
                             if(settings.playful) {
                                 val game=s.game
                                 val playerWon=event.result!="1/2-1/2" && (game?.mode!=GameMode.COMPUTER.name || ((event.result=="1-0")==game.humanWhite))
@@ -1078,7 +1094,8 @@ internal fun historyDate(millis: Long): String =
     val moveCount=game.moves.split(" ").count { it.isNotBlank() }
     val fullMoves=(moveCount+1)/2
     val res=appResources()
-    val result=if(game.result=="*") stringResource(R.string.game_in_progress) else game.result.replace("1/2","½")
+    val result=(if(game.result=="*") stringResource(R.string.game_in_progress) else game.result.replace("1/2","½"))+
+        (game.rating?.let { " · ${changeText(it.change)}" } ?: "")
     val mode=when(game.mode) {
         GameMode.COMPUTER.name -> stringResource(R.string.mode_computer)
         GameMode.LOCAL_TWO_PLAYER.name -> stringResource(R.string.mode_over_board)

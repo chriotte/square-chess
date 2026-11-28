@@ -61,23 +61,10 @@ fun recordAttempt(old: PuzzleProgress?, puzzleId: String, result: AttemptResult,
     )
 }
 
+/** The puzzle rating a new player starts with; stored as "trainingLevel" (see Rating.kt). */
 const val START_TRAINING_LEVEL=1100
 const val MIN_TRAINING_LEVEL=600
 const val MAX_TRAINING_LEVEL=2500
-
-/**
- * The next training level: the puzzle rating the selection aims at. It is not a chess rating.
- * Small steps: up after a solve without help (more for a puzzle above the level), a little
- * down after a solve with help, and more after a puzzle left unsolved.
- */
-fun nextTrainingLevel(level: Int, result: AttemptResult, puzzleRating: Int): Int {
-    val change=when(result) {
-        AttemptResult.FIRST_TRY -> (15+(puzzleRating-level)/20).coerceIn(5,25)
-        AttemptResult.WITH_HELP -> -5
-        AttemptResult.ABANDONED -> -20
-    }
-    return (level+change).coerceIn(MIN_TRAINING_LEVEL,MAX_TRAINING_LEVEL)
-}
 
 /**
  * A new puzzle near [level]: first unseen puzzles within 150 points, then within 300, then any

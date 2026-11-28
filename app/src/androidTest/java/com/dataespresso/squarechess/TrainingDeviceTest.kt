@@ -151,8 +151,8 @@ class TrainingDeviceTest {
             node("Start cycle 2")
         }
         val prefs=context.getSharedPreferences("puzzles",Context.MODE_PRIVATE)
-        // The course and repeat set leave the training level alone; the day count holds all 20.
-        assertFalse(prefs.contains("trainingLevel"))
+        // First attempts move the puzzle rating in every mode; the day count holds all 20.
+        assertTrue(prefs.contains("trainingLevel"))
         assertTrue(prefs.getString("puzzleDays",null)!!.contains(":20"))
         val set=repeatSetFromJson(org.json.JSONObject(prefs.getString("repeatSet",null)!!))!!
         assertEquals(1,set.cycles.size)

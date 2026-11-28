@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Structured puzzle training. Keys match the web version (site/play/js/i18n.js). -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="course_title">Course</string>
     <string name="course_help">Step by step, from mate in one to endgames</string>
     <string name="course_intro">Twenty-seven short chapters, from mate in one to endgames. Each has ten puzzles, getting a little harder as you go. Work through them in order, or open any chapter.</string>
@@ -155,4 +155,27 @@
     <string name="refute_ends">That move ends the game: %1$s.</string>
     <string name="refute_show">Show me</string>
     <string name="refute_hide">Back to the puzzle</string>
+    <string name="rating_puzzle">Puzzle rating</string>
+    <string name="rating_game">Game rating</string>
+    <string name="rating_puzzles_count" tools:ignore="UnusedResources">%1$d offline puzzles · Puzzle rating %2$s</string>
+    <string name="rating_puzzle_line" tools:ignore="UnusedResources">Puzzle rating %1$s</string>
+    <string name="rating_puzzle_after">Puzzle rating %1$s (%2$s)</string>
+    <string name="rating_puzzle_this">This puzzle is rated %1$d.</string>
+    <string name="rating_puzzle_seen">Not rated: only the first try at a puzzle counts.</string>
+    <string name="rating_puzzle_note" tools:ignore="UnusedResources">Your puzzle rating goes up when you solve a puzzle on the first try and down when you need help or give up. Harder puzzles give more points. Each puzzle counts once, the first time you try it.</string>
+    <string name="rating_game_after">Game rating %1$s (%2$s)</string>
+    <string name="rating_game_unrated">This game was not rated.</string>
+    <string name="rating_rated">Rated game</string>
+    <string name="rating_unrated">Unrated game</string>
+    <string name="rating_setup_rated">Rated: this game counts towards your game rating (now %1$s). Taking back a move or using a hint makes it unrated.</string>
+    <string name="rating_setup_unrated">Unrated: games with the evaluation on, or from an imported position, don\'t count towards your rating.</string>
+    <string name="rating_level">rated %1$d</string>
+    <string name="rating_undo_note">This game will no longer count towards your rating.</string>
+    <string name="rating_title">Ratings</string>
+    <string name="rating_provisional">A question mark means the rating is still settling. It moves faster for your first 20 results.</string>
+    <string name="rating_history">Ratings, last 30 days</string>
+    <string name="rating_history_none">Your ratings will show here as you solve puzzles and play rated games.</string>
+    <string name="rating_games_record">%1$d rated games · %2$d won · %3$d drawn · %4$d lost</string>
+    <string name="rating_help_title">Ratings</string>
+    <string name="rating_help_text">Square Chess keeps two ratings: one for puzzles and one for games against the computer. Both use the Elo formula that chess federations use: you gain more for beating a stronger opponent and lose more against a weaker one. Every computer level has a fixed rating, from 400 at level 1 to 2400 at level 10. These are estimates, so your game rating is a Square Chess rating and can differ from a FIDE or online rating. A game counts when you play the computer from the normal starting position, without the evaluation, hints or taking back moves. Resigning counts as a loss.</string>
 </resources>

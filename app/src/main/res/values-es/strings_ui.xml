@@ -385,10 +385,10 @@
     <!-- Puzzles -->
     <string name="puzzles">Problemas</string>
     <string name="puzzles_subtitle">Entrenamiento táctico sin conexión</string>
-    <string name="puzzles_count">%1$d problemas sin conexión · Nivel de entrenamiento %2$d</string>
+    <string name="puzzles_count">%1$d problemas sin conexión · Puntuación de problemas %2$s</string>
     <string name="puzzle_loading">Cargando problemas…</string>
     <string name="puzzle_continue">Seguir entrenando</string>
-    <string name="puzzle_continue_help">Problemas nuevos cerca de tu nivel de entrenamiento</string>
+    <string name="puzzle_continue_help">Problemas nuevos cerca de tu puntuación</string>
     <string name="puzzle_quick">5 rápidos</string>
     <string name="puzzle_quick_help">Cinco problemas y luego un breve resumen</string>
     <string name="puzzle_review">Repasar errores</string>
@@ -405,7 +405,7 @@
     <string name="puzzle_progress_attempted">Problemas intentados: %1$d</string>
     <string name="puzzle_progress_first">Resueltos al primer intento: %1$d</string>
     <string name="puzzle_progress_help">Resueltos con ayuda: %1$d</string>
-    <string name="puzzle_level_note">El nivel de entrenamiento decide la dificultad de los próximos problemas. No es un Elo de ajedrez.</string>
+    <string name="puzzle_level_note">Tu puntuación de problemas sube cuando resuelves un problema al primer intento y baja cuando necesitas ayuda o te rindes. Los problemas más difíciles dan más puntos. Cada problema cuenta una vez, la primera vez que lo intentas.</string>
     <string name="note_no_review_due">No hay problemas pendientes de repaso. Los problemas que resuelvas con un error o una pista vuelven aquí.</string>
     <string name="note_review_done">Repaso terminado. No quedan problemas pendientes ahora.</string>
     <string name="note_no_puzzle">Ningún problema coincide. Prueba otro tema.</string>
@@ -417,7 +417,7 @@
     <string name="puzzle_wrong">Casi · inténtalo de nuevo</string>
     <string name="puzzle_solved">Problema resuelto</string>
     <string name="puzzle_rating">Valoración del problema %1$d</string>
-    <string name="puzzle_mode_training">Nivel de entrenamiento %1$d</string>
+    <string name="puzzle_mode_training">Puntuación de problemas %1$s</string>
     <string name="puzzle_mode_quick">5 rápidos · problema %1$d de %2$d</string>
     <string name="puzzle_next">Siguiente</string>
     <string name="puzzle_results">Resultados</string>

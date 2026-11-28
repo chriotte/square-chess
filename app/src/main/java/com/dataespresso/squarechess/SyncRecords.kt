@@ -23,6 +23,8 @@ data class SyncRecord(val kind: String, val id: String, val updated: Long, val d
         const val PUZZLE_GOAL = "puzzleGoal"
         const val PUZZLE_DAYS = "puzzleDays"
         const val REPEAT_SET = "repeatSet"
+        const val GAME_RATING = "gameRating"
+        const val RATING_DAYS = "ratingDays"
         /** The server accepts these ids; anything else is skipped there, so it is skipped here too. */
         private val ID = Regex("^[A-Za-z0-9_.:-]{1,80}$")
 
@@ -62,6 +64,12 @@ fun SavedGame.toSyncData(base: JSONObject? = null): JSONObject {
         .put("clock", clock?.toSyncJson(base?.optJSONObject("clock")).orNull())
         .put("hintsEnabled", hintsEnabled).put("evaluationEnabled", evaluationEnabled)
         .put("evaluations", evaluations)
+        .put("unrated", unrated)
+    // The server caps the game rating leaderboard with these: never drop a rating the game has.
+    rating?.let { r ->
+        json.put("rating", copyOf(base?.optJSONObject("rating")).put("before", r.before).put("after", r.after)
+            .put("change", r.change).put("opponent", r.opponent).put("provisional", r.provisional))
+    }
     return json
 }
 
@@ -116,8 +124,9 @@ fun savedGameFromSync(id: String, updated: Long, data: JSONObject): SavedGame? =
         orientationFlipped = data.boolOrNull("orientationFlipped"),
         hintsEnabled = data.boolOrNull("hintsEnabled") ?: false,
         evaluationEnabled = data.boolOrNull("evaluationEnabled") ?: false,
-        evaluations = data.stringOrNull("evaluations").orEmpty()
-    ).withClock(clock, 0)
+        evaluations = data.stringOrNull("evaluations").orEmpty(),
+        unrated = data.boolOrNull("unrated") ?: false
+    ).withRating(data.optJSONObject("rating")?.let(::ratingChangeFromSync)).withClock(clock, 0)
 }.getOrNull()
 
 fun PuzzleProgress.toSyncData(base: JSONObject? = null): JSONObject = copyOf(base)
@@ -144,6 +153,22 @@ fun puzzleProgressFromSync(id: String, updated: Long, data: JSONObject): PuzzleP
 fun trainingLevelToSyncData(level: Int, base: JSONObject? = null): JSONObject = copyOf(base).put("value", level)
 fun trainingLevelFromSync(data: JSONObject): Int? =
     data.intOrNull("value")?.takeIf { it in MIN_TRAINING_LEVEL..MAX_TRAINING_LEVEL }
+
+private fun ratingChangeFromSync(r: JSONObject): GameRatingChange? {
+    return GameRatingChange(r.intOrNull("before") ?: return null, r.intOrNull("after") ?: return null,
+        r.intOrNull("change") ?: return null, r.intOrNull("opponent") ?: return null, r.boolOrNull("provisional") ?: false)
+}
+
+/** `{"value": {rating, games, wins, draws, losses}}`, written over [base] so unknown fields survive. */
+fun gameRatingToSyncData(g: GameRating, base: JSONObject? = null): JSONObject {
+    val value = copyOf(base?.optJSONObject("value"))
+    val fresh = g.toJson()
+    for (k in fresh.keys()) value.put(k, fresh.get(k))
+    return copyOf(base).put("value", value)
+}
+fun gameRatingFromSync(data: JSONObject): GameRating? = gameRatingFromJson(data.optJSONObject("value"))
+fun ratingDaysToSyncData(days: RatingDays, base: JSONObject? = null): JSONObject = copyOf(base).put("value", ratingDaysToJson(days))
+fun ratingDaysFromSync(data: JSONObject): RatingDays = ratingDaysFromJson(data.optJSONObject("value"))
 
 fun puzzleGoalToSyncData(goal: Int, base: JSONObject? = null): JSONObject = copyOf(base).put("value", goal)
 fun puzzleGoalFromSync(data: JSONObject): Int? = data.intOrNull("value")?.takeIf { it in PUZZLE_GOALS }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Structured puzzle training. Keys match the web version (site/play/js/i18n.js). -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="course_title">课程</string>
     <string name="course_help">循序渐进，从一步杀到残局</string>
     <string name="course_intro">二十七个短章节，从一步杀到残局。每章十道谜题，逐渐变难。可以按顺序练习，也可以打开任意章节。</string>
@@ -155,4 +155,27 @@
     <string name="refute_ends">这一步结束了对局：%1$s。</string>
     <string name="refute_show">演示给我看</string>
     <string name="refute_hide">返回谜题</string>
+    <string name="rating_puzzle">谜题等级分</string>
+    <string name="rating_game">对局等级分</string>
+    <string name="rating_puzzles_count" tools:ignore="UnusedResources">%1$d 道离线谜题 · 谜题等级分 %2$s</string>
+    <string name="rating_puzzle_line" tools:ignore="UnusedResources">谜题等级分 %1$s</string>
+    <string name="rating_puzzle_after">谜题等级分 %1$s（%2$s）</string>
+    <string name="rating_puzzle_this">这道谜题的等级分是 %1$d。</string>
+    <string name="rating_puzzle_seen">不计分：每道谜题只有第一次尝试计分。</string>
+    <string name="rating_puzzle_note" tools:ignore="UnusedResources">首次即解出谜题时，谜题等级分会上升；需要帮助或放弃时会下降。越难的谜题分数越多。每道谜题只在第一次尝试时计分一次。</string>
+    <string name="rating_game_after">对局等级分 %1$s（%2$s）</string>
+    <string name="rating_game_unrated">这局棋不计分。</string>
+    <string name="rating_rated">计分对局</string>
+    <string name="rating_unrated">不计分对局</string>
+    <string name="rating_setup_rated">计分：这局棋会计入你的对局等级分（当前 %1$s）。悔棋或使用提示后将不再计分。</string>
+    <string name="rating_setup_unrated">不计分：开启评估或从导入局面开始的对局不计入等级分。</string>
+    <string name="rating_level">等级分 %1$d</string>
+    <string name="rating_undo_note">这局棋将不再计入你的等级分。</string>
+    <string name="rating_title">等级分</string>
+    <string name="rating_provisional">问号表示等级分仍在稳定中。在你的前 20 个结果中，它变化得更快。</string>
+    <string name="rating_history">等级分，最近 30 天</string>
+    <string name="rating_history_none">当你解谜题、下计分对局时，等级分会显示在这里。</string>
+    <string name="rating_games_record">计分对局 %1$d 局 · 胜 %2$d · 和 %3$d · 负 %4$d</string>
+    <string name="rating_help_title">等级分</string>
+    <string name="rating_help_text">Square Chess 有两个等级分：一个用于谜题，一个用于与电脑的对局。两者都使用国际象棋协会采用的 Elo 公式：战胜更强的对手得分更多，输给更弱的对手失分更多。每个电脑级别都有固定的等级分，从 1 级的 400 到 10 级的 2400。这些只是估计值，所以你的对局等级分是 Square Chess 等级分，可能与 FIDE 或网络等级分不同。只有从标准初始局面与电脑对弈、且不使用评估、提示或悔棋时，对局才计分。认输算作输棋。</string>
 </resources>

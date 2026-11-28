@@ -386,10 +386,10 @@
     <!-- Puzzles -->
     <string name="puzzles">Puzzles</string>
     <string name="puzzles_subtitle">Offline tactical training</string>
-    <string name="puzzles_count">%1$d offline puzzles · Training level %2$d</string>
+    <string name="puzzles_count">%1$d offline puzzles · Puzzle rating %2$s</string>
     <string name="puzzle_loading">Loading puzzles…</string>
     <string name="puzzle_continue">Continue training</string>
-    <string name="puzzle_continue_help">New puzzles near your training level</string>
+    <string name="puzzle_continue_help">New puzzles near your puzzle rating</string>
     <string name="puzzle_quick">Quick 5</string>
     <string name="puzzle_quick_help">Five puzzles, then a short summary</string>
     <string name="puzzle_review">Review mistakes</string>
@@ -406,7 +406,7 @@
     <string name="puzzle_progress_attempted">Puzzles tried: %1$d</string>
     <string name="puzzle_progress_first">Solved first try: %1$d</string>
     <string name="puzzle_progress_help">Solved with help: %1$d</string>
-    <string name="puzzle_level_note">The training level sets how hard the next puzzles are. It is not a chess rating.</string>
+    <string name="puzzle_level_note">Your puzzle rating goes up when you solve a puzzle on the first try and down when you need help or give up. Harder puzzles give more points. Each puzzle counts once, the first time you try it.</string>
     <string name="note_no_review_due">No puzzles are due for review. Puzzles that you solve with a mistake or a hint come back here.</string>
     <string name="note_review_done">Review done. No more puzzles are due now.</string>
     <string name="note_no_puzzle">No puzzle matches. Try another theme.</string>
@@ -418,7 +418,7 @@
     <string name="puzzle_wrong">Not quite · try again</string>
     <string name="puzzle_solved">Puzzle solved</string>
     <string name="puzzle_rating">Puzzle rating %1$d</string>
-    <string name="puzzle_mode_training">Training level %1$d</string>
+    <string name="puzzle_mode_training">Puzzle rating %1$s</string>
     <string name="puzzle_mode_quick">Quick 5 · puzzle %1$d of %2$d</string>
     <string name="puzzle_next">Next</string>
     <string name="puzzle_results">Results</string>
