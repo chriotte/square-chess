@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.7.0
+- Puzzle course: 27 short chapters of ten puzzles, from mate in one to endgames, with stars and a tip for each chapter.
+- More ways to train puzzles: 29 single themes (fork, pin, back-rank mate and more), repeat sets of 10, 20 or 50 puzzles solved again and again with a time for each cycle, and a daily goal with a streak.
+- After a wrong move in a puzzle, the app explains why it fails ("After d5, Black plays Bxf8. Black winning.") and can show the reply on the board.
+- Progress by theme: puzzles per day, the themes to practise, and first-try accuracy for every theme.
+- Ratings: a puzzle rating (it replaces the training level, so you keep your number) and a game rating for games against the computer. Each computer level has an estimated rating. Only a puzzle's first try counts; a game counts when it starts from the normal position without the evaluation, hints or taking back moves. A chart shows both ratings over 30 days. These are Square Chess ratings, not FIDE or online ratings.
+- Optional sign-in to sync with squarechess.org (Settings → Sign in to sync): games, puzzle progress, ratings and your buddy on every device. The app now has the Internet permission for this, and uses it only after you sign in. Without an account, nothing leaves your device. Signing in happens in your browser; the app never sees your password. You can delete the account from the app or on the website.
+- Backups: save and restore all your games, puzzle progress and settings as one file, without an account.
+- The end of a game and a solved puzzle are clearer: the header keeps the result ("You won · Checkmate"), and a solved puzzle says so in large type with a Next button.
+
 ## 1.6.0 — 22 November 2026
 - Playful extras (Settings, off by default): colourful worlds (Forest, Banana Jungle, Ocean and Space) that colour the board and the screens, and a buddy to choose: Little Robot, Magnus, the Girl, the Princess, Monkey, Sloth or Bob. The buddy cheers when you solve a puzzle, cries and says "try again" after a wrong move, and on bigger screens comments on games against the computer ("The computer played Nf3. Your move."). It sits beside or below the board and never makes the board smaller.
 - Stickers for things you do (your first checkmate, puzzle streaks, winning against higher levels and more) unlock hats, things to hold, pets (every chess piece, the Lava Monster, Little Frosty and more) and other items. Magnus, the Girl and the Princess can have their skin tone and hair colour chosen; colours are never locked. "Unlock all items" lets you wear everything at once.

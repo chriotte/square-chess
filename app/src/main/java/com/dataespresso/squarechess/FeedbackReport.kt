@@ -2,7 +2,7 @@ package com.dataespresso.squarechess
 
 object SupportConfig {
     const val email = "support@dataespresso.com"
-    val privacyPolicyUrl: String? = "https://dataespresso.com/en/square-chess-privacy/"
+    val privacyPolicyUrl: String? = "https://squarechess.org/privacy"
     val playListingUrl: String? = "https://play.google.com/store/apps/details?id=com.dataespresso.squarechess"
     const val websiteUrl = "https://squarechess.org"
 }

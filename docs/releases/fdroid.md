@@ -4,7 +4,7 @@ F-Droid builds Square Chess from the tagged source and, because the build is rep
 
 ## Recipe
 
-`.fdroid.yml` (repository root) is the metadata file for [fdroiddata](https://gitlab.com/fdroid/fdroiddata) (`metadata/com.dataespresso.squarechess.yml` there). The store text, images and changelogs come from `fastlane/metadata/android/en-US/` in this repository.
+`.fdroid.yml` (repository root) is a copy of the published metadata file in [fdroiddata](https://gitlab.com/fdroid/fdroiddata) (`metadata/com.dataespresso.squarechess.yml` there). The store text, images and changelogs come from `fastlane/metadata/android/en-US/` in this repository.
 
 - F-Droid builds `app` with Gradle (release, unsigned) and NDK 28.2.13676358.
 - `Binaries` points to the GitHub release APK; F-Droid compares it with its own build and, when they match apart from the signature, publishes our signed APK. `AllowedAPKSigningKeys` is the standalone key's certificate SHA-256 (`docs/releases/signing.md`).
@@ -29,3 +29,17 @@ The first version with all fixes is 1.0.7; 1.0.6 is reproducible only with JDK 1
 1. Create a GitLab account and fork `fdroid/fdroiddata`.
 2. Add the recipe as `metadata/com.dataespresso.squarechess.yml` on a new branch.
 3. Open a merge request titled "New app: Square Chess". The fdroiddata CI runs `fdroid lint` and a test build; reviewers then check the app by hand.
+
+## 1.7.0: Internet permission and sign-in
+
+1.7.0 adds `android.permission.INTERNET` for the optional squarechess.org sign-in and sync. Nothing
+is sent until the player signs in. F-Droid picks up the `v1.7.0` tag by itself
+(`AutoUpdateMode: Version`), so no merge request is needed for the version.
+
+- **Anti-feature `NonFreeNet`:** F-Droid adds it to apps that rely on a network service whose code
+  is not free software. If the squarechess.org server code is public under a free licence when
+  1.7.0 is tagged, the app does not need it. If not, expect a reviewer to add
+  `AntiFeatures: NonFreeNet` to the metadata; the app still ships, with that label.
+- Once the server repository is public, mention its address in the merge request or an issue on
+  the app's fdroiddata metadata, so reviewers can check the service is free software.
+- The changelog (`fastlane/.../changelogs/17.txt`) names the new permission and why.

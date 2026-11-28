@@ -7,7 +7,7 @@ Package `com.dataespresso.squarechess`, developer DataEspresso. Free, all countr
 The title, descriptions, icon, feature graphic and screenshots are in `fastlane/metadata/android/en-US/` — the same files F-Droid uses. `scripts/play/play_listing.py` uploads them to Play (listing language en-GB). Edit the files, not Play Console, so both stores stay the same. After an edit in Play Console, `scripts/play/play_pull_listing.py` copies the listing text back into these files.
 
 - Category: Game › Board. Contact: support@dataespresso.com, https://dataespresso.com/
-- Privacy policy: https://dataespresso.com/en/square-chess-privacy/ (text: `PRIVACY_POLICY.md`)
+- Privacy policy: https://squarechess.org/privacy (text: `PRIVACY_POLICY.md`; until 1.6.0 it was on dataespresso.com)
 - Do not name third-party phone brands in the listing (Play metadata policy); describe the screen shape instead.
 
 ## App content answers
@@ -17,7 +17,7 @@ The title, descriptions, icon, feature graphic and screenshots are in `fastlane/
 - **Content rating (IARC):** game, board/strategy; no violence, sexuality, language, drugs, gambling, user-generated content or location sharing.
 - **Target audience:** 13 and older (under-13 adds Families policy requirements).
 - **News, government, financial features, health:** no.
-- **Data safety:** no data collected or shared. The app has no Internet permission; games and settings stay on the device. Exports and bug reports leave the device only when the user sends them through an app the user chooses.
+- **Data safety:** from 1.7.0 the app collects data only when the player signs in to the optional squarechess.org account (see "Release checklist" in `docs/development/sign-in-sync.md`). Up to 1.6.0: no data collected or shared, no Internet permission.
 
 ## Releases
 

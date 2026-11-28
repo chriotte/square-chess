@@ -13,12 +13,29 @@ AutoName: Square Chess
 
 RepoType: git
 Repo: https://github.com/chriotte/square-chess.git
-Binaries: https://github.com/chriotte/square-chess/releases/download/v%v/Square-Chess-v%v.apk
+Binaries: 
+  https://github.com/chriotte/square-chess/releases/download/v%v/Square-Chess-v%v.apk
 
 Builds:
   - versionName: 1.4.1
     versionCode: 14
-    commit: 9721277d2e37f3a5308d33146ab6ac41f1e762f5
+    commit: c79a6de2e5dec4d6cf2668511b3559673e3bc17a
+    subdir: app
+    gradle:
+      - yes
+    ndk: 28.2.13676358
+
+  - versionName: 1.5.0
+    versionCode: 15
+    commit: b30d0b408cfeb4f192872cd8ef983990f9ac84f8
+    subdir: app
+    gradle:
+      - yes
+    ndk: 28.2.13676358
+
+  - versionName: 1.6.0
+    versionCode: 16
+    commit: f31fd4968559199323c42f0b6487b3901fd4b81b
     subdir: app
     gradle:
       - yes
@@ -28,5 +45,5 @@ AllowedAPKSigningKeys: e6302c95f0da65d8f27c80c82d4b82c979af75bbc1ea383547cd079ec
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[0-9.]+$
-CurrentVersion: 1.4.1
-CurrentVersionCode: 14
+CurrentVersion: 1.6.0
+CurrentVersionCode: 16

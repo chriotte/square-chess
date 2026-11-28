@@ -28,7 +28,7 @@ Square Chess makes the chessboard as large as possible and fits the interface ar
 - **Square & compact screens** — designed around unusual screen shapes instead of assuming a tall phone.
 - **E-ink displays** — dedicated black-and-white mode with hatched squares, shape-based highlights and no animations.
 - **Physical keyboards** — play by typing moves such as `e4`, `Nf3`, `O-O` or `e2e4`.
-- **Offline & private** — no account, no ads, no analytics and no Internet permission.
+- **Offline & private** — no ads, no analytics, and no account needed. Sign-in to sync is optional.
 
 It also works normally on conventional Android phones and tablets.
 
@@ -67,13 +67,13 @@ Playful extras are off by default, the buddy never makes the board smaller, and 
 
 ## Private and offline
 
-Everything runs locally on your device.
+Everything runs locally on your device, and the app works fully offline.
 
-**No ads. No account. No analytics. No Internet permission.**
+**No ads. No analytics. No account needed.**
 
-Your games and settings stay on your device.
+You can sign in to an optional squarechess.org account to sync games, puzzles and ratings between devices. The app uses the Internet permission only for that, and only after you sign in. Without an account, your games and settings stay on your device, and you can still save everything to a backup file.
 
-See the [privacy policy](PRIVACY_POLICY.md).
+See the [privacy policy](PRIVACY_POLICY.md) (also at [squarechess.org/privacy](https://squarechess.org/privacy)).
 
 ## Installation
 
