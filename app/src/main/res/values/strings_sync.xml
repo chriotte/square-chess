@@ -7,7 +7,7 @@
     <string name="sync_intro">With a free squarechess.org account, your games, puzzle progress and buddy stay the same on your phone, tablet and the website. Square Chess works fully without an account, and nothing is sent until you sign in.</string>
     <string name="sync_sign_in">Sign in with squarechess.org</string>
     <string name="sync_signing_in">Finish signing in with your browser, then come back here.</string>
-    <string name="sync_what_is_sent">Signing in opens squarechess.org in your browser, so you type your password there, not in Square Chess. After that, your games, puzzle progress, training level, buddy, clothes and world are synced, with this device\'s model name for your list of signed-in devices.</string>
+    <string name="sync_what_is_sent">Signing in opens squarechess.org in your browser, so you type your password there, not in Square Chess. After that, your games, puzzle progress, puzzle and game ratings, daily goal, repeat set, buddy, clothes and world are synced, with this device\'s model name for your list of signed-in devices.</string>
     <string name="sync_signed_in_as">Signed in as %1$s</string>
     <string name="sync_last">Last synced: %1$s</string>
     <string name="sync_never">Not synced yet</string>

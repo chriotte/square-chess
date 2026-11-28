@@ -6,7 +6,7 @@
     <string name="sync_intro">Avec un compte gratuit sur squarechess.org, vos parties, votre progression dans les problèmes et votre compagnon restent les mêmes sur votre téléphone, votre tablette et le site web. Square Chess fonctionne entièrement sans compte, et rien n’est envoyé avant que vous vous connectiez.</string>
     <string name="sync_sign_in">Se connecter avec squarechess.org</string>
     <string name="sync_signing_in">Terminez la connexion dans votre navigateur, puis revenez ici.</string>
-    <string name="sync_what_is_sent">La connexion ouvre squarechess.org dans votre navigateur : vous y saisissez votre mot de passe, pas dans Square Chess. Ensuite, vos parties, votre progression dans les problèmes, votre niveau d’entraînement, votre compagnon, ses vêtements et votre monde sont synchronisés, avec le nom du modèle de cet appareil pour votre liste d’appareils connectés.</string>
+    <string name="sync_what_is_sent">La connexion ouvre squarechess.org dans votre navigateur : vous y saisissez votre mot de passe, pas dans Square Chess. Ensuite, vos parties, votre progression dans les problèmes, vos classements problèmes et parties, votre objectif du jour, votre série à répéter, votre compagnon, ses vêtements et votre monde sont synchronisés, avec le nom du modèle de cet appareil pour votre liste d’appareils connectés.</string>
     <string name="sync_signed_in_as">Connecté en tant que %1$s</string>
     <string name="sync_last">Dernière synchronisation : %1$s</string>
     <string name="sync_never">Pas encore synchronisé</string>

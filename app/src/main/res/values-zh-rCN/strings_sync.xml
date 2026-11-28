@@ -6,7 +6,7 @@
     <string name="sync_intro">有了免费的 squarechess.org 账号，你的对局、谜题进度和小伙伴在手机、平板和网站上都保持一致。Square Chess 无需账号即可完整使用，在你登录之前不会发送任何内容。</string>
     <string name="sync_sign_in">使用 squarechess.org 登录</string>
     <string name="sync_signing_in">请在浏览器中完成登录，然后回到这里。</string>
-    <string name="sync_what_is_sent">登录会在浏览器中打开 squarechess.org，你在那里输入密码，而不是在 Square Chess 中。之后会同步你的对局、谜题进度、训练等级、小伙伴、服装和世界，以及本设备的型号名称（用于你的已登录设备列表）。</string>
+    <string name="sync_what_is_sent">登录会在浏览器中打开 squarechess.org，你在那里输入密码，而不是在 Square Chess 中。之后会同步你的对局、谜题进度、谜题和对局等级分、每日目标、重复练习组、小伙伴、服装和世界，以及本设备的型号名称（用于你的已登录设备列表）。</string>
     <string name="sync_signed_in_as">已登录：%1$s</string>
     <string name="sync_last">上次同步：%1$s</string>
     <string name="sync_never">尚未同步</string>

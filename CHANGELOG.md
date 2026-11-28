@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.7.0
+## 1.7.0 — 28 November 2026
 - Puzzle course: 27 short chapters of ten puzzles, from mate in one to endgames, with stars and a tip for each chapter.
 - More ways to train puzzles: 29 single themes (fork, pin, back-rank mate and more), repeat sets of 10, 20 or 50 puzzles solved again and again with a time for each cycle, and a daily goal with a streak.
 - After a wrong move in a puzzle, the app explains why it fails ("After d5, Black plays Bxf8. Black winning.") and can show the reply on the board.

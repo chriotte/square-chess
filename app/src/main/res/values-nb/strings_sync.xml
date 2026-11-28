@@ -6,7 +6,7 @@
     <string name="sync_intro">Med en gratis konto på squarechess.org blir partiene, oppgavefremgangen og kompisen din de samme på telefonen, nettbrettet og nettstedet. Square Chess fungerer fullt ut uten konto, og ingenting sendes før du logger inn.</string>
     <string name="sync_sign_in">Logg inn med squarechess.org</string>
     <string name="sync_signing_in">Fullfør innloggingen i nettleseren, og kom så tilbake hit.</string>
-    <string name="sync_what_is_sent">Innloggingen åpner squarechess.org i nettleseren, så du skriver passordet der og ikke i Square Chess. Etterpå synkroniseres partiene, oppgavefremgangen, treningsnivået, kompisen, klærne og verdenen din, sammen med modellnavnet til denne enheten for listen over innloggede enheter.</string>
+    <string name="sync_what_is_sent">Innloggingen åpner squarechess.org i nettleseren, så du skriver passordet der og ikke i Square Chess. Etterpå synkroniseres partiene, oppgavefremgangen, oppgave- og partiratingen, dagsmålet, repetisjonssettet, kompisen, klærne og verdenen din, sammen med modellnavnet til denne enheten for listen over innloggede enheter.</string>
     <string name="sync_signed_in_as">Logget inn som %1$s</string>
     <string name="sync_last">Sist synkronisert: %1$s</string>
     <string name="sync_never">Ikke synkronisert ennå</string>
