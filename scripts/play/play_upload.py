@@ -15,6 +15,9 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
 PACKAGE = "com.dataespresso.squarechess"
+# SQUARECHESS_PLAY_HOLD=1 keeps the committed changes out of review until they are sent from Play
+# Console ("Send changes for review"), so a release, its listing and App content changes go together.
+HOLD = {"changesNotSentForReview": True} if os.environ.get("SQUARECHESS_PLAY_HOLD") == "1" else {}
 KEY = os.environ.get("SQUARECHESS_PLAY_KEY", str(Path.home() / "SquareChessSigning" / "play-service-account.json"))
 
 bundle, track, notes = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -35,7 +38,7 @@ try:
                           "releaseNotes": [{"language": "en-GB", "text": notes}]}],
         }).execute()
     edits.validate(packageName=PACKAGE, editId=eid).execute()
-    print("committed", edits.commit(packageName=PACKAGE, editId=eid).execute()["id"], "to", track)
+    print("committed", edits.commit(packageName=PACKAGE, editId=eid, **HOLD).execute()["id"], "to", track)
 except Exception:
     edits.delete(packageName=PACKAGE, editId=eid).execute()
     raise

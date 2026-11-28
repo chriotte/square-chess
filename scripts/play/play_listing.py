@@ -14,6 +14,9 @@ from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 
 PACKAGE = "com.dataespresso.squarechess"
+# SQUARECHESS_PLAY_HOLD=1 keeps the committed changes out of review until they are sent from Play
+# Console ("Send changes for review"), so a release, its listing and App content changes go together.
+HOLD = {"changesNotSentForReview": True} if os.environ.get("SQUARECHESS_PLAY_HOLD") == "1" else {}
 LANG = "en-GB"
 KEY = os.environ.get("SQUARECHESS_PLAY_KEY", str(Path.home() / "SquareChessSigning" / "play-service-account.json"))
 META = Path(__file__).resolve().parents[2] / "fastlane" / "metadata" / "android" / "en-US"
@@ -49,7 +52,7 @@ try:
     replace("featureGraphic", [IMAGES / "featureGraphic.png"])
     replace("phoneScreenshots", sorted((IMAGES / "phoneScreenshots").glob("*.png"), key=lambda p: int(p.stem)))
     edits.validate(packageName=PACKAGE, editId=eid).execute()
-    print("committed edit", edits.commit(packageName=PACKAGE, editId=eid).execute().get("id"))
+    print("committed edit", edits.commit(packageName=PACKAGE, editId=eid, **HOLD).execute().get("id"))
 except HttpError as e:
     print("FAILED:", e.status_code, e.content.decode()[:1500])
     edits.delete(packageName=PACKAGE, editId=eid).execute()
